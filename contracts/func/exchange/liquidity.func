@@ -114,13 +114,15 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
   int ton_share = (ton_reserve * lp_amount) / lp_supply;
   int jetton_share = (jetton_reserve * lp_amount) / lp_supply;
 
-  lp_supply -= lp_amount;
+  accumulate_price();
+  kLast = ton_reserve * jetton_reserve;
   ton_reserve -= ton_share;
   jetton_reserve -= jetton_share;
+  mint_fee();
+  lp_supply -= lp_amount;
 
-  ;; TODO!
-  ;; send_jettons(token_address, from_address, jetton_share, query_id);
-  ;; send_tons(from_address, ton_share);
+  builder body = begin_cell().store_uint(0, 1).store_coins(ton_share);
+  send_jettons(sender_address, jetton_amount_out, 40000000, body, 3);
 
   slice response_address = in_msg_body~load_msg_addr();
   if (response_address.preload_uint(2) != 0) {
