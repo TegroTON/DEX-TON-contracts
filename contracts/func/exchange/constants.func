@@ -1,0 +1,32 @@
+;; operation codes
+int op::install() asm "1337 PUSHINT";
+int op::transfer() asm "0xf8a7ea5 PUSHINT";
+int op::transfer_notification() asm "0x7362d09c PUSHINT";
+int op::swap_to_jetton() asm "1 PUSHINT"; ;; TON -> JETTON (or jetton1 -> jetton2 in the future)
+int op::swap_to_ton() asm "2 PUSHINT"; ;; JETTON -> TON (or jetton2 -> jetton1)
+int op::add_liquidity() asm "3 PUSHINT";
+int op::remove_liquidity() asm "0x7bdd97de PUSHINT"; ;; == op::burn_notification() in jetton's
+;; for jetton and lp
+int op::internal_transfer() asm "0x178d4519 PUSHINT";
+int op::excesses() asm "0xd53276db PUSHINT";
+
+;; config constants
+int cfg::minimum_liquidity() asm "1000 PUSHINT";
+int cfg::for_storage_fee() asm "100000000 PUSHINT";
+
+;; fees
+int fee::mint_lp() asm "125000000 PUSHINT";
+int fee::remove_lp() asm "100000000 PUSHINT";
+int fee::swap_to_jetton() asm "100000000 PUSHINT";
+int fee::swap_to_ton() asm "100000000 PUSHINT";
+
+;; error codes
+int error::insufficient_ton() asm "40 PUSHINT";
+int error::insufficient_liquidity_mint() asm "41 PUSHINT";
+int error::insufficient_liquidity() asm "41 PUSHINT";
+int error::insufficient_amount() asm "420 PUSHINT";
+int error::insufficient_ton_amount() asm "421 PUSHINT";
+int error::insufficient_jetton_amount() asm "422 PUSHINT";
+int error::insufficient_output_amount() asm "43 PUSHINT";
+int error::invalid_amount() asm "44 PUSHINT";
+int error::invalid_address() asm "45 PUSHINT";

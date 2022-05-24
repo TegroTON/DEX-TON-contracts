@@ -1,0 +1,48 @@
+builder store_builder(builder b, builder b2) asm(b2 b) "STB";
+int equal_slices (slice a, slice b) asm "SDEQ";
+
+
+;; body schema:
+;; <b 0 1 u, AMOUNT Grams, BODY s,
+() send_jettons(slice user_address, int jetton_amount, int ton_amount, builder body, int mode) impure inline {
+  builder msg_body = begin_cell()
+    .store_uint(op::transfer(), 32)
+    .store_uint(cur_lt(), 64)
+    .store_coins(jetton_amount)
+    .store_slice(user_address)
+    .store_slice(user_address);
+  ifnot (null?(body)) {
+    msg_body = msg_body.store_builder(body);
+  } else {
+    msg_body = msg_body.store_uint(0, 1 + 4 + 1); ;; empty dict, 0 coins, 0 either_forward_payload
+  }
+
+  builder msg = begin_cell()
+    .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 011000
+    .store_slice(jetton_wallet)
+    .store_coins(ton_amount) ;; ~0.05 TON
+    .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+    .store_ref(msg_body.end_cell());
+
+  send_raw_message(msg.end_cell(), mode);
+}
+
+() send_tons(slice to_address, int ton_amount, builder body, int mode) impure inline {
+  var message = begin_cell()
+    .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 011000
+    .store_slice(to_address)
+    .store_coins(ton_amount)
+    .store_uint(0, 107);
+  ifnot (null?(body)) {
+    message = message.store_builder(body);
+  } else {
+    message = message.store_uint(0, 32);
+  }
+  send_raw_message(message.end_cell(), null?(mode) ? 3 : mode); ;; ignore errors
+}
+
+;; bounce in error or other cases
+() return_jettons(slice address, int ton_amount, int jetton_amount) impure inline {
+  builder msg_body = begin_cell().store_uint(0, 1).store_coins(ton_amount).store_uint(0, 32);
+  send_jettons(address, jetton_amount, 40000000, msg_body, 3);
+}

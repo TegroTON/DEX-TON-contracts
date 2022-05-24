@@ -1,0 +1,123 @@
+
+int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inline {
+  throw_if(error::insufficient_amount(), in_amount == 0);
+  throw_if(error::insufficient_liquidity(), (in_reserve == 0) | (out_reserve == 0));
+  return muldiv(in_amount, out_reserve, in_reserve);
+}
+
+
+() mint_lp(int amount, slice address) impure inline {
+  cell state_init = calculate_jetton_wallet_state_init(address, my_address(), lp_wallet_code);
+  slice to_wallet_address = calculate_jetton_wallet_address(state_init);
+  var msg = begin_cell()
+    .store_uint(0x18, 6)
+    .store_slice(to_wallet_address)
+    .store_coins(35000000)
+    .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1)
+    .store_ref(state_init)
+    .store_ref(begin_cell()
+      .store_uint(op::internal_transfer(), 32)
+      .store_uint(cur_lt(), 64)
+      .store_coins(amount)
+    .end_cell());
+  send_raw_message(msg.end_cell(), 3);
+}
+
+
+() add_liquidity(int ton_amount, int jetton_amount, slice user_address, slice in_msg_body) impure {
+  ton_amount -= fee::mint_lp();
+  ;; TODO remove throw_if
+  throw_if(error::insufficient_ton(), ton_amount <= 0);
+
+  int min_ton_amount = in_msg_body~load_coins();
+  int min_jetton_amount = in_msg_body~load_coins();
+
+  int change_ton_amount = 0;
+  int change_jetton_amount = 0;
+  int liquidity = 0;
+
+  if (lp_supply == 0) { ;; or (jetton_reserve == 0) & (ton_reserve == 0)
+    lp_supply = cfg::minimum_liquidity();
+    liquidity = sqrt(ton_amount * jetton_amount) - lp_supply;
+  } else {
+    int optimal_jetton_amount = quote(ton_amount, ton_reserve, jetton_reserve);
+
+    if (optimal_jetton_amount <= jetton_amount) {
+      if (optimal_jetton_amount < min_jetton_amount) {
+        return_jettons(user_address, ton_amount, jetton_amount);
+        commit();
+        throw(error::insufficient_jetton_amount());
+      }
+
+      change_jetton_amount = jetton_amount - optimal_jetton_amount;
+      jetton_amount = optimal_jetton_amount;
+    } else {
+      int optimal_ton_amount = quote(jetton_amount, jetton_reserve, ton_reserve);
+      ;; TODO implement it in FunC
+      ;; assert(amountAOptimal <= amountADesired);
+
+      if (optimal_ton_amount < min_ton_amount) {
+        return_jettons(user_address, ton_amount, jetton_amount);
+        commit();
+        throw(error::insufficient_ton_amount());
+      }
+
+      change_ton_amount = ton_amount - optimal_ton_amount;
+      ton_amount = optimal_ton_amount;
+    }
+
+    liquidity = min(
+      (ton_amount * lp_supply) / ton_reserve,
+      (jetton_amount * lp_supply) / jetton_reserve
+    );
+  }
+
+  ;; TODO: Is this throw_if necessary? -> Replace with bounce
+  ;; throw_if(error::insufficient_liquidity_mint(), liquidity <= 0);
+
+  if ((change_ton_amount > 0) | (change_jetton_amount > 0)) {
+    return_jettons(user_address, change_ton_amount, change_jetton_amount); ;; return change
+  }
+
+  ;; TODO: add provider fee and comulative price
+
+  ton_reserve += ton_amount;
+  jetton_reserve += jetton_amount;
+  lp_supply += liquidity;
+  mint_lp(liquidity, user_address);
+  save_data();
+}
+
+
+() remove_liquidity(slice sender_address, int ton_amount, int query_id, slice in_msg_body) impure {
+  int lp_amount = in_msg_body~load_coins();
+  slice from_address = in_msg_body~load_msg_addr();
+;;   throw_unless(error::invalid_address(),
+;;     equal_slices(calculate_user_jetton_wallet_address(from_address, my_address(), lp_wallet_code), sender_address));
+
+  throw_if(error::invalid_amount(), lp_amount <= 0);
+
+  int ton_share = (ton_reserve * lp_amount) / lp_supply;
+  int jetton_share = (jetton_reserve * lp_amount) / lp_supply;
+
+  lp_supply -= lp_amount;
+  ton_reserve -= ton_share;
+  jetton_reserve -= jetton_share;
+
+  ;; TODO!
+  ;; send_jettons(token_address, from_address, jetton_share, query_id);
+  ;; send_tons(from_address, ton_share);
+
+  slice response_address = in_msg_body~load_msg_addr();
+  if (response_address.preload_uint(2) != 0) {
+    var msg = begin_cell()
+      .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 011000
+      .store_slice(response_address)
+      .store_coins(0)
+      .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+      .store_uint(op::excesses(), 32)
+      .store_uint(query_id, 64);
+    send_raw_message(msg.end_cell(), 2 + 64);
+  }
+  save_data();
+}

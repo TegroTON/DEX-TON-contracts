@@ -1,0 +1,323 @@
+int equal_slices (slice a, slice b) asm "SDEQ";
+
+tuple get_custom_c7(balance) inline method_id {
+    return unsafe_tuple([unsafe_tuple([
+        0x076ef1ea,           ;; magic
+        0,                    ;; actions
+        0,                    ;; msgs_sent
+        now(),                ;; unixtime
+        1,                    ;; block_lt
+        1,                    ;; trans_lt
+        239,                  ;; randseed
+        unsafe_tuple([balance, null()]),  ;; balance_remaining
+        my_address(),         ;; myself
+        get_config()          ;; global_config
+    ])]);
+}
+
+int TON(int amount) inline method_id {
+  return amount * 1000000000;
+}
+
+slice example_address(int x) inline method_id {
+  return begin_cell().store_uint(4, 3).store_uint(0, 8).store_uint(x, 256).end_cell().begin_parse();
+}
+
+;; ===========================================================================
+;; ===========================================================================
+;; ===========================================================================
+
+[int, tuple, cell, tuple, int] test_get_price_data() method_id(0) {
+    int function_selector = 108963;
+
+    int balance = TON(250) + 100000000;
+
+    cell data = begin_cell()             ;; initial data of contract
+        .store_slice(example_address(1))
+        .store_slice(example_address(2))
+        .store_coins(TON(2))
+        .store_coins(123000)
+        .store_ref(begin_cell().end_cell())
+        .store_ref(begin_cell().end_cell())
+        .end_cell();
+
+    return [function_selector, unsafe_tuple([]), data, get_custom_c7(balance), null()];
+}
+
+_ test_get_price(int exit_code, cell data, tuple stack, cell actions, int gas) method_id(1) {
+    throw_if(100, exit_code != 0); ;; test need to be passed
+    int price = first(stack);
+    price~dump();
+    throw_unless(101, price == TON(125));
+    throw_if(102, gas > 1000000); ;; check if gas usage is not so big
+}
+
+;; ===========================================================================
+;; ===========================================================================
+
+[int, tuple, cell, tuple, int] test_install_jetton_wallet_data() method_id(2) {
+    int function_selector = 0;
+
+    int balance = TON(1);
+    int value = TON(1);
+
+    cell message_full = begin_cell()
+        .store_uint(0, 4) ;; flag
+        .store_slice(example_address(1))
+        .end_cell();
+
+    cell message_body = begin_cell()
+        .store_uint(1337, 32) ;; op
+        .store_uint(1, 64) ;; query id
+        .store_slice(example_address(5)) ;; new jetton wallet
+        .end_cell();
+
+    tuple stack = unsafe_tuple([balance, value, message_full, message_body.begin_parse()]); ;; stack that will be passed to function
+
+    cell data = begin_cell()
+        .store_slice(example_address(1)) ;; admin address
+        .store_uint(0, 8) ;; addr_none
+        .store_coins(0)
+        .store_coins(0)
+        .store_ref(begin_cell().end_cell())
+        .store_ref(begin_cell().end_cell())
+        .end_cell();
+
+
+    return [function_selector, stack, data, get_custom_c7(balance), null()];
+}
+
+_ test_install_jetton_wallet(int exit_code, cell data, tuple stack, cell actions, int gas) method_id(3) {
+    throw_if(100, exit_code != 0); ;; test need to be passed
+    slice ds = data.begin_parse();
+    ds~load_msg_addr();
+    slice jetton_wallet = ds~load_msg_addr();
+    throw_unless(101, equal_slices(jetton_wallet, example_address(5)));
+    throw_if(102, gas > 1000000); ;; check if gas usage is not so big
+}
+
+;; ===========================================================================
+;; ===========================================================================
+
+[int, tuple, cell, tuple, int] test_add_first_liquidity_data() method_id(4) {
+    int function_selector = 0;
+
+    int value = TON(250);
+
+    int balance = TON(1) + value;
+
+    cell message_full = begin_cell()
+        .store_uint(0, 4) ;; flag
+        .store_slice(example_address(5)) ;; jetton wallet
+        .end_cell();
+
+    cell message_body = begin_cell()
+        .store_uint(0x7362d09c, 32) ;; op
+        .store_uint(1, 64) ;; query id
+        .store_coins(123000) ;; jetton amount
+        .store_slice(example_address(6)) ;; from address
+        .store_uint(3, 32) ;; sub op
+        .store_coins(0) ;; min ton amount
+        .store_coins(0) ;; min jetton amount
+        .end_cell();
+
+    tuple stack = unsafe_tuple([balance, value, message_full, message_body.begin_parse()]); ;; stack that will be passed to function
+
+    cell data = get_prev_c4();
+
+
+    return [function_selector, stack, data, get_custom_c7(balance), null()];
+}
+
+_ test_add_first_liquidity(int exit_code, cell data, tuple stack, cell actions, int gas) method_id(5) {
+    throw_if(100, exit_code != 0); ;; test need to be passed
+    slice ds = data.begin_parse();
+    ds~load_msg_addr();
+    ds~load_msg_addr();
+    int jetton_reserve = ds~load_coins();
+    int lp_supply = ds~load_coins();
+    jetton_reserve~dump();
+    lp_supply~dump();
+    throw_unless(101, lp_supply > 1000);
+
+    throw_if(102, slice_empty?(actions.begin_parse()));
+    throw_if(103, gas > 1000000); ;; check if gas usage is not so big
+}
+
+;; ===========================================================================
+;; ===========================================================================
+
+[int, tuple, cell, tuple, int] test_add_liquidity_data() method_id(6) {
+    int function_selector = 0;
+
+    int value = TON(250);
+    int balance = TON(251) + value;
+
+    cell message_full = begin_cell()
+    .store_uint(0, 4) ;; flag
+    .store_slice(example_address(5)) ;; jetton wallet
+    .end_cell();
+
+    cell message_body = begin_cell()
+    .store_uint(0x7362d09c, 32) ;; op
+    .store_uint(1, 64) ;; query id
+    .store_coins(500000) ;; jetton amount
+    .store_slice(example_address(6)) ;; from address
+    .store_uint(3, 32) ;; sub op
+    .store_coins(0) ;; min ton amount
+    .store_coins(0) ;; min jetton amount
+    .end_cell();
+
+    tuple stack = unsafe_tuple([balance, value, message_full, message_body.begin_parse()]); ;; stack that will be passed to function
+
+    cell data = get_prev_c4();
+
+
+    return [function_selector, stack, data, get_custom_c7(balance), null()];
+}
+
+_ test_add_liquidity(int exit_code, cell data, tuple stack, cell actions, int gas) method_id(7) {
+    throw_if(100, exit_code != 0); ;; test need to be passed
+    slice ds = data.begin_parse();
+    ds~load_msg_addr();
+    ds~load_msg_addr();
+    int jetton_reserve = ds~load_coins();
+    int lp_supply = ds~load_coins();
+    jetton_reserve~dump();
+    lp_supply~dump();
+    throw_unless(101, lp_supply > 1000);
+
+    throw_if(102, slice_empty?(actions.begin_parse()));
+    throw_if(103, gas > 1000000); ;; check if gas usage is not so big
+}
+
+;; ===========================================================================
+;; ===========================================================================
+
+[int, tuple, cell, tuple, int] test_swap_jetton_to_ton_data() method_id(8) {
+    int function_selector = 0;
+
+    int value = TON(1);
+    int balance = TON(501) + value;
+
+    cell message_full = begin_cell()
+    .store_uint(0, 4) ;; flag
+    .store_slice(example_address(5)) ;; jetton wallet
+    .end_cell();
+
+    cell message_body = begin_cell()
+    .store_uint(0x7362d09c, 32) ;; op
+    .store_uint(1, 64) ;; query id
+    .store_coins(5000) ;; jetton amount
+    .store_slice(example_address(6)) ;; from address
+    .store_uint(2, 32) ;; sub op
+    .store_coins(0) ;; min ton amount
+    .end_cell();
+
+    tuple stack = unsafe_tuple([balance, value, message_full, message_body.begin_parse()]); ;; stack that will be passed to function
+
+    cell data = get_prev_c4();
+
+
+    return [function_selector, stack, data, get_custom_c7(balance), null()];
+}
+
+_ test_swap_jetton_to_ton(int exit_code, cell data, tuple stack, cell actions, int gas) method_id(9) {
+    throw_if(100, exit_code != 0); ;; test need to be passed
+    slice ds = data.begin_parse();
+    ds~load_msg_addr();
+    ds~load_msg_addr();
+    int jetton_reserve = ds~load_coins();
+    int lp_supply = ds~load_coins();
+    jetton_reserve~dump();
+    throw_unless(101, jetton_reserve > 245497);
+
+    throw_if(102, slice_empty?(actions.begin_parse()));
+    throw_if(103, gas > 1000000); ;; check if gas usage is not so big
+}
+
+;; ===========================================================================
+;; ===========================================================================
+
+[int, tuple, cell, tuple, int] test_swap_ton_to_jetton_data() method_id(10) {
+    int function_selector = 0;
+
+    int value = TON(50);
+    int balance = TON(491) + value;
+
+    cell message_full = begin_cell()
+    .store_uint(0, 4) ;; flag
+    .store_slice(example_address(7))
+    .end_cell();
+
+    cell message_body = begin_cell()
+    .store_uint(1, 32) ;; op
+    .store_uint(1, 64) ;; query id
+    .store_coins(0) ;; min jetton amount
+    .end_cell();
+
+    tuple stack = unsafe_tuple([balance, value, message_full, message_body.begin_parse()]); ;; stack that will be passed to function
+
+    cell data = get_prev_c4();
+
+
+    return [function_selector, stack, data, get_custom_c7(balance), null()];
+}
+
+_ test_swap_ton_to_jetton(int exit_code, cell data, tuple stack, cell actions, int gas) method_id(11) {
+    throw_if(100, exit_code != 0); ;; test need to be passed
+    slice ds = data.begin_parse();
+    ds~load_msg_addr();
+    ds~load_msg_addr();
+    int jetton_reserve = ds~load_coins();
+    int lp_supply = ds~load_coins();
+    jetton_reserve~dump();
+    throw_unless(101, jetton_reserve < 250497);
+
+    throw_if(102, slice_empty?(actions.begin_parse()));
+    throw_if(103, gas > 1000000); ;; check if gas usage is not so big
+}
+
+;; ===========================================================================
+;; ===========================================================================
+
+[int, tuple, cell, tuple, int] test_remove_liquidity_data() method_id(12) {
+    int function_selector = 0;
+
+    int value = TON(1);
+    int balance = TON(551) + value;
+
+    cell message_full = begin_cell()
+        .store_uint(0, 4) ;; flag
+        .store_slice(example_address(456)) ;; jetton wallet
+        .end_cell();
+
+    cell message_body = begin_cell()
+        .store_uint(0x7bdd97de, 32) ;; op
+        .store_uint(1, 64) ;; query id
+        .store_coins(50000000) ;; lp amount
+        .store_slice(example_address(6)) ;; from address
+        .store_slice(example_address(6)) ;; response address
+        .end_cell();
+
+    tuple stack = unsafe_tuple([balance, value, message_full, message_body.begin_parse()]); ;; stack that will be passed to function
+
+    cell data = get_prev_c4();
+
+    return [function_selector, stack, data, get_custom_c7(balance), null()];
+}
+
+_ test_remove_liquidity(int exit_code, cell data, tuple stack, cell actions, int gas) method_id(13) {
+    throw_if(100, exit_code != 0); ;; test need to be passed
+    slice ds = data.begin_parse();
+    ds~load_msg_addr();
+    ds~load_msg_addr();
+    int jetton_reserve = ds~load_coins();
+    int lp_supply = ds~load_coins();
+    jetton_reserve~dump();
+    lp_supply~dump();
+    throw_unless(101, lp_supply < 349910933);
+
+    throw_if(102, slice_empty?(actions.begin_parse()));
+    throw_if(103, gas > 1000000); ;; check if gas usage is not so big
+}

@@ -1,0 +1,29 @@
+(int, int) encode_number_to_text(int number) inline {
+  int len = 0;
+  int value = 0;
+  int mult = 1;
+  do {
+    (number, int res) = number.divmod(10);
+    value = value + (res + 48) * mult;
+    mult = mult * 256;
+    len = len + 1;
+  } until (number == 0);
+  return (len, value);
+}
+
+builder store_number(builder msg, int number, int divisor) inline { ;; divisor is 0 (for int) or N for 10**N for print float numbers
+  if (divisor) {
+    (int ceil, int res) = divmod(number, divisor);
+    (int cl, int cv) = encode_number_to_text(ceil);
+    msg = msg.store_uint(cv, cl * 8 );
+    msg = msg.store_uint(46, 8); ;; "."
+    (int rl, int rv) =  encode_number_to_text(res);
+    repeat( 9 - rl ) {
+      msg = msg.store_uint(48, 8); ;; "0"
+    }
+    return msg.store_uint(rv, rl * 8);
+  } else {
+    (int cl, int cv) = encode_number_to_text(number);
+    return msg.store_uint(cv, cl * 8 );
+  }
+}

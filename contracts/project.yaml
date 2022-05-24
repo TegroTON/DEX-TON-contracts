@@ -1,0 +1,24 @@
+exchange:
+  data:
+    fift/exchange-data-example.fif
+  func:
+    - func/exchange/math.func
+    - func/exchange/constants.func
+    - func/exchange/globals.func
+    - func/exchange/text-utils.func
+    - func/exchange/utils.func
+    - func/exchange/jetton-utils.func
+    - func/exchange/liquidity.func
+    - func/exchange/swap.func
+    - func/exchange/main.func
+  tests:
+    - tests/exchange-test.func
+
+lp-wallet:
+  func:
+    - func/lp-wallet/math.func
+    - func/lp-wallet/utils.func
+    - func/lp-wallet/params.func
+    - func/lp-wallet/op-codes.func
+    - func/lp-wallet/jetton-utils.func
+    - func/lp-wallet/wallet.func

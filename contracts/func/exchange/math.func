@@ -1,0 +1,15 @@
+;; ========= From uniswap v2 Math.sol with asm improvement
+int sqrt_util(int y) asm "ZERO EQUAL ONE ADD";
+int sqrt(int y) inline {
+  if (y > 3) {
+    int z = y;
+    int x = y / 2 + 1;
+    while (x < z) {
+      z = x;
+      x = (y / x + x) / 2;
+    }
+    return z;
+  } else {
+    return sqrt_util(y);
+  }
+}

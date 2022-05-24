@@ -1,0 +1,48 @@
+"TonUtil.fif" include
+"GetOpt.fif" include
+// TONDEX V1 (только ТОН <-> ЖЕТОН)
+
+
+// parse addr from string to slice
+// S -- s
+{ <b swap parse-smc-addr drop Addr, b> <s } : $>Addr>s
+
+// create uint256 key from string
+// S -- x
+{ $>s shash 256 B>u@ } : $>u256
+
+// -- s
+{ <b 0 8 u, b> <s } : addr-none
+
+// LP metadata
+"TON-JETTON LP token" $>s =: name
+"TON-JETTON LP" $>s =: symbol
+"LP token for pair TON-JETTON in TONDEX v0.1" $>s =: description
+addr-none =: addr1 // addr_none if TON
+"EQDpLiAUw2iFBGx7RzlNd3ZwGbICWAMwcAQoWifZxToebnXv" $>Addr>s =: addr2 // JETTON address
+
+variable dict#    dictnew dict# !
+
+// s S --
+{ $>u256 dict# @ 256 udict!+ drop dict# ! } : write-to-dict
+
+name "name" write-to-dict
+symbol "symbol" write-to-dict
+description "description" write-to-dict
+addr1 "addr1" write-to-dict
+addr2 "addr1" write-to-dict
+
+<b 0x00 8 u, dict# @ dict, b> =: lp-metadata
+
+// MAIN CELL
+"EQBIdr3wZeP-zDwhiY-F4N-lFwZcIliZJprKWPtYazE-GA-q" $>Addr>s =: admin-address
+"build/lp-wallet.fif" include =: lp-wallet-code
+
+<b
+  admin-address s, // admin address
+  addr-none s, // jetton wallet
+  0 Gram, // jetton reserve
+  0 Gram, // lp supply
+  lp-wallet-code ref,
+  lp-metadata ref,
+b>

