@@ -2,14 +2,17 @@ int min_tons_for_storage() asm "10000000 PUSHINT"; ;; 0.01 TON
 int gas_consumption() asm "10000000 PUSHINT"; ;; 0.01 TON
 int burn_fee() asm "100000000 PUSHINT"; ;; 0.10 TON
 
+
 (int, slice, slice, cell) load_data() inline {
   slice ds = get_data().begin_parse();
   return (ds~load_coins(), ds~load_msg_addr(), ds~load_msg_addr(), ds~load_ref());
 }
 
+
 () save_data (int balance, slice owner_address, slice jetton_master_address, cell jetton_wallet_code) impure inline {
   set_data(pack_jetton_wallet_data(balance, owner_address, jetton_master_address, jetton_wallet_code));
 }
+
 
 () send_tokens (slice in_msg_body, slice sender_address, int msg_value, int fwd_fee) impure {
   int query_id = in_msg_body~load_uint(64);
@@ -52,6 +55,7 @@ int burn_fee() asm "100000000 PUSHINT"; ;; 0.10 TON
   send_raw_message(msg.end_cell(), 64); ;; revert on errors
   save_data(balance, owner_address, jetton_master_address, jetton_wallet_code);
 }
+
 
 () receive_tokens (slice in_msg_body, slice sender_address, int my_ton_balance, int fwd_fee) impure {
   ;; NOTE we can not allow fails in action phase since in that case there will be no bounce. Thus check and throw in computation phase.
@@ -117,6 +121,7 @@ int burn_fee() asm "100000000 PUSHINT"; ;; 0.10 TON
   return ();
 }
 
+
 () burn_tokens (slice in_msg_body, slice sender_address, int msg_value, int fwd_fee) impure {
   ;; NOTE we can not allow fails in action phase since in that case there will be
   ;; no bounce. Thus check and throw in computation phase.
@@ -151,6 +156,7 @@ int burn_fee() asm "100000000 PUSHINT"; ;; 0.10 TON
   save_data(balance, owner_address, jetton_master_address, jetton_wallet_code);
 }
 
+
 () on_bounce (slice in_msg_body) impure {
   in_msg_body~skip_bits(32); ;; 0xFFFFFFFF
   (int balance, slice owner_address, slice jetton_master_address, cell jetton_wallet_code) = load_data();
@@ -160,6 +166,7 @@ int burn_fee() asm "100000000 PUSHINT"; ;; 0.10 TON
   int jetton_amount = in_msg_body~load_coins();
   save_data(balance + jetton_amount, owner_address, jetton_master_address, jetton_wallet_code);
 }
+
 
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
   if (in_msg_body.slice_empty?()) { ;; ignore empty messages
@@ -198,6 +205,7 @@ int burn_fee() asm "100000000 PUSHINT"; ;; 0.10 TON
 
   throw(0xffff);
 }
+
 
 (int, slice, slice, cell) get_wallet_data() method_id {
   return load_data();

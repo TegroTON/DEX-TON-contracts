@@ -27,6 +27,7 @@ int equal_slices (slice a, slice b) asm "SDEQ";
   send_raw_message(msg.end_cell(), mode);
 }
 
+
 () send_tons(slice to_address, int ton_amount, builder body, int mode) impure inline {
   var message = begin_cell()
     .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 011000
@@ -45,4 +46,15 @@ int equal_slices (slice a, slice b) asm "SDEQ";
 () return_jettons(slice address, int ton_amount, int jetton_amount) impure inline {
   builder msg_body = begin_cell().store_uint(0, 1).store_coins(ton_amount).store_uint(0, 32);
   send_jettons(address, jetton_amount, 40000000, msg_body, 3);
+}
+
+
+() accumulate_price() inline {
+  int time_elapsed = now() - block_timestamp_last;
+  if ((time_elapsed > 0) & (ton_reserve != 0) & (jetton_reserve != 0)) {
+    ;; mb replace 1000000000 with 2**32 in the future
+    price0_cumulative_last += (ton_reserve * 1000000000 / jetton_reserve * time_elapsed);
+    price1_cumulative_last += (jetton_reserve * 1000000000 / ton_reserve * time_elapsed);
+  }
+  block_timestamp_last = now();
 }

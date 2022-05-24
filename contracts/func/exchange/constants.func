@@ -21,12 +21,18 @@ int fee::swap_to_jetton() asm "100000000 PUSHINT";
 int fee::swap_to_ton() asm "100000000 PUSHINT";
 
 ;; error codes
-int error::insufficient_ton() asm "40 PUSHINT";
-int error::insufficient_liquidity_mint() asm "41 PUSHINT";
-int error::insufficient_liquidity() asm "41 PUSHINT";
-int error::insufficient_amount() asm "420 PUSHINT";
-int error::insufficient_ton_amount() asm "421 PUSHINT";
-int error::insufficient_jetton_amount() asm "422 PUSHINT";
-int error::insufficient_output_amount() asm "43 PUSHINT";
+int error::pool_is_not_init() asm "39 PUSHINT";
+int error::no_payload() asm "40 PUSHINT";
+int error::() asm "41 PUSHINT";
+int error::insufficient_ton() asm "420 PUSHINT";
+int error::insufficient_liquidity_mint() asm "421 PUSHINT";
+int error::insufficient_liquidity() asm "422 PUSHINT";
+int error::insufficient_amount() asm "423 PUSHINT";
+int error::insufficient_ton_amount() asm "424 PUSHINT";
+int error::insufficient_jetton_amount() asm "425 PUSHINT";
+int error::insufficient_output_amount() asm "426 PUSHINT";
 int error::invalid_amount() asm "44 PUSHINT";
 int error::invalid_address() asm "45 PUSHINT";
+
+;; constants
+slice const::addr_none() asm "x{00} PUSHSLICE";

@@ -11,6 +11,7 @@
   return (len, value);
 }
 
+
 builder store_number(builder msg, int number, int divisor) inline { ;; divisor is 0 (for int) or N for 10**N for print float numbers
   if (divisor) {
     (int ceil, int res) = divmod(number, divisor);
