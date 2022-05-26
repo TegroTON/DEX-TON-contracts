@@ -3,7 +3,7 @@ int equal_slices (slice a, slice b) asm "SDEQ";
 
 
 ;; body schema:
-;; <b 0 1 u, AMOUNT Grams, BODY s,
+;; <b 0 1 u, AMOUNT Grams, 1 1 u, BODY s,
 () send_jettons(slice user_address, int jetton_amount, int ton_amount, builder body, int mode) impure inline {
   builder msg_body = begin_cell()
     .store_uint(op::transfer(), 32)
@@ -43,9 +43,14 @@ int equal_slices (slice a, slice b) asm "SDEQ";
 }
 
 ;; bounce in error or other cases
-() return_jettons(slice address, int ton_amount, int jetton_amount) impure inline {
-  builder msg_body = begin_cell().store_uint(0, 1).store_coins(ton_amount).store_uint(0, 32);
-  send_jettons(address, jetton_amount, 40000000, msg_body, 3);
+() return_jettons(slice address, int ton_amount, int jetton_amount, int op, int query_id) impure inline {
+  builder msg_body = begin_cell()
+    .store_uint(0, 1)
+    .store_coins(ton_amount)
+    .store_uint(1, 1)
+    .store_uint(op, 32)
+    .store_uint(query_id, 64);
+  send_jettons(address, jetton_amount, 50000000, msg_body, 3);
 }
 
 

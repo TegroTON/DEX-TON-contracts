@@ -20,29 +20,37 @@
     swap_to_jetton(msg_value, sender_address, in_msg_body);
     return();
   };
+
   if (op == op::transfer_notification()) {
     throw_unless(error::invalid_address(), equal_slices(sender_address, jetton_wallet));
     int jetton_amount = in_msg_body~load_coins();
+    throw_if(error::insufficient_jetton_amount(), jetton_amount <= 0);
     slice from_address = in_msg_body~load_msg_addr();
     int either_payload = in_msg_body~load_uint(1);
-    throw_unless(error::no_payload(), either_payload);
+    if (either_payload) {
+      slice payload = in_msg_body.preload_ref().begin_parse();
+    } else {
+      slice payload = in_msg_body;
+    }
 
-    int sub_op = in_msg_body~load_uint(32);
+    int sub_op = payload~load_uint(32);
 
     if (sub_op == op::swap_to_ton()) {
-      swap_to_ton(msg_value, jetton_amount, from_address, in_msg_body);
+      swap_to_ton(msg_value, jetton_amount, from_address, payload, query_id);
       return();
     };
     if (sub_op == op::add_liquidity()) {
-      add_liquidity(msg_value, jetton_amount, from_address, in_msg_body);
+      add_liquidity(msg_value, jetton_amount, from_address, payload, query_id);
       return();
     };
     return();
   };
+
   if (op == op::remove_liquidity()) {
     remove_liquidity(sender_address, msg_value, query_id, in_msg_body);
     return();
   };
+
   if (op == op::install()) {
     throw_unless(error::invalid_address(), equal_slices(sender_address, admin_address));
     slice new_jetton_wallet = in_msg_body~load_msg_addr();
@@ -61,6 +69,14 @@
 }
 
 ;; GET-METHODS
+
+int initialized() method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  return ~ equal_slices(jetton_wallet, const:addr_none());
+}
+
 
 (int, int, slice, cell, cell) get_jetton_data() method_id {
   [int balance, _] = get_balance();
@@ -86,11 +102,12 @@ slice get_wallet_address(slice owner_address) method_id {
 }
 
 
-int get_price() method_id {
+(int, int) get_lp_share(int lp_amount) method_id {
   [int balance, _] = get_balance();
-
   initialize_globals(balance, 0);
 
-  int price = ton_reserve * 1000000000 / jetton_reserve;
-  return price;
+  int ton_share = (ton_reserve * lp_amount) / lp_supply;
+  int jetton_share = (jetton_reserve * lp_amount) / lp_supply;
+
+  return (ton_share, jetton_share);
 }

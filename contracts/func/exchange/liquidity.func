@@ -1,6 +1,4 @@
 int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inline {
-  throw_if(error::insufficient_amount(), in_amount == 0);
-  throw_if(error::insufficient_liquidity(), (in_reserve == 0) | (out_reserve == 0));
   return muldiv(in_amount, out_reserve, in_reserve);
 }
 
@@ -40,13 +38,13 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
 }
 
 
-() add_liquidity(int ton_amount, int jetton_amount, slice user_address, slice in_msg_body) impure {
+() add_liquidity(int ton_amount, int jetton_amount, slice user_address, slice payload, int query_id) impure {
   ton_amount -= fee::mint_lp();
-  ;; TODO remove throw_if
+  ;; TODO remove throw_if (in jetton<->jetton version)
   throw_if(error::insufficient_ton(), ton_amount <= 0);
 
-  int min_ton_amount = in_msg_body~load_coins();
-  int min_jetton_amount = in_msg_body~load_coins();
+  int min_ton_amount = payload~load_coins();
+  int min_jetton_amount = payload~load_coins();
 
   int change_ton_amount = 0;
   int change_jetton_amount = 0;
@@ -60,7 +58,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
 
     if (optimal_jetton_amount <= jetton_amount) {
       if (optimal_jetton_amount < min_jetton_amount) {
-        return_jettons(user_address, ton_amount, jetton_amount);
+        return_jettons(user_address, ton_amount, jetton_amount, error::insufficient_jetton_amount(), query_id);
         commit();
         throw(error::insufficient_jetton_amount());
       }
@@ -71,7 +69,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
       int optimal_ton_amount = quote(jetton_amount, jetton_reserve, ton_reserve);
 
       if ((optimal_ton_amount < min_ton_amount) | (optimal_ton_amount > ton_amount)) {
-        return_jettons(user_address, ton_amount, jetton_amount);
+        return_jettons(user_address, ton_amount, jetton_amount, error::insufficient_ton_amount(), query_id);
         commit();
         throw(error::insufficient_ton_amount());
       }
@@ -90,7 +88,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
   ;; throw_if(error::insufficient_liquidity_mint(), liquidity <= 0);
 
   if ((change_ton_amount > 0) | (change_jetton_amount > 0)) {
-    return_jettons(user_address, change_ton_amount, change_jetton_amount); ;; return change
+    return_jettons(user_address, change_ton_amount, change_jetton_amount, op::return_change(), query_id); ;; return change
   }
 
   accumulate_price();
