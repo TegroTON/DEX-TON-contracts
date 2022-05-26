@@ -18,7 +18,7 @@ int cfg::for_storage_fee() asm "100000000 PUSHINT";
 
 ;; fees
 int fee::mint_lp() asm "125000000 PUSHINT";
-int fee::remove_lp() asm "100000000 PUSHINT";
+int fee::remove_lp() asm "25000000 PUSHINT";
 int fee::swap_to_jetton() asm "100000000 PUSHINT";
 int fee::swap_to_ton() asm "100000000 PUSHINT";
 int fee::refund() asm "75000000 PUSHINT";

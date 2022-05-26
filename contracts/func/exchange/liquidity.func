@@ -121,18 +121,14 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
   lp_supply -= lp_amount;
 
   builder body = begin_cell().store_uint(0, 1).store_coins(ton_share);
-  send_jettons(sender_address, jetton_share, fee::send_jetton(), body, 3);
+  send_jettons(from_address, jetton_share, ton_share + fee::send_jetton(), body, 3);
+
+  raw_reserve(ton_amount - fee::send_jetton() - fee::remove_lp(), 3);
 
   slice response_address = in_msg_body~load_msg_addr();
-  if (response_address.preload_uint(2) != 0) {
-    var msg = begin_cell()
-      .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 011000
-      .store_slice(response_address)
-      .store_coins(0)
-      .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
-      .store_uint(op::excesses(), 32)
-      .store_uint(query_id, 64);
-    send_raw_message(msg.end_cell(), 2 + 64);
-  }
+  builder msg_body = begin_cell()
+    .store_uint(op::excesses(), 32)
+    .store_uint(query_id, 64);
+  send_tons(response_address, 0, msg_body, 2 + 64);
   save_data();
 }
