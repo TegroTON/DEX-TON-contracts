@@ -17,7 +17,7 @@
   initialize_globals(balance, msg_value);
 
   if (op == op::swap_to_jetton()) {
-    swap_to_jetton(msg_value, sender_address, in_msg_body);
+    swap_to_jetton(msg_value, sender_address, in_msg_body, query_id);
     return();
   };
 
@@ -26,11 +26,10 @@
     int jetton_amount = in_msg_body~load_coins();
     throw_if(error::insufficient_jetton_amount(), jetton_amount <= 0);
     slice from_address = in_msg_body~load_msg_addr();
-    int either_payload = in_msg_body~load_uint(1);
+    slice payload = in_msg_body;
+    int either_payload = payload~load_uint(1);
     if (either_payload) {
-      slice payload = in_msg_body.preload_ref().begin_parse();
-    } else {
-      slice payload = in_msg_body;
+      slice payload = payload.preload_ref().begin_parse();
     }
 
     int sub_op = payload~load_uint(32);
@@ -74,7 +73,7 @@ int initialized() method_id {
   [int balance, _] = get_balance();
   initialize_globals(balance, 0);
 
-  return ~ equal_slices(jetton_wallet, const:addr_none());
+  return ~ equal_slices(jetton_wallet, const::addr_none());
 }
 
 

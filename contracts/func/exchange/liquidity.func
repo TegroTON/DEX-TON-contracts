@@ -21,6 +21,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
   lp_supply += amount;
 }
 
+
 ;; mint liquidity equivalent to 3/7 (0.15%/0.35%) of the growth in sqrt(k)
 () mint_fee() impure {
   if (kLast != 0) {
@@ -107,7 +108,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
   throw_unless(error::invalid_address(),
     equal_slices(calculate_user_jetton_wallet_address(from_address, my_address(), lp_wallet_code), sender_address));
 
-  throw_if(error::invalid_amount(), lp_amount <= 0);
+  throw_if(error::insufficient_lp_amount(), lp_amount <= 0);
 
   int ton_share = (ton_reserve * lp_amount) / lp_supply;
   int jetton_share = (jetton_reserve * lp_amount) / lp_supply;
@@ -120,7 +121,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
   lp_supply -= lp_amount;
 
   builder body = begin_cell().store_uint(0, 1).store_coins(ton_share);
-  send_jettons(sender_address, jetton_amount_out, 40000000, body, 3);
+  send_jettons(sender_address, jetton_share, 40000000, body, 3);
 
   slice response_address = in_msg_body~load_msg_addr();
   if (response_address.preload_uint(2) != 0) {
