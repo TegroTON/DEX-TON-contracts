@@ -1,9 +1,9 @@
-;; ========= From pancakeswap Babylonian.sol
+;; ========= From https://github.com/Gaussian-Process/solidity-sqrt/blob/main/src/FixedPointMathLib.sol
 int sqrt(int x) inline {
   if (x == 0) { return x; }
 
+  int r = 181;
   int xx = x;
-  int r = 1;
   if (xx >= 0x100000000000000000000000000000000) {
     xx >>= 128;
     r <<= 64;
@@ -20,19 +20,12 @@ int sqrt(int x) inline {
     xx >>= 16;
     r <<= 8;
   }
-  if (xx >= 0x100) {
-    xx >>= 8;
-    r <<= 4;
-  }
-  if (xx >= 0x10) {
-    xx >>= 4;
-    r <<= 2;
-  }
-  if (xx >= 0x8) {
-    r <<= 1;
-  }
 
-  repeat(7) { r = (r + x / r) >> 1; }
+  r = (r * (xx + 65536)) >> 18;
+
+  repeat(7) {
+    r = (r + x / r) >> 1;
+  }
 
   int r1 = x / r;
 
