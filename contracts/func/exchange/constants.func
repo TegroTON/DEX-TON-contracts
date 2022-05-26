@@ -6,12 +6,14 @@ int op::swap_to_jetton() asm "1 PUSHINT"; ;; TON -> JETTON (or jetton1 -> jetton
 int op::swap_to_ton() asm "2 PUSHINT"; ;; JETTON -> TON (or jetton2 -> jetton1)
 int op::add_liquidity() asm "3 PUSHINT";
 int op::remove_liquidity() asm "0x7bdd97de PUSHINT"; ;; == op::burn_notification() in jetton's
+int op::successful_swap() asm "100 PUSHINT";
+int op::return_change() asm "99 PUSHINT";
 ;; for jetton and lp
 int op::internal_transfer() asm "0x178d4519 PUSHINT";
 int op::excesses() asm "0xd53276db PUSHINT";
 
 ;; config constants
-int cfg::minimum_liquidity() asm "1000 PUSHINT";
+int cfg::minimum_liquidity() asm "1000 PUSHINT"; ;; mb increase it?
 int cfg::for_storage_fee() asm "100000000 PUSHINT";
 
 ;; fees
@@ -19,20 +21,18 @@ int fee::mint_lp() asm "125000000 PUSHINT";
 int fee::remove_lp() asm "100000000 PUSHINT";
 int fee::swap_to_jetton() asm "100000000 PUSHINT";
 int fee::swap_to_ton() asm "100000000 PUSHINT";
+int fee::refund() asm "75000000 PUSHINT";
 
 ;; error codes
-int error::pool_is_not_init() asm "39 PUSHINT";
-int error::no_payload() asm "40 PUSHINT";
-int error::() asm "41 PUSHINT";
-int error::insufficient_ton() asm "420 PUSHINT";
-int error::insufficient_liquidity_mint() asm "421 PUSHINT";
-int error::insufficient_liquidity() asm "422 PUSHINT";
-int error::insufficient_amount() asm "423 PUSHINT";
-int error::insufficient_ton_amount() asm "424 PUSHINT";
-int error::insufficient_jetton_amount() asm "425 PUSHINT";
-int error::insufficient_output_amount() asm "426 PUSHINT";
-int error::invalid_amount() asm "44 PUSHINT";
-int error::invalid_address() asm "45 PUSHINT";
+int error::pool_is_not_init() asm "400 PUSHINT";
+int error::invalid_address() asm "410 PUSHINT";
+int error::insufficient_ton() asm "420 PUSHINT"; ;; for fee
+int error::insufficient_ton_amount() asm "421 PUSHINT";
+int error::insufficient_jetton_amount() asm "422 PUSHINT";
+int error::insufficient_liquidity() asm "423 PUSHINT";
+int error::insufficient_slippage() asm "424 PUSHINT";
+int error::insufficient_lp_amount() asm "425 PUSHINT";
+int error::insufficient_liquidity_mint() asm "426 PUSHINT"; ;; not used
 
 ;; constants
 slice const::addr_none() asm "x{00} PUSHSLICE";
