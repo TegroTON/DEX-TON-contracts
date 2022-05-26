@@ -23,7 +23,7 @@ global int lp_supply;
 global slice fee_to;
 global int price0_cumulative_last;
 global int price1_cumulative_last;
-global int time_elapsed;
+global int block_timestamp_last;
 global int kLast;
 
 global cell lp_wallet_code;
@@ -43,7 +43,7 @@ global cell lp_meta_data;
   fee_to = ds2~load_msg_addr();
   price0_cumulative_last = ds2~load_uint(256);
   price0_cumulative_last = ds2~load_uint(256);
-  time_elapsed = ds2~load_int(40);
+  block_timestamp_last = ds2~load_int(40);
   kLast = ds2.preload_uint(122);
 }
 
@@ -53,7 +53,7 @@ global cell lp_meta_data;
     .store_slice(fee_to)
     .store_uint(price0_cumulative_last, 256)
     .store_uint(price0_cumulative_last, 256)
-    .store_uint(time_elapsed, 40)
+    .store_uint(block_timestamp_last, 40)
     .store_uint(kLast, 122)
     .end_cell();
   set_data(begin_cell()
