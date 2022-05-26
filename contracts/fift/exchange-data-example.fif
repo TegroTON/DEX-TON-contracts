@@ -17,9 +17,8 @@
 // LP metadata
 "TON-JETTON LP token" $>s =: name
 "TON-JETTON LP" $>s =: symbol
-"LP token for pair TON-JETTON in TONDEX v0.1" $>s =: description
 addr-none =: addr1 // addr_none if TON
-"EQDpLiAUw2iFBGx7RzlNd3ZwGbICWAMwcAQoWifZxToebnXv" $>Addr>s =: addr2 // JETTON address
+"EQD-AA2qPWPYqvFZ8vjtHLG_9_WunfqpM9Of9xGOdPeHQo27" $>Addr>s =: addr2 // JETTON address
 
 variable dict#    dictnew dict# !
 
@@ -28,9 +27,8 @@ variable dict#    dictnew dict# !
 
 name "name" write-to-dict
 symbol "symbol" write-to-dict
-description "description" write-to-dict
 addr1 "addr1" write-to-dict
-addr2 "addr1" write-to-dict
+addr2 "addr2" write-to-dict
 
 <b 0x00 8 u, dict# @ dict, b> =: lp-metadata
 
@@ -39,10 +37,19 @@ addr2 "addr1" write-to-dict
 "build/lp-wallet.fif" include =: lp-wallet-code
 
 <b
+  admin-address s, // fee to
+  0 256 u,
+  0 256 u,
+  0 40 u,
+  0 122 u,
+b>
+
+<b
   admin-address s, // admin address
   addr-none s, // jetton wallet
   0 Gram, // jetton reserve
   0 Gram, // lp supply
   lp-wallet-code ref,
   lp-metadata ref,
+  swap ref,
 b>
