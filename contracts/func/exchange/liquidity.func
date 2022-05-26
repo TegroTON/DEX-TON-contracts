@@ -121,7 +121,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
   lp_supply -= lp_amount;
 
   builder body = begin_cell().store_uint(0, 1).store_coins(ton_share);
-  send_jettons(sender_address, jetton_share, 40000000, body, 3);
+  send_jettons(sender_address, jetton_share, fee::send_jetton(), body, 3);
 
   slice response_address = in_msg_body~load_msg_addr();
   if (response_address.preload_uint(2) != 0) {

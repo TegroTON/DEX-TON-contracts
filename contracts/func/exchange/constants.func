@@ -22,6 +22,7 @@ int fee::remove_lp() asm "100000000 PUSHINT";
 int fee::swap_to_jetton() asm "100000000 PUSHINT";
 int fee::swap_to_ton() asm "100000000 PUSHINT";
 int fee::refund() asm "75000000 PUSHINT";
+int fee::send_jetton() asm "50000000 PUSHINT";
 
 ;; error codes
 int error::pool_is_not_init() asm "400 PUSHINT";

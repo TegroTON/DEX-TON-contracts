@@ -34,7 +34,7 @@ int get_out_amount(int in_amount, int in_reserve, int out_reserve) inline {
 
   ;; What is the best way to forward query_id on successful exchange for jetton?
   ;; If using either_forward_payload, how much TON send?
-  send_jettons(to_address, jetton_amount_out, 50000000, null(), 3);
+  send_jettons(to_address, jetton_amount_out, fee::send_jetton(), null(), 3);
   save_data();
 }
 
