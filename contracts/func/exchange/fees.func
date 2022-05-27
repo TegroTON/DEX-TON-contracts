@@ -1,0 +1,7 @@
+;; fees
+int fee::send_jetton() asm "50000000 PUSHINT";
+int fee::send_lp() asm "20000000 PUSHINT";
+int fee::mint_lp() inline { return gas::mint_lp() * cfg::gas_price; }
+int fee::remove_lp() inline { return gas::remove_lp() * cfg::gas_price; }
+int fee::swap_to_jetton() inline { return gas::swap_to_jetton() * cfg::gas_price; }
+int fee::swap_to_ton() inline { return gas::swap_to_ton() * cfg::gas_price; }

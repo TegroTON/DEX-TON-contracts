@@ -60,7 +60,7 @@
     slice new_jetton_wallet = in_msg_body~load_msg_addr();
     jetton_wallet = new_jetton_wallet;
     int new_gas_price = get_gas_fee(100000) / 100000;
-    gas_price = new_gas_price;
+    cfg::gas_price = new_gas_price;
     save_data();
     return();
   };

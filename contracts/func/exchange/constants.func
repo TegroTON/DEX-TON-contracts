@@ -22,15 +22,6 @@ int gas::remove_lp() asm "20000 PUSHINT";
 int gas::swap_to_jetton() asm "10000 PUSHINT";
 int gas::swap_to_ton() asm "10000 PUSHINT";
 
-;; fees
-int fee::send_jetton() asm "50000000 PUSHINT";
-int fee::send_lp() asm "20000000 PUSHINT";
-int fee::mint_lp() inline { return gas::mint_lp() * gas_price; }
-int fee::remove_lp() inline { return gas::remove_lp() * gas_price; }
-int fee::swap_to_jetton() inline { return gas::swap_to_jetton() * gas_price; }
-int fee::swap_to_ton() inline { return gas::swap_to_ton() * gas_price; }
-
-
 ;; error codes
 int error::pool_is_not_init() asm "400 PUSHINT";
 int error::invalid_address() asm "410 PUSHINT";

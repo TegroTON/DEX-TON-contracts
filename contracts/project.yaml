@@ -5,6 +5,8 @@ exchange:
     - func/exchange/math.func
     - func/exchange/constants.func
     - func/exchange/globals.func
+    - func/exchange/fees.func
+    - func/exchange/fee-calculation.func
     - func/exchange/text-utils.func
     - func/exchange/utils.func
     - func/exchange/jetton-utils.func

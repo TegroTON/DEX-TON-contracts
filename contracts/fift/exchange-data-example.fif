@@ -49,6 +49,7 @@ b>
   addr-none s, // jetton wallet
   0 Gram, // jetton reserve
   0 Gram, // lp supply
+  0 Gram, // gas price
   lp-wallet-code ref,
   lp-metadata ref,
   swap ref,
