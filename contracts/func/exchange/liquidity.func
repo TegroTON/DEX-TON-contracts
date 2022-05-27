@@ -9,7 +9,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
   var msg = begin_cell()
     .store_uint(0x18, 6)
     .store_slice(to_wallet_address)
-    .store_coins(35000000)
+    .store_coins(fee::send_lp())
     .store_uint(4 + 2, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1) ;; last 3 bits -> init:(Maybe (Either StateInit ^StateInit)) body:(Either X ^X)
     .store_ref(state_init)
     .store_uint(op::internal_transfer(), 32)
@@ -37,8 +37,9 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
 }
 
 
-() add_liquidity(int ton_amount, int jetton_amount, slice user_address, slice payload, int query_id) impure {
-  ton_amount -= fee::mint_lp();
+() add_liquidity(int ton_amount, int jetton_amount, slice user_address, slice payload, int query_id, int fwd_fee) impure {
+  ;; TODO calculate fwd_fee for mint lp!
+  ton_amount -= (fee::mint_lp() + fwd_fee * 13 + fee::send_jetton() + fee::send_lp() * 2); ;; ~0.13 TON
   ;; TODO remove throw_if (in jetton<->jetton version)
   throw_if(error::insufficient_ton(), ton_amount <= 0);
 
@@ -100,7 +101,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
 }
 
 
-() remove_liquidity(slice sender_address, int ton_amount, int query_id, slice in_msg_body) impure {
+() remove_liquidity(slice sender_address, int ton_amount, int query_id, slice in_msg_body, int fwd_fee) impure {
   int lp_amount = in_msg_body~load_coins();
   slice from_address = in_msg_body~load_msg_addr();
   throw_unless(error::invalid_address(),
@@ -121,7 +122,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
   builder body = begin_cell().store_uint(0, 1).store_coins(ton_share);
   send_jettons(from_address, jetton_share, ton_share, body, 3);
 
-  raw_reserve(ton_amount - fee::send_jetton() - fee::remove_lp(), 3);
+  raw_reserve(ton_amount - fee::send_jetton() - fee::remove_lp() - fwd_fee, 3);
 
   slice response_address = in_msg_body~load_msg_addr();
   builder msg_body = begin_cell()

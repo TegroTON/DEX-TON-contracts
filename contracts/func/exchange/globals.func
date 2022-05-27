@@ -25,6 +25,7 @@ global int price0_cumulative_last;
 global int price1_cumulative_last;
 global int block_timestamp_last;
 global int kLast;
+global int gas_price;
 
 global cell lp_wallet_code;
 global cell lp_meta_data;
@@ -37,6 +38,7 @@ global cell lp_meta_data;
   jetton_wallet = ds~load_msg_addr();
   jetton_reserve = ds~load_coins();
   lp_supply = ds~load_coins();
+  gas_price = ds~load_coins();
   lp_wallet_code = ds~load_ref();
   lp_meta_data = ds~load_ref();
   slice ds2 = ds.preload_ref().begin_parse();
@@ -61,6 +63,7 @@ global cell lp_meta_data;
     .store_slice(jetton_wallet)
     .store_coins(jetton_reserve)
     .store_coins(lp_supply)
+    .store_coins(gas_price)
     .store_ref(lp_wallet_code)
     .store_ref(lp_meta_data)
     .store_ref(data2)

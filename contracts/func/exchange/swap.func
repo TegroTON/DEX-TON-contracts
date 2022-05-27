@@ -7,17 +7,17 @@ int get_out_amount(int in_amount, int in_reserve, int out_reserve) inline {
 }
 
 
-() swap_to_jetton(int ton_amount, slice to_address, slice payload, int query_id) impure {
+() swap_to_jetton(int ton_amount, slice to_address, slice payload, int query_id, int fwd_fee) impure {
   int jettons_min = payload~load_coins();
 
-  ton_amount -= fee::swap_to_jetton();
+  ton_amount -= (fee::swap_to_jetton() + fwd_fee + fee::send_jetton());
 
   throw_if(error::insufficient_ton(), ton_amount <= 0);
   throw_if(error::pool_is_not_init(), equal_slices(jetton_wallet, const::addr_none()));
 
   if (jettons_min > jetton_reserve) { ;; replace throw_if with bounce with save transaction chain
     builder msg_body = begin_cell().store_uint(error::insufficient_liquidity(), 32).store_uint(query_id, 64);
-    send_tons(to_address, ton_amount + fee::refund(), msg_body, 2);
+    send_tons(to_address, ton_amount + fee::send_jetton(), msg_body, 2);
     return ();
   }
 
@@ -25,7 +25,7 @@ int get_out_amount(int in_amount, int in_reserve, int out_reserve) inline {
 
   if (jetton_amount_out < jettons_min) {
     builder msg_body = begin_cell().store_uint(error::insufficient_slippage(), 32).store_uint(query_id, 64);
-    send_tons(to_address, ton_amount + fee::refund(), msg_body, 2);
+    send_tons(to_address, ton_amount + fee::send_jetton(), msg_body, 2);
     return ();
   }
 
@@ -37,10 +37,10 @@ int get_out_amount(int in_amount, int in_reserve, int out_reserve) inline {
 }
 
 
-() swap_to_ton(int ton_amount, int jetton_amount, slice to_address, slice payload, int query_id) impure {
+() swap_to_ton(int ton_amount, int jetton_amount, slice to_address, slice payload, int query_id, int fwd_fee) impure {
   int ton_min = payload~load_coins();
 
-  ton_amount -= fee::swap_to_ton();
+  ton_amount -= (fee::swap_to_ton() + fwd_fee + fee::send_jetton());
 
   if (ton_min > ton_reserve) {
     send_jettons_payload(to_address, ton_amount, jetton_amount, error::insufficient_liquidity(), query_id);

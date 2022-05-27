@@ -10,6 +10,11 @@
   }
 
   slice sender_address = cs~load_msg_addr();
+  cs~load_msg_addr(); ;; skip dst
+  cs~load_coins(); ;; skip value
+  cs~skip_bits(1); ;; skip extracurrency collection
+  cs~load_coins(); ;; skip ihr_fee
+  int fwd_fee = cs~load_coins();
 
   int op = in_msg_body~load_uint(32);
   int query_id = in_msg_body~load_uint(64);
@@ -17,7 +22,7 @@
   initialize_globals(balance, msg_value);
 
   if (op == op::swap_to_jetton()) {
-    swap_to_jetton(msg_value, sender_address, in_msg_body, query_id);
+    swap_to_jetton(msg_value, sender_address, in_msg_body, query_id, fwd_fee);
     return();
   };
 
@@ -35,18 +40,18 @@
     int sub_op = payload~load_uint(32);
 
     if (sub_op == op::swap_to_ton()) {
-      swap_to_ton(msg_value, jetton_amount, from_address, payload, query_id);
+      swap_to_ton(msg_value, jetton_amount, from_address, payload, query_id, fwd_fee);
       return();
     };
     if (sub_op == op::add_liquidity()) {
-      add_liquidity(msg_value, jetton_amount, from_address, payload, query_id);
+      add_liquidity(msg_value, jetton_amount, from_address, payload, query_id, fwd_fee);
       return();
     };
     return();
   };
 
   if (op == op::remove_liquidity()) {
-    remove_liquidity(sender_address, msg_value, query_id, in_msg_body);
+    remove_liquidity(sender_address, msg_value, query_id, in_msg_body, fwd_fee);
     return();
   };
 
@@ -54,6 +59,8 @@
     throw_unless(error::invalid_address(), equal_slices(sender_address, admin_address));
     slice new_jetton_wallet = in_msg_body~load_msg_addr();
     jetton_wallet = new_jetton_wallet;
+    int new_gas_price = get_gas_fee(100000) / 100000;
+    gas_price = new_gas_price;
     save_data();
     return();
   };
@@ -110,3 +117,6 @@ slice get_wallet_address(slice owner_address) method_id {
 
   return (ton_share, jetton_share);
 }
+
+;; int get_gas_fee(int gas_amount)
+;; int get_fwd_fee(int msg_bits, int msg_cells)
