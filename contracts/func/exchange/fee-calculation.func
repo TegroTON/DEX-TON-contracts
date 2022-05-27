@@ -13,9 +13,13 @@ gas_flat_pfx#d1 flat_gas_limit:uint64 flat_gas_price:uint64 other:GasLimitsPrice
 config_mc_gas_prices#_ GasLimitsPrices = ConfigParam 20;
 config_gas_prices#_ GasLimitsPrices = ConfigParam 21;
 -}
-cell get_gas_config_param() {
+cell get_gas_config_param() inline {
   var (wc, _) = parse_std_addr(my_address());
-  return config_param(21 + wc);
+  if (wc == -1) {
+    return config_param(20);
+  } else {
+    return config_param(21);
+  }
 }
 
 
@@ -74,13 +78,17 @@ config_fwd_prices#_ MsgForwardPrices = ConfigParam 25;
 
 additional info: https://docs.ton.dev/86757ecb2/v/0/p/632251-fee-calculation-details
 -}
-cell get_fwd_config_param() {
-  var (wc, _) = parse_std_addr(my_address());
-  return config_param(25 + wc);
+cell get_fwd_config_param() inline {
+    var (wc, _) = parse_std_addr(my_address());
+    if (wc == -1) {
+      return config_param(24);
+    } else {
+      return config_param(25);
+    }
 }
 
 
-(slice, (int, int, int, int, int)) load_fwd_prices(slice param) inline_ref {
+(int, int, int, int, int) preload_fwd_prices(slice param) inline_ref {
   var contructor_tag = param~load_uint(8);
   if (contructor_tag == 0xea) {
     int lump_price = param~load_uint(64);
@@ -89,16 +97,16 @@ cell get_fwd_config_param() {
     param~load_uint(32);
     int first_frac = param~load_uint(16);
     int next_frac = param~load_uint(16);
-    return (param, (lump_price, bit_price, cell_price, first_frac, next_frac));
+    return (lump_price, bit_price, cell_price, first_frac, next_frac);
   } else {
-    return (param, (0, 0, 0, 0, 0));
+    return (0, 0, 0, 0, 0);
   }
 }
 
 
 (int, int, int, int, int) get_fwd_prices() inline {
   var get_fwd_config = get_fwd_config_param().begin_parse();
-  return get_fwd_config~load_fwd_prices();
+  return get_fwd_config.preload_fwd_prices();
 }
 
 ;; https://github.com/tonlabs/ton-labs-executor/blob/master/src/blockchain_config.rs#L60-L100
