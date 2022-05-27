@@ -10,13 +10,11 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
     .store_uint(0x18, 6)
     .store_slice(to_wallet_address)
     .store_coins(35000000)
-    .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1)
+    .store_uint(4 + 2, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1) ;; last 3 bits -> init:(Maybe (Either StateInit ^StateInit)) body:(Either X ^X)
     .store_ref(state_init)
-    .store_ref(begin_cell()
-      .store_uint(op::internal_transfer(), 32)
-      .store_uint(cur_lt(), 64)
-      .store_coins(amount)
-    .end_cell());
+    .store_uint(op::internal_transfer(), 32)
+    .store_uint(cur_lt(), 64)
+    .store_coins(amount);
   send_raw_message(msg.end_cell(), 3);
   lp_supply += amount;
 }
@@ -59,7 +57,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
 
     if (optimal_jetton_amount <= jetton_amount) {
       if (optimal_jetton_amount < min_jetton_amount) {
-        return_jettons(user_address, ton_amount, jetton_amount, error::insufficient_jetton_amount(), query_id);
+        send_jettons_payload(user_address, ton_amount, jetton_amount, error::insufficient_jetton_amount(), query_id);
         commit();
         throw(error::insufficient_jetton_amount());
       }
@@ -70,7 +68,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
       int optimal_ton_amount = quote(jetton_amount, jetton_reserve, ton_reserve);
 
       if ((optimal_ton_amount < min_ton_amount) | (optimal_ton_amount > ton_amount)) {
-        return_jettons(user_address, ton_amount, jetton_amount, error::insufficient_ton_amount(), query_id);
+        send_jettons_payload(user_address, ton_amount, jetton_amount, error::insufficient_ton_amount(), query_id);
         commit();
         throw(error::insufficient_ton_amount());
       }
@@ -89,7 +87,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
   ;; throw_if(error::insufficient_liquidity_mint(), liquidity <= 0);
 
   if ((change_ton_amount > 0) | (change_jetton_amount > 0)) {
-    return_jettons(user_address, change_ton_amount, change_jetton_amount, op::return_change(), query_id); ;; return change
+    send_jettons_payload(user_address, change_ton_amount, change_jetton_amount, op::return_change(), query_id); ;; return change
   }
 
   accumulate_price();
@@ -121,7 +119,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
   lp_supply -= lp_amount;
 
   builder body = begin_cell().store_uint(0, 1).store_coins(ton_share);
-  send_jettons(from_address, jetton_share, ton_share + fee::send_jetton(), body, 3);
+  send_jettons(from_address, jetton_share, ton_share, body, 3);
 
   raw_reserve(ton_amount - fee::send_jetton() - fee::remove_lp(), 3);
 

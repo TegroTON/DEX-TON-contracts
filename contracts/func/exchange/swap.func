@@ -32,9 +32,7 @@ int get_out_amount(int in_amount, int in_reserve, int out_reserve) inline {
   accumulate_price();
   jetton_reserve -= jetton_amount_out;
 
-  ;; What is the best way to forward query_id on successful exchange for jetton?
-  ;; If using either_forward_payload, how much TON send?
-  send_jettons(to_address, jetton_amount_out, fee::send_jetton(), null(), 3);
+  send_jettons_payload(to_address, 10000000, jetton_amount_out, op::successful_swap(), query_id); ;; 0.01 TON in payload
   save_data();
 }
 
@@ -45,7 +43,7 @@ int get_out_amount(int in_amount, int in_reserve, int out_reserve) inline {
   ton_amount -= fee::swap_to_ton();
 
   if (ton_min > ton_reserve) {
-    return_jettons(to_address, ton_amount, jetton_amount, error::insufficient_liquidity(), query_id);
+    send_jettons_payload(to_address, ton_amount, jetton_amount, error::insufficient_liquidity(), query_id);
     commit();
     throw(error::insufficient_liquidity());
   }
@@ -53,7 +51,7 @@ int get_out_amount(int in_amount, int in_reserve, int out_reserve) inline {
   int ton_amount_out = get_out_amount(jetton_amount, jetton_reserve, ton_reserve);
 
   if (ton_amount_out < ton_min) {
-    return_jettons(to_address, ton_amount, jetton_amount, error::insufficient_slippage(), query_id);
+    send_jettons_payload(to_address, ton_amount, jetton_amount, error::insufficient_slippage(), query_id);
     commit();
     throw(error::insufficient_slippage());
   }

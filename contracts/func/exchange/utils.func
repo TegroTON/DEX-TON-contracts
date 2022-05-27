@@ -20,7 +20,7 @@ int equal_slices (slice a, slice b) asm "SDEQ";
   builder msg = begin_cell()
     .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 011000
     .store_slice(jetton_wallet)
-    .store_coins(ton_amount) ;; ~0.05 TON
+    .store_coins(ton_amount + fee::send_jetton()) ;; ton_amount + ~0.05 TON
     .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
     .store_ref(msg_body.end_cell());
 
@@ -43,14 +43,14 @@ int equal_slices (slice a, slice b) asm "SDEQ";
 }
 
 ;; bounce in error or other cases
-() return_jettons(slice address, int ton_amount, int jetton_amount, int op, int query_id) impure inline {
+() send_jettons_payload(slice address, int ton_amount, int jetton_amount, int op, int query_id) impure inline {
   builder msg_body = begin_cell()
     .store_uint(0, 1)
     .store_coins(ton_amount)
-    .store_uint(1, 1)
+    .store_uint(0, 1)
     .store_uint(op, 32)
     .store_uint(query_id, 64);
-  send_jettons(address, jetton_amount, ton_amount + fee::send_jetton(), msg_body, 3);
+  send_jettons(address, jetton_amount, ton_amount, msg_body, 3);
 }
 
 

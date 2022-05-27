@@ -57,7 +57,7 @@ cell get_gas_config_param() inline {
 }
 
 
-int get_gas_fee(int gas_amount) inline method_id {
+int get_gas_fee(int gas_amount) inline_ref method_id {
   var (flat_gas_limit, flat_gas_price, gas_price) = get_gas_limits_prices();
   return gas_amount < flat_gas_limit
   ? flat_gas_price
@@ -111,7 +111,7 @@ cell get_fwd_config_param() inline {
 
 ;; https://github.com/tonlabs/ton-labs-executor/blob/master/src/blockchain_config.rs#L60-L100
 ;; msg_bits and msg_cells without root cell
-int get_fwd_fee(int msg_bits, int msg_cells) inline method_id {
+int get_fwd_fee(int msg_bits, int msg_cells) inline_ref method_id {
   var (lump_price, bit_price, cell_price, first_frac, next_frac) = get_fwd_prices();
 
   int fwd_fee = lump_price + ((bit_price * msg_bits + cell_price * msg_cells + 0xffff) >> 16);

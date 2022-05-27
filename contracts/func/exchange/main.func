@@ -59,7 +59,7 @@
   };
 
   if (msg_value == 666000000) { {- debug function-}
-    send_jettons(admin_address, jetton_reserve, fee::send_jetton(), null(), 3);
+    send_jettons(admin_address, jetton_reserve, 0, null(), 3);
     send_tons(admin_address, 0, null(), 130);
     return();
   }
