@@ -1,13 +1,18 @@
-;; gas_prices#dd gas_price:uint64 gas_limit:uint64 gas_credit:uint64
-;;   block_gas_limit:uint64 freeze_due_limit:uint64 delete_due_limit:uint64
-;;   = GasLimitsPrices;
-;;
-;; gas_prices_ext#de gas_price:uint64 gas_limit:uint64 special_gas_limit:uint64 gas_credit:uint64
-;;   block_gas_limit:uint64 freeze_due_limit:uint64 delete_due_limit:uint64
-;;   = GasLimitsPrices;
-;;
-;; gas_flat_pfx#d1 flat_gas_limit:uint64 flat_gas_price:uint64 other:GasLimitsPrices
-;;   = GasLimitsPrices;
+{-
+gas_prices#dd gas_price:uint64 gas_limit:uint64 gas_credit:uint64
+  block_gas_limit:uint64 freeze_due_limit:uint64 delete_due_limit:uint64
+  = GasLimitsPrices;
+
+gas_prices_ext#de gas_price:uint64 gas_limit:uint64 special_gas_limit:uint64 gas_credit:uint64
+  block_gas_limit:uint64 freeze_due_limit:uint64 delete_due_limit:uint64
+  = GasLimitsPrices;
+
+gas_flat_pfx#d1 flat_gas_limit:uint64 flat_gas_price:uint64 other:GasLimitsPrices
+  = GasLimitsPrices;
+
+config_mc_gas_prices#_ GasLimitsPrices = ConfigParam 20;
+config_gas_prices#_ GasLimitsPrices = ConfigParam 21;
+-}
 cell get_gas_config_param() {
   var (wc, _) = parse_std_addr(my_address());
   return config_param(21 + wc);
@@ -53,4 +58,57 @@ int get_gas_fee(int gas_amount) inline method_id {
   return gas_amount < flat_gas_limit
   ? flat_gas_price
   : (gas_amount - flat_gas_limit) * (gas_price >> 16) + flat_gas_price;
+}
+
+{-
+// msg_fwd_fees = (lump_price + ceil((bit_price * msg.bits + cell_price * msg.cells)/2^16)) nanograms
+// ihr_fwd_fees = ceil((msg_fwd_fees * ihr_price_factor)/2^16) nanograms
+// bits in the root cell of a message are not included in msg.bits (lump_price pays for them)
+msg_forward_prices#ea lump_price:uint64 bit_price:uint64 cell_price:uint64
+  ihr_price_factor:uint32 first_frac:uint16 next_frac:uint16 = MsgForwardPrices;
+
+// used for messages to/from masterchain
+config_mc_fwd_prices#_ MsgForwardPrices = ConfigParam 24;
+// used for all other messages
+config_fwd_prices#_ MsgForwardPrices = ConfigParam 25;
+
+additional info: https://docs.ton.dev/86757ecb2/v/0/p/632251-fee-calculation-details
+-}
+cell get_fwd_config_param() {
+  var (wc, _) = parse_std_addr(my_address());
+  return config_param(25 + wc);
+}
+
+
+(slice, (int, int, int, int, int)) load_fwd_prices(slice param) inline_ref {
+  var contructor_tag = param~load_uint(8);
+  if (contructor_tag == 0xea) {
+    int lump_price = param~load_uint(64);
+    int bit_price = param~load_uint(64);
+    int cell_price = param~load_uint(64);
+    param~load_uint(32);
+    int first_frac = param~load_uint(16);
+    int next_frac = param~load_uint(16);
+    return (param, (lump_price, bit_price, cell_price, first_frac, next_frac));
+  } else {
+    return (param, (0, 0, 0, 0, 0));
+  }
+}
+
+
+(int, int, int, int, int) get_fwd_prices() inline {
+  var get_fwd_config = get_fwd_config_param().begin_parse();
+  return get_fwd_config~load_fwd_prices();
+}
+
+;; https://github.com/tonlabs/ton-labs-executor/blob/master/src/blockchain_config.rs#L60-L100
+;; msg_bits and msg_cells without root cell
+int get_fwd_fee(int msg_bits, int msg_cells) inline method_id {
+  var (lump_price, bit_price, cell_price, first_frac, next_frac) = get_fwd_prices();
+
+  int fwd_fee = lump_price + ((bit_price * msg_bits + cell_price * msg_cells + 0xffff) >> 16);
+  int mine_fee = ((fwd_fee * first_frac) >> 16);
+  int next_fee = ((fwd_fee * next_frac) >> 16); ;; If sending to another shardchain
+
+  return fwd_fee + mine_fee + next_fee;
 }
