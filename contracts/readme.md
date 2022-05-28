@@ -1,7 +1,4 @@
 #### TODO:
-- [ ] Calculate fees and use `fwd_fee`
-
-=======================================
 
 - [ ] Factory contract
 - [ ] Routing
