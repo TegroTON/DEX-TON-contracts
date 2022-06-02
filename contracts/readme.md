@@ -1,8 +1,7 @@
 #### TODO:
 
-- [ ] Factory contract
-- [ ] Routing
 - [ ] Pair `jetton<->jetton`
-- [ ] Referral system
+- [ ] Routing (minimal, `jetton->ton->jetton`)
+- [ ] Factory contract
 - [ ] New tests (now they're minimal)
 - [ ] Refactoring

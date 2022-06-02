@@ -1,7 +1,3 @@
-builder store_builder(builder b, builder b2) asm(b2 b) "STB";
-int equal_slices (slice a, slice b) asm "SDEQ";
-
-
 ;; body schema:
 ;; <b 0 1 u, AMOUNT Grams, 1 1 u, BODY s,
 () send_jettons(slice user_address, int jetton_amount, int ton_amount, builder body, int mode) impure inline {
@@ -54,12 +50,52 @@ int equal_slices (slice a, slice b) asm "SDEQ";
 }
 
 
+() send_tons_payload(slice address, int amount, int op, int query_id) impure inline {
+  builder msg_body = begin_cell()
+    .store_uint(op, 32)
+    .store_uint(query_id, 64);
+  send_tons(to_address, amount, msg_body, 3);
+}
+
+
 () accumulate_price() inline {
   int time_elapsed = now() - block_timestamp_last;
   if ((time_elapsed > 0) & (ton_reserve != 0) & (jetton_reserve != 0)) {
     ;; mb replace 1000000000 with 2**32 in the future
-    price0_cumulative_last += (ton_reserve * 1000000000 / jetton_reserve * time_elapsed);
-    price1_cumulative_last += (jetton_reserve * 1000000000 / ton_reserve * time_elapsed);
+    price0_cumulative_last += (left_reserve * 1000000000 / right_reserve * time_elapsed);
+    price1_cumulative_last += (right_reserve * 1000000000 / left_reserve * time_elapsed);
   }
   block_timestamp_last = now();
+}
+
+
+cell calculate_contract_state_init(cell contract_code, cell contract_data) inline {
+  return begin_cell()
+    .store_uint(0, 2)
+    .store_dict(contract_code)
+    .store_dict(contract_data)
+    .store_uint(0, 1)
+  .end_cell();
+}
+
+
+slice calculate_contract_address(cell state_init) inline {
+  return begin_cell().store_uint(4, 3)
+    .store_int(cfg::workchain(), 8)
+    .store_uint(cell_hash(state_init), 256)
+    .end_cell()
+  .begin_parse();
+}
+
+
+(int) get_workchain(slice address) inline {
+  (int wc, _) = parse_var_addr(address);
+  return wc;
+}
+
+
+() force_chain(int workchain, slice address, int error_code) impure inline {
+  (int wc) = get_workchain(address);
+  throw_unless(error_code, wc == workchain);
+  preload_bits();
 }
