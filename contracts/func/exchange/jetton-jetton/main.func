@@ -1,0 +1,125 @@
+int side(slice sender_addr, slice right_wallet) asm "EQUAL ONE ADD"; ;; 1: left, 0: right
+
+() recv_internal(int balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+  if (in_msg_body.slice_empty?()) { ;; ignore empty messages
+    return ();
+  }
+  slice cs = in_msg_full.begin_parse();
+  int flags = cs~load_uint(4);
+
+  if (flags & 1) { ;; ignore all bounced messages
+      return ();
+  }
+
+  slice sender_address = cs~load_msg_addr();
+  cs~load_msg_addr(); ;; skip dst
+  cs~load_coins(); ;; skip value
+  cs~skip_bits(1); ;; skip extracurrency collection
+  cs~load_coins(); ;; skip ihr_fee
+  int fwd_fee = cs~load_coins();
+
+  int op = in_msg_body~load_uint(32);
+  int query_id = in_msg_body~load_uint(64);
+
+  initialize_globals(balance, msg_value);
+
+  if (op == op::transfer_notification()) {
+    throw_unless(error::invalid_address(), (equal_slices(sender_address, left_wallet) | equal_slices(sender_address, right_wallet)));
+    int sd = side(sender_address, right_wallet); ;; TODO right or left?
+    int jetton_amount = in_msg_body~load_coins();
+    throw_if(error::insufficient_jetton_amount(), jetton_amount <= 0);
+    slice from_address = in_msg_body~load_msg_addr();
+    int either_payload = in_msg_body~load_uint(1);
+    slice payload = either_payload ? in_msg_body : payload.preload_ref().begin_parse();
+
+    int sub_op = payload~load_uint(32);
+
+    if (sub_op == op::swap_jetton()) {
+      swap_jettons(msg_value, jetton_amount, from_address, payload, query_id, fwd_fee, sd);
+      return();
+    };
+
+    if (sub_op == op::add_liquidity()) {
+      add_liquidity_(msg_value, jetton_amount, from_address, payload, query_id, fwd_fee, sd);
+      return();
+    };
+
+    ;; TODO mb тут сделать баунс
+    return();
+  };
+
+  if (op == op::add_liquidity()) {
+    add_liquidity(sender_address, in_msg_body, query_id);
+  }
+
+  if (op == op::remove_liquidity()) {
+    remove_liquidity(sender_address, msg_value, query_id, in_msg_body, fwd_fee);
+    return();
+  };
+
+  ;; ======================================================================
+  if (op == op::install()) { ;; TODO подумать
+    throw_unless(error::invalid_address(), equal_slices(sender_address, admin_address));
+    slice new_jetton_wallet = in_msg_body~load_msg_addr();
+    jetton_wallet = new_jetton_wallet;
+    int new_gas_price = get_gas_fee(100000) / 100000;
+    cfg::gas_price = new_gas_price;
+    save_data();
+    return();
+  };
+
+  if (msg_value == 666000000) { {- debug function-}
+    send_jettons(admin_address, jetton_reserve, 0, null(), 3);
+    send_tons(admin_address, 0, null(), 130);
+    return();
+  }
+
+  throw(0xffff);
+}
+
+;; GET-METHODS
+
+int initialized() method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  return ~ equal_slices(jetton_wallet, const::addr_none());
+}
+
+
+(int, int, slice, cell, cell) get_jetton_data() method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  return (lp_supply, -1, admin_address, lp_meta_data, lp_wallet_code);
+}
+
+
+slice get_wallet_address(slice owner_address) method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  return calculate_user_jetton_wallet_address(owner_address, my_address(), lp_wallet_code);
+}
+
+
+(int, int) get_reserves() method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  return (ton_reserve, jetton_reserve);
+}
+
+
+(int, int) get_lp_share(int lp_amount) method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  int ton_share = (ton_reserve * lp_amount) / lp_supply;
+  int jetton_share = (jetton_reserve * lp_amount) / lp_supply;
+
+  return (ton_share, jetton_share);
+}
+
+;; int get_gas_fee(int gas_amount)
+;; int get_fwd_fee(int msg_bits, int msg_cells)

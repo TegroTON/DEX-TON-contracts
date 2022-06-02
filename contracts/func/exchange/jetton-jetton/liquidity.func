@@ -1,0 +1,119 @@
+() add_liquidity_(int ton_amount, int jetton_amount, slice user_address, slice payload, int query_id, int fwd_fee, int sd) impure {
+  ;; TODO calculate fwd_fee for mint lp!
+  ton_amount -= (fee::mint_lp() + fwd_fee * 7 + fee::send_jetton() + fee::send_lp()); ;; ~0.13 TON
+  ;; TODO remove throw_if (in jetton<->jetton version) ((or not))
+  throw_if(error::insufficient_ton(), ton_amount <= 0);
+
+  int min_amount = payload~load_coins();
+
+  cell state_init = calculate_gateway_state_init(user_address);
+  slice gateway_address = calculate_contract_address(state_init);
+  var msg = begin_cell()
+    .store_uint(0x18, 6)
+    .store_slice(gateway_address)
+    .store_coins(fee::send_jetton())
+    .store_uint(4 + 2, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1) ;; last 3 bits: 110 -> init:(Maybe (Either StateInit ^StateInit)) body:(Either X ^X)
+    .store_ref(state_init)
+    .store_uint(op::gateway_incoming(), 32)
+    .store_uint(query_id, 64)
+    .store_uint(sd, 1)
+    .store_coins(jetton_amount); ;; ~718 bits
+  send_raw_message(msg.end_cell(), 3);
+}
+
+
+;; sender_address, in_msg_body, query_id
+() add_liquidity(slice sender_address, slice payload, int query_id) impure {
+  slice user_address = payload~load_msg_addr();
+
+  throw_unless(error::invalid_address(), equal_slices(sender_address, calculate_user_gateway_address(user_address)));
+
+  int left_amount = payload~load_coins();
+  int right_amount = payload~load_coins();
+  
+  int change_left_amount = 0;
+  int change_right_amount = 0;
+  int liquidity = 0;
+
+  if (lp_supply == 0) { ;; or (right_reserve == 0) & (left_reserve == 0)
+    lp_supply = cfg::minimum_liquidity();
+    liquidity = sqrt(left_amount * right_amount) - lp_supply;
+  } else {
+    int optimal_right_amount = quote(left_amount, left_reserve, right_reserve);
+
+    if (optimal_right_amount <= right_amount) {
+      if (optimal_right_amount < min_right_amount) {
+        send_jettons_payload(user_address, left_amount, right_amount, error::insufficient_right_amount(), query_id);
+        commit();
+        throw(error::insufficient_right_amount());
+      }
+
+      change_right_amount = right_amount - optimal_right_amount;
+      right_amount = optimal_right_amount;
+    } else {
+      int optimal_left_amount = quote(right_amount, right_reserve, left_reserve);
+
+      if ((optimal_left_amount < min_left_amount) | (optimal_left_amount > left_amount)) {
+        send_jettons_payload(user_address, left_amount, right_amount, error::insufficient_left_amount(), query_id);
+        commit();
+        throw(error::insufficient_left_amount());
+      }
+
+      change_left_amount = left_amount - optimal_left_amount;
+      left_amount = optimal_left_amount;
+    }
+
+    liquidity = min(
+      (left_amount * lp_supply) / left_reserve,
+      (right_amount * lp_supply) / right_reserve
+    );
+  }
+
+  ;; TODO: Is this throw_if necessary? -> Replace with bounce
+  ;; throw_if(error::insufficient_liquidity_mint(), liquidity <= 0);
+
+  if ((change_left_amount > 0) | (change_right_amount > 0)) {
+    send_jettons_payload(user_address, 10000000, change_left_amount, op::return_change(), query_id); ;; return change
+    send_jettons_payload(user_address, 10000000, change_right_amount, op::return_change(), query_id); ;; return change
+  }
+
+  accumulate_price();
+  kLast = left_reserve * right_reserve;
+  left_reserve += left_amount;
+  right_reserve += right_amount;
+  mint_fee();
+  mint_lp(liquidity, user_address);
+  save_data();
+}
+
+
+() remove_liquidity(slice sender_address, int ton_amount, int query_id, slice in_msg_body, int fwd_fee) impure {
+  int lp_amount = in_msg_body~load_coins();
+  slice from_address = in_msg_body~load_msg_addr();
+  throw_unless(error::invalid_address(),
+    equal_slices(calculate_user_jetton_wallet_address(from_address, my_address(), lp_wallet_code), sender_address));
+
+  throw_if(error::insufficient_lp_amount(), lp_amount <= 0);
+
+  int ton_share = (left_reserve * lp_amount) / lp_supply;
+  int jetton_share = (right_reserve * lp_amount) / lp_supply;
+
+  accumulate_price();
+  kLast = left_reserve * right_reserve;
+  left_reserve -= ton_share;
+  right_reserve -= jetton_share;
+  mint_fee();
+  lp_supply -= lp_amount;
+
+  builder body = begin_cell().store_uint(0, 1).store_coins(ton_share);
+  send_jettons(from_address, jetton_share, ton_share, body, 3);
+
+  raw_reserve(ton_amount - fee::send_jetton() - fee::remove_lp() - fwd_fee, 3);
+
+  slice response_address = in_msg_body~load_msg_addr();
+  builder msg_body = begin_cell()
+    .store_uint(op::excesses(), 32)
+    .store_uint(query_id, 64);
+  send_tons(response_address, 0, msg_body, 2 + 64);
+  save_data();
+}

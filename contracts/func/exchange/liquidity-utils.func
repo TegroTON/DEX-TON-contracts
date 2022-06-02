@@ -1,0 +1,39 @@
+int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inline {
+  return muldiv(in_amount, out_reserve, in_reserve);
+}
+
+
+() mint_lp(int amount, slice address) impure inline {
+  ;; TODO add notify
+  cell state_init = calculate_contract_state_init(lp_wallet_code,
+    pack_jetton_wallet_data(0, address, my_address(), lp_wallet_code));
+  slice to_wallet_address = calculate_contract_address(state_init);
+  var msg = begin_cell()
+  .store_uint(0x18, 6)
+  .store_slice(to_wallet_address)
+  .store_coins(fee::send_lp())
+  .store_uint(4 + 2, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1) ;; last 3 bits -> init:(Maybe (Either StateInit ^StateInit)) body:(Either X ^X)
+  .store_ref(state_init)
+  .store_uint(op::internal_transfer(), 32)
+  .store_uint(cur_lt(), 64)
+  .store_coins(amount);
+  send_raw_message(msg.end_cell(), 3);
+  lp_supply += amount;
+}
+
+
+;; mint liquidity equivalent to 3/7 (0.15%/0.35%) of the growth in sqrt(k)
+() mint_fee() impure {
+  if (kLast != 0) {
+    int rootK = sqrt(ton_reserve * jetton_reserve);
+    int rootKLast = sqrt(kLast);
+    if (rootK > rootKLast) {
+      int numerator = lp_supply * (rootK - rootKLast) * 3;
+      int denominator = (rootK * 4) + (rootKLast * 3);
+      int liquidity = numerator / denominator;
+      if (liquidity > 0) {
+        mint_lp(liquidity, fee_to);
+      }
+    }
+  }
+}

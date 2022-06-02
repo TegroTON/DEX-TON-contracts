@@ -1,0 +1,48 @@
+//
+nothing$0 {X:Type} = Maybe X;
+just$1 {X:Type} value:X = Maybe X;
+left$0 {X:Type} {Y:Type} value:X = Either X Y;
+right$1 {X:Type} {Y:Type} value:Y = Either X Y;
+//
+var_uint$_ {n:#} len:(#< n) value:(uint (len * 8))
+         = VarUInteger n;
+nanocoins$_ amount:(VarUInteger 16) = Coins;
+//
+addr_none$00 = MsgAddressExt;
+addr_extern$01 len:(## 9) external_address:(bits len)
+             = MsgAddressExt;
+anycast_info$_ depth:(#<= 30) { depth >= 1 }
+   rewrite_pfx:(bits depth) = Anycast;
+addr_std$10 anycast:(Maybe Anycast)
+   workchain_id:int8 address:bits256  = MsgAddressInt;
+addr_var$11 anycast:(Maybe Anycast) addr_len:(## 9)
+   workchain_id:int32 address:(bits addr_len) = MsgAddressInt;
+_ _:MsgAddressInt = MsgAddress;
+_ _:MsgAddressExt = MsgAddress;
+//
+
+
+
+// swap ton -> jetton
+swap_ton#234234 query_id:uint64 jettons_min:Coins = InternalMsgBody;
+
+// swap jetton -> ton OR jetton -> jetton
+swap_jetton#2342524 amount_out_min:Coins = Payload;
+
+// if jetton<->jetton, then just send 2 transactions in turn
+add_liquidity#3425245 left_amount_min:Coins right_amount_min:Coins = Payload;
+
+//
+remove_liquidity#4874345 = dsfg;
+
+
+
+
+transfer_jettons query_id:uint64 amount:(VarUInteger 16) destination:MsgAddress
+           response_destination:MsgAddress custom_payload:(Maybe ^Cell)
+           forward_ton_amount:(VarUInteger 16) forward_payload:(Either Payload ^Payload)
+           = InternalMsgBody;
+
+burn_lp query_id:uint64 amount:(VarUInteger 16)
+        response_destination:MsgAddress custom_payload:(Maybe ^Cell)
+        = Burn;

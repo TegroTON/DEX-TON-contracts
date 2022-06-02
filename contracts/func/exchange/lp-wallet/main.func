@@ -18,7 +18,7 @@ int burn_fee() asm "100000000 PUSHINT"; ;; 0.10 TON
   int query_id = in_msg_body~load_uint(64);
   int jetton_amount = in_msg_body~load_coins();
   slice to_owner_address = in_msg_body~load_msg_addr();
-  force_chain(workchain(), to_owner_address, 333);
+  force_chain(cfg::workchain(), to_owner_address, 333);
 
   (int balance, slice owner_address, slice jetton_master_address, cell jetton_wallet_code) = load_data();
   balance -= jetton_amount;
@@ -28,7 +28,7 @@ int burn_fee() asm "100000000 PUSHINT"; ;; 0.10 TON
   throw_unless(706, balance >= 0);
 
   cell state_init = calculate_jetton_wallet_state_init(to_owner_address, jetton_master_address, jetton_wallet_code);
-  slice to_wallet_address = calculate_jetton_wallet_address(state_init);
+  slice to_wallet_address = calculate_contract_address(state_init);
   slice response_address = in_msg_body~load_msg_addr();
   cell custom_payload = in_msg_body~load_dict();
   int forward_ton_amount = in_msg_body~load_coins();

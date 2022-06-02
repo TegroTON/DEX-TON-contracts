@@ -1,35 +1,37 @@
 ;; operation codes
-int op::install() asm "1337 PUSHINT";
+int op::install() asm "0x696e7374 PUSHINT";
 int op::transfer() asm "0xf8a7ea5 PUSHINT";
 int op::transfer_notification() asm "0x7362d09c PUSHINT";
-int op::swap_to_jetton() asm "1 PUSHINT"; ;; TON -> JETTON (or jetton1 -> jetton2 in the future)
-int op::swap_to_ton() asm "2 PUSHINT"; ;; JETTON -> TON (or jetton2 -> jetton1)
-int op::add_liquidity() asm "3 PUSHINT";
+int op::swap_ton() asm "0x73707274 PUSHINT"; ;; TON -> JETTON
+int op::swap_jetton() asm "0x73706c74 PUSHINT"; ;; JETTON -> TON (or jetton -> jetton)
+int op::add_liquidity() asm "0x61646c71 PUSHINT";
 int op::remove_liquidity() asm "0x7bdd97de PUSHINT"; ;; == op::burn_notification() in jetton's
-int op::successful_swap() asm "100 PUSHINT";
-int op::return_change() asm "99 PUSHINT";
+;; TODO "response" messages to have an op with the high-order bit set, i.e., in the range 2^31 .. 2^32-1
+int op::successful_swap() asm "0x736c7370 PUSHINT";
+int op::return_change() asm "0x726e6368 PUSHINT";
 ;; for jetton and lp
+int op::transfer() asm "0xf8a7ea5 PUSHINT";
+int op::transfer_notification() asm "0x7362d09c PUSHINT";
 int op::internal_transfer() asm "0x178d4519 PUSHINT";
 int op::excesses() asm "0xd53276db PUSHINT";
+int op::burn() asm "0x595f07bc PUSHINT";
+int op::burn_notification() asm "0x7bdd97de PUSHINT";
 
 ;; config constants
 int cfg::minimum_liquidity() asm "1000 PUSHINT"; ;; mb increase it?
-int cfg::for_storage_fee() asm "100000000 PUSHINT";
-
-;; gas
-int gas::mint_lp() asm "25000 PUSHINT";
-int gas::remove_lp() asm "20000 PUSHINT";
-int gas::swap_to_jetton() asm "10000 PUSHINT";
-int gas::swap_to_ton() asm "10000 PUSHINT";
+int cfg::tons_for_storage() asm "100000000 PUSHINT";
+int cfg::workchain() asm "0 PUSHINT";
 
 ;; error codes
 int error::pool_is_not_init() asm "400 PUSHINT";
 int error::invalid_address() asm "410 PUSHINT";
 int error::insufficient_ton() asm "420 PUSHINT"; ;; for fee
-int error::insufficient_ton_amount() asm "421 PUSHINT";
-int error::insufficient_jetton_amount() asm "422 PUSHINT";
+;; TODO "response" messages to have an op with the high-order bit set, i.e., in the range 2^31 .. 2^32-1
+int error::insufficient_left_amount() asm "421 PUSHINT";
+int error::insufficient_right_amount() asm "422 PUSHINT";
 int error::insufficient_liquidity() asm "423 PUSHINT";
 int error::insufficient_slippage() asm "424 PUSHINT";
+
 int error::insufficient_lp_amount() asm "425 PUSHINT";
 int error::insufficient_liquidity_mint() asm "426 PUSHINT"; ;; not used
 

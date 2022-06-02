@@ -21,7 +21,7 @@
 
   initialize_globals(balance, msg_value);
 
-  if (op == op::swap_to_jetton()) {
+  if (op == op::swap_ton()) {
     swap_to_jetton(msg_value, sender_address, in_msg_body, query_id, fwd_fee);
     return();
   };
@@ -31,15 +31,12 @@
     int jetton_amount = in_msg_body~load_coins();
     throw_if(error::insufficient_jetton_amount(), jetton_amount <= 0);
     slice from_address = in_msg_body~load_msg_addr();
-    slice payload = in_msg_body;
-    int either_payload = payload~load_uint(1);
-    if (either_payload) {
-      slice payload = payload.preload_ref().begin_parse();
-    }
+    int either_payload = in_msg_body~load_uint(1);
+    slice payload = either_payload ? in_msg_body : payload.preload_ref().begin_parse();
 
     int sub_op = payload~load_uint(32);
 
-    if (sub_op == op::swap_to_ton()) {
+    if (sub_op == op::swap_jetton()) {
       swap_to_ton(msg_value, jetton_amount, from_address, payload, query_id, fwd_fee);
       return();
     };
@@ -66,7 +63,7 @@
   };
 
   if (msg_value == 666000000) { {- debug function-}
-    send_jettons(admin_address, jetton_reserve, 0, null(), 3);
+    send_jettons(admin_address, right_reserve, 0, null(), 3);
     send_tons(admin_address, 0, null(), 130);
     return();
   }

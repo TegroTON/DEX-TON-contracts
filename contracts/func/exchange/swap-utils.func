@@ -1,0 +1,7 @@
+int get_out_amount(int in_amount, int in_reserve, int out_reserve) inline {
+  int in_amount_with_fee = in_amount * 9965;
+  int numerator = in_amount_with_fee * out_reserve;
+  int denominator = (in_reserve * 10000) + in_amount_with_fee;
+  int out_amount = numerator / denominator;
+  return out_amount;
+}

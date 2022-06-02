@@ -10,14 +10,14 @@ storage2#_ fee_to:MsgAddress price0_cumulative_last:uint256
 storage#_ admin_address:MsgAddress jetton_wallet:MsgAddress
           jetton_reserve:(VarUInteger 16) lp_supply:(VarUInteger 16)
           lp_wallet_code:^Cell, lp_meta_data:^MetaData
-          continue_storage:^Storage2 = Storage;
+          part2:^Storage2 = Storage;
 -}
 
-global int ton_reserve;
+global int left_reserve; ;; TON
 
 global slice admin_address;
 global slice jetton_wallet;
-global int jetton_reserve;
+global int right_reserve; ;; Jetton
 global int lp_supply;
 global int cfg::gas_price;
 
@@ -32,11 +32,11 @@ global cell lp_meta_data;
 
 
 () initialize_globals(int balance, int msg_value) impure inline {
-  ton_reserve = balance - msg_value - cfg::for_storage_fee();
+  left_reserve = balance - msg_value - cfg::tons_for_storage();
   slice ds = get_data().begin_parse();
   admin_address = ds~load_msg_addr();
   jetton_wallet = ds~load_msg_addr();
-  jetton_reserve = ds~load_coins();
+  right_reserve = ds~load_coins();
   lp_supply = ds~load_coins();
   cfg::gas_price = ds~load_coins();
   lp_wallet_code = ds~load_ref();
@@ -61,7 +61,7 @@ global cell lp_meta_data;
   set_data(begin_cell()
     .store_slice(admin_address)
     .store_slice(jetton_wallet)
-    .store_coins(jetton_reserve)
+    .store_coins(right_reserve)
     .store_coins(lp_supply)
     .store_coins(cfg::gas_price)
     .store_ref(lp_wallet_code)

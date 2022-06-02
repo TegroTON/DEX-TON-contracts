@@ -1,0 +1,19 @@
+cell pack_gateway_data(slice user_address) inline {
+  return  begin_cell()
+            .store_slice(my_address())
+            .store_slice(user_address)
+            .store_coins(0)
+            .store_coins(0)
+          .end_cell();
+}
+
+
+cell calculate_gateway_state_init(slice user_address) inline {
+  cell gateway_data = pack_gateway_data(user_address);
+  return calculate_contract_state_init(gateway_code, gateway_data);
+}
+
+
+slice calculate_user_gateway_address(user_address) inline {
+  return calculate_contract_address(calculate_gateway_state_init(user_address));
+}
