@@ -33,6 +33,7 @@ global cell lp_meta_data;
 
 () initialize_globals(int balance, int msg_value) impure inline {
   left_reserve = balance - msg_value - cfg::tons_for_storage();
+
   slice ds = get_data().begin_parse();
   admin_address = ds~load_msg_addr();
   jetton_wallet = ds~load_msg_addr();
@@ -41,6 +42,7 @@ global cell lp_meta_data;
   cfg::gas_price = ds~load_coins();
   lp_wallet_code = ds~load_ref();
   lp_meta_data = ds~load_ref();
+
   slice ds2 = ds.preload_ref().begin_parse();
   fee_to = ds2~load_msg_addr();
   price0_cumulative_last = ds2~load_uint(256);
@@ -51,13 +53,6 @@ global cell lp_meta_data;
 
 
 () save_data() impure {
-  cell data2 = begin_cell()
-    .store_slice(fee_to)
-    .store_uint(price0_cumulative_last, 256)
-    .store_uint(price0_cumulative_last, 256)
-    .store_uint(block_timestamp_last, 40)
-    .store_uint(kLast, 122)
-    .end_cell();
   set_data(begin_cell()
     .store_slice(admin_address)
     .store_slice(jetton_wallet)
@@ -66,6 +61,12 @@ global cell lp_meta_data;
     .store_coins(cfg::gas_price)
     .store_ref(lp_wallet_code)
     .store_ref(lp_meta_data)
-    .store_ref(data2)
+    .store_ref(begin_cell()
+      .store_slice(fee_to)
+      .store_uint(price0_cumulative_last, 256)
+      .store_uint(price0_cumulative_last, 256)
+      .store_uint(block_timestamp_last, 40)
+      .store_uint(kLast, 122)
+      .end_cell())
     .end_cell());
 }

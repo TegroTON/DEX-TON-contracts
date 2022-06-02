@@ -1,14 +1,12 @@
 ;; operation codes
-int op::install() asm "0x696e7374 PUSHINT";
-int op::transfer() asm "0xf8a7ea5 PUSHINT";
-int op::transfer_notification() asm "0x7362d09c PUSHINT";
-int op::swap_ton() asm "0x73707274 PUSHINT"; ;; TON -> JETTON
-int op::swap_jetton() asm "0x73706c74 PUSHINT"; ;; JETTON -> TON (or jetton -> jetton)
-int op::add_liquidity() asm "0x61646c71 PUSHINT";
+int op::install() asm "0x2fcabd79 PUSHINT";
+int op::swap_ton() asm "0x5cb17fc0 PUSHINT"; ;; TON -> JETTON
+int op::swap_jetton() asm "0x2d709ea7 PUSHINT"; ;; JETTON -> TON (or jetton -> jetton)
+int op::add_liquidity() asm "0x3ebe5431 PUSHINT";
 int op::remove_liquidity() asm "0x7bdd97de PUSHINT"; ;; == op::burn_notification() in jetton's
 ;; TODO "response" messages to have an op with the high-order bit set, i.e., in the range 2^31 .. 2^32-1
-int op::successful_swap() asm "0x736c7370 PUSHINT";
-int op::return_change() asm "0x726e6368 PUSHINT";
+int op::successful_swap() asm "0xde6e0675 PUSHINT";
+int op::return_change() asm "0x848a64ff PUSHINT";
 ;; for jetton and lp
 int op::transfer() asm "0xf8a7ea5 PUSHINT";
 int op::transfer_notification() asm "0x7362d09c PUSHINT";
@@ -26,11 +24,11 @@ int cfg::workchain() asm "0 PUSHINT";
 int error::pool_is_not_init() asm "400 PUSHINT";
 int error::invalid_address() asm "410 PUSHINT";
 int error::insufficient_ton() asm "420 PUSHINT"; ;; for fee
-;; TODO "response" messages to have an op with the high-order bit set, i.e., in the range 2^31 .. 2^32-1
-int error::insufficient_left_amount() asm "421 PUSHINT";
-int error::insufficient_right_amount() asm "422 PUSHINT";
-int error::insufficient_liquidity() asm "423 PUSHINT";
-int error::insufficient_slippage() asm "424 PUSHINT";
+;; "response" messages to have an op with the high-order bit set, i.e., in the range 2^31 .. 2^32-1
+int error::insufficient_left_amount() asm "0xb135ad70 PUSHINT";
+int error::insufficient_right_amount() asm "0xd1635ae2 PUSHINT";
+int error::insufficient_liquidity() asm "0xcf7c0035 PUSHINT";
+int error::insufficient_slippage() asm "0xc6d0084d PUSHINT";
 
 int error::insufficient_lp_amount() asm "425 PUSHINT";
 int error::insufficient_liquidity_mint() asm "426 PUSHINT"; ;; not used

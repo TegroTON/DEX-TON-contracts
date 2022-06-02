@@ -2,8 +2,8 @@
 Gateway for adding two jetton to liquidity
 
 storage#_ exchange_address:MsgAddress user_address:MsgAddress
-          jetton1_reserve:(VarUInteger 16)
-          jetton2_reserve:(VarUInteger 16) = Storage;
+          jetton0_reserve:(VarUInteger 16)
+          jetton1_reserve:(VarUInteger 16) = Storage;
 -}
 int min_tons_for_storage() asm "10000000 PUSHINT"; ;; 0.01 TON
 
@@ -18,7 +18,8 @@ int min_tons_for_storage() asm "10000000 PUSHINT"; ;; 0.01 TON
     .store_slice(exchange)
     .store_slice(user)
     .store_coins(reserve0)
-    .store_coins(reserve1));
+    .store_coins(reserve1)
+    .end_cell());
 }
 
 
@@ -55,12 +56,14 @@ int min_tons_for_storage() asm "10000000 PUSHINT"; ;; 0.01 TON
       builder message = begin_cell()
         .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 011000
         .store_slice(exchange_address)
-        .store_uint(0, 111) ;; 0 Gram + 107 zero bits
-        .store_uint(op::add_liquidity(), 32)
-        .store_uint(query_id, 64)
-        .store_slice(user_address)
-        .store_coins(reserve1)
-        .store_coins(reserve2); ;; 987 bit
+        .store_uint(1, 111) ;; 0 Gram + 106 zero bits + 1 one bit
+        .store_ref(begin_cell()
+          .store_uint(op::add_liquidity(), 32)
+          .store_uint(query_id, 64)
+          .store_slice(user_address)
+          .store_coins(reserve0)
+          .store_coins(reserve1)
+          .end_cell()); ;; 987 bit
       raw_reserve(min_tons_for_storage(), 2);
       send_raw_message(message.end_cell(), 130);
       reserve0 = 0;

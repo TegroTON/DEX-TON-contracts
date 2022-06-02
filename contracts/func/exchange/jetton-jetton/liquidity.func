@@ -4,7 +4,8 @@
   ;; TODO remove throw_if (in jetton<->jetton version) ((or not))
   throw_if(error::insufficient_ton(), ton_amount <= 0);
 
-  int min_amount = payload~load_coins();
+  int min_left_amount = payload~load_coins();
+  int min_right_amount = payload~load_coins();
 
   cell state_init = calculate_gateway_state_init(user_address);
   slice gateway_address = calculate_contract_address(state_init);
@@ -30,6 +31,8 @@
 
   int left_amount = payload~load_coins();
   int right_amount = payload~load_coins();
+  int min_left_amount = payload~load_coins();
+  int min_right_amount = payload~load_coins();
   
   int change_left_amount = 0;
   int change_right_amount = 0;
@@ -95,18 +98,18 @@
 
   throw_if(error::insufficient_lp_amount(), lp_amount <= 0);
 
-  int ton_share = (left_reserve * lp_amount) / lp_supply;
-  int jetton_share = (right_reserve * lp_amount) / lp_supply;
+  int left_share = (left_reserve * lp_amount) / lp_supply;
+  int right_share = (right_reserve * lp_amount) / lp_supply;
 
   accumulate_price();
   kLast = left_reserve * right_reserve;
-  left_reserve -= ton_share;
-  right_reserve -= jetton_share;
+  left_reserve -= left_share;
+  right_reserve -= right_share;
   mint_fee();
   lp_supply -= lp_amount;
 
-  builder body = begin_cell().store_uint(0, 1).store_coins(ton_share);
-  send_jettons(from_address, jetton_share, ton_share, body, 3);
+  send_jettons(from_address, left_share, 0, null(), 3);
+  send_jettons(from_address, right_share, 0, null(), 3);
 
   raw_reserve(ton_amount - fee::send_jetton() - fee::remove_lp() - fwd_fee, 3);
 

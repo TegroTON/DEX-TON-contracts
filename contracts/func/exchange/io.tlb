@@ -21,6 +21,9 @@ _ _:MsgAddressInt = MsgAddress;
 _ _:MsgAddressExt = MsgAddress;
 //
 
+burn_lp query_id:uint64 amount:(VarUInteger 16)
+        response_destination:MsgAddress custom_payload:(Maybe ^Cell)
+        = BurnLp;
 
 
 // swap ton -> jetton
@@ -30,11 +33,10 @@ swap_ton#234234 query_id:uint64 jettons_min:Coins = InternalMsgBody;
 swap_jetton#2342524 amount_out_min:Coins = Payload;
 
 // if jetton<->jetton, then just send 2 transactions in turn
-add_liquidity#3425245 left_amount_min:Coins right_amount_min:Coins = Payload;
+add_liquidity#3425245 min_left_amount:Coins min_right_amount:Coins = Payload;
 
 //
-remove_liquidity#4874345 = dsfg;
-
+remove_liquidity body:BurnLp = InternalMsgBody;
 
 
 
@@ -43,6 +45,3 @@ transfer_jettons query_id:uint64 amount:(VarUInteger 16) destination:MsgAddress
            forward_ton_amount:(VarUInteger 16) forward_payload:(Either Payload ^Payload)
            = InternalMsgBody;
 
-burn_lp query_id:uint64 amount:(VarUInteger 16)
-        response_destination:MsgAddress custom_payload:(Maybe ^Cell)
-        = Burn;

@@ -1,18 +1,3 @@
-{-
-Требуемые данные:
-ton_amount, jetton_amount, to_address, payload, query_id, fwd_fee, choise
-
-Логика работы:
-На основе side определяем:
-  - кошелёк получения
-  - кошелёк отправки
-  - резервы получения
-  - резервы отправки
-
-Также после обмена ещё раз на основе side
-определяем в какой резерв прибавлять и убавлять средства.
--}
-
 () swap_jettons(int ton_amount, int jetton_amount, slice to_address, slice payload, int query_id, int fwd_fee, int sd) impure {
   int amount_out_min = payload~load_coins();
 
