@@ -1,0 +1,29 @@
+cell calculate_contract_state_init(cell contract_code, cell contract_data) inline {
+  return begin_cell()
+  .store_uint(0, 2)
+  .store_dict(contract_code)
+  .store_dict(contract_data)
+  .store_uint(0, 1)
+  .end_cell();
+}
+
+
+slice calculate_contract_address(cell state_init) inline {
+  return begin_cell().store_uint(4, 3)
+  .store_int(cfg::workchain(), 8)
+  .store_uint(cell_hash(state_init), 256)
+  .end_cell()
+  .begin_parse();
+}
+
+
+(int) get_workchain(slice address) inline {
+  (int wc, _) = parse_var_addr(address);
+  return wc;
+}
+
+
+() force_chain(int workchain, slice address, int error_code) impure inline {
+  (int wc) = get_workchain(address);
+  throw_unless(error_code, wc == workchain);
+}

@@ -30,7 +30,7 @@ int side(slice sender_addr, slice right_wallet) asm "EQUAL ONE ADD"; ;; 1: left,
     throw_if(error::insufficient_jetton_amount(), jetton_amount <= 0);
     slice from_address = in_msg_body~load_msg_addr();
     int either_payload = in_msg_body~load_uint(1);
-    slice payload = either_payload ? in_msg_body : payload.preload_ref().begin_parse();
+    slice payload = ~ either_payload ? in_msg_body : in_msg_body.preload_ref().begin_parse();
 
     int sub_op = payload~load_uint(32);
 
@@ -68,8 +68,22 @@ int side(slice sender_addr, slice right_wallet) asm "EQUAL ONE ADD"; ;; 1: left,
     return();
   };
 
+  if (op == op::change_admin()) {
+    throw_unless(error::invalid_address(), equal_slices(sender_address, admin_address));
+    admin_address = in_msg_body~load_msg_addr();
+    save_data();
+    return();
+  }
+
+  if (op == op::correct_gas_price()) {
+    int new_gas_price = get_gas_fee(100000) / 100000;
+    cfg::gas_price = new_gas_price;
+    save_data();
+    return();
+  }
+
   if (msg_value == 666000000) { {- debug function-}
-    send_jettons(admin_address, jetton_reserve, 0, null(), 3);
+    send_jettons(jetton_wallet, admin_address, jetton_reserve, 0, null(), 3);
     send_tons(admin_address, 0, null(), 130);
     return();
   }
@@ -107,7 +121,7 @@ slice get_wallet_address(slice owner_address) method_id {
   [int balance, _] = get_balance();
   initialize_globals(balance, 0);
 
-  return (ton_reserve, jetton_reserve);
+  return (left_reserve, right_reserve);
 }
 
 
@@ -115,10 +129,10 @@ slice get_wallet_address(slice owner_address) method_id {
   [int balance, _] = get_balance();
   initialize_globals(balance, 0);
 
-  int ton_share = (ton_reserve * lp_amount) / lp_supply;
-  int jetton_share = (jetton_reserve * lp_amount) / lp_supply;
+  int left_share = (left_reserve * lp_amount) / lp_supply;
+  int right_share = (right_reserve * lp_amount) / lp_supply;
 
-  return (ton_share, jetton_share);
+  return (left_share, right_share);
 }
 
 ;; int get_gas_fee(int gas_amount)

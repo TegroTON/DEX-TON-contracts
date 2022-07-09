@@ -21,27 +21,43 @@ _ _:MsgAddressInt = MsgAddress;
 _ _:MsgAddressExt = MsgAddress;
 //
 
-burn_lp query_id:uint64 amount:(VarUInteger 16)
-        response_destination:MsgAddress custom_payload:(Maybe ^Cell)
-        = BurnLp;
+install#3356dc14 query_id:uint64 jetton_wallet:MsgAddress = InternalMsgBody;
 
+change_admin#6c2c95a query_id:uint64 admin_address:MsgAddress = InternalMsgBody;
+
+correct_gas_price#2a681c42 query_id:uint64 = InternalMsgBody;
 
 // swap ton -> jetton
-swap_ton#234234 query_id:uint64 jettons_min:Coins = InternalMsgBody;
+swap_ton#565c7311 query_id:uint64 jettons_min:Coins = InternalMsgBody;
+
 
 // swap jetton -> ton OR jetton -> jetton
-swap_jetton#2342524 amount_out_min:Coins = Payload;
+swap_jetton#5772112 amount_out_min:Coins = Payload;
+
 
 // if jetton<->jetton, then just send 2 transactions in turn
-add_liquidity#3425245 min_left_amount:Coins min_right_amount:Coins = Payload;
-
-//
-remove_liquidity body:BurnLp = InternalMsgBody;
+add_liquidity#287e167a min_left_amount:Coins min_right_amount:Coins = Payload;
 
 
+// remove luquidity (user sent)
+burn#595f07bc query_id:uint64 amount:(VarUInteger 16)
+     response_destination:MsgAddress custom_payload:(Maybe ^Cell)
+     = InternalMsgBody;
 
-transfer_jettons query_id:uint64 amount:(VarUInteger 16) destination:MsgAddress
+
+// remove luquidity (dex receive)
+burn_notification#7bdd97de query_id:uint64 amount:(VarUInteger 16)
+       sender:MsgAddress response_destination:MsgAddress
+       = InternalMsgBody;
+
+
+// user sent
+transfer_jettons#f8a7ea5 query_id:uint64 amount:(VarUInteger 16) destination:MsgAddress
            response_destination:MsgAddress custom_payload:(Maybe ^Cell)
            forward_ton_amount:(VarUInteger 16) forward_payload:(Either Payload ^Payload)
            = InternalMsgBody;
 
+// dex receive
+transfer_notification#7362d09c query_id:uint64 amount:(VarUInteger 16)
+           sender:MsgAddress forward_payload:(Either Payload ^Payload)
+           = InternalMsgBody;
