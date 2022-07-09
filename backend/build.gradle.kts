@@ -35,7 +35,6 @@ dependencies {
     implementation(libs.micronaut.kotlin.runtime)
     implementation(libs.micronaut.reactor)
     implementation(libs.micronaut.reactor.http.client)
-    implementation(libs.micronaut.security)
     implementation(libs.jakarta.annotation)
     implementation(libs.swagger.annotations)
     implementation(libs.reflect)
