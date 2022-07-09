@@ -33,7 +33,7 @@ addr2 "addr2" write-to-dict
 <b 0x00 8 u, dict# @ dict, b> =: lp-metadata
 
 // MAIN CELL
-"EQBIdr3wZeP-zDwhiY-F4N-lFwZcIliZJprKWPtYazE-GA-q" $>Addr>s =: admin-address
+"EQBmO_7SDGd7WRZQ5UEx0f-pG1uheNRW8wKoOuxJf9bqW3OJ" $>Addr>s =: admin-address
 "build/lp-wallet.fif" include =: lp-wallet-code
 
 <b

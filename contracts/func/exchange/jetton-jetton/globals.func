@@ -1,12 +1,12 @@
 {-
-meta_data#00 data:(HashMapE 256 ^Cell) : MetaData
+meta_data#00 data:(HashMapE 256 ^Cell) = MetaData;
 
 storage3#_ fee_to:MsgAddress price0_cumulative_last:uint256
            price1_cumulative_last:uint256 time_elapsed:uint40
-           kLast:uint122 = Storage3
+           kLast:uint122 = Storage3;
 
 storage2#_ left_reserve:(VarUInteger 16) right_reserve:(VarUInteger 16)
-           lp_supply:(VarUInteger 16) part3:^Storage3 = Storage2
+           lp_supply:(VarUInteger 16) part3:^Storage3 = Storage2;
 
 storage#_ admin_address:MsgAddress left_wallet:MsgAddress
           right_wallet:MsgAddress gas_price:(VarUInteger 16)

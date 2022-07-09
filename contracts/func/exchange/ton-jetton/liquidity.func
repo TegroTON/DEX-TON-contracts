@@ -19,9 +19,9 @@
 
     if (optimal_jetton_amount <= jetton_amount) {
       if (optimal_jetton_amount < min_jetton_amount) {
-        send_jettons_payload(user_address, ton_amount, jetton_amount, error::insufficient_jetton_amount(), query_id);
+        send_jettons_payload(jetton_wallet, user_address, ton_amount, jetton_amount, error::insufficient_right_amount(), query_id);
         commit();
-        throw(error::insufficient_jetton_amount());
+        throw(error::insufficient_right_amount());
       }
 
       change_jetton_amount = jetton_amount - optimal_jetton_amount;
@@ -30,9 +30,9 @@
       int optimal_ton_amount = quote(jetton_amount, right_reserve, left_reserve);
 
       if ((optimal_ton_amount < min_ton_amount) | (optimal_ton_amount > ton_amount)) {
-        send_jettons_payload(user_address, ton_amount, jetton_amount, error::insufficient_ton_amount(), query_id);
+        send_jettons_payload(jetton_wallet, user_address, ton_amount, jetton_amount, error::insufficient_left_amount(), query_id);
         commit();
-        throw(error::insufficient_ton_amount());
+        throw(error::insufficient_left_amount());
       }
 
       change_ton_amount = ton_amount - optimal_ton_amount;
@@ -49,7 +49,7 @@
   ;; throw_if(error::insufficient_liquidity_mint(), liquidity <= 0);
 
   if ((change_ton_amount > 0) | (change_jetton_amount > 0)) {
-    send_jettons_payload(user_address, change_ton_amount, change_jetton_amount, op::return_change(), query_id); ;; return change
+    send_jettons_payload(jetton_wallet, user_address, change_ton_amount, change_jetton_amount, op::return_change(), query_id); ;; return change
   }
 
   accumulate_price();
@@ -81,7 +81,7 @@
   lp_supply -= lp_amount;
 
   builder body = begin_cell().store_uint(0, 1).store_coins(ton_share);
-  send_jettons(from_address, jetton_share, ton_share, body, 3);
+  send_jettons(jetton_wallet, from_address, jetton_share, ton_share, body, 3);
 
   raw_reserve(ton_amount - fee::send_jetton() - fee::remove_lp() - fwd_fee, 3);
 

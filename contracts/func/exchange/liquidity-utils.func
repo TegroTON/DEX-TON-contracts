@@ -25,7 +25,7 @@ int {- out_amount -} quote(int in_amount, int in_reserve, int out_reserve) inlin
 ;; mint liquidity equivalent to 3/7 (0.15%/0.35%) of the growth in sqrt(k)
 () mint_fee() impure {
   if (kLast != 0) {
-    int rootK = sqrt(ton_reserve * jetton_reserve);
+    int rootK = sqrt(left_reserve * right_reserve);
     int rootKLast = sqrt(kLast);
     if (rootK > rootKLast) {
       int numerator = lp_supply * (rootK - rootKLast) * 3;

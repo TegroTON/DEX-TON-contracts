@@ -1,16 +1,14 @@
 ;; global variables
 
 {-
-meta_data#00 data:(HashMapE 256 ^Cell) : MetaData
-
-storage2#_ fee_to:MsgAddress price0_cumulative_last:uint256
-           price1_cumulative_last:uint256 time_elapsed:uint40
-           kLast:uint122 = Storage2
+meta_data#00 data:(HashMapE 256 ^Cell) = MetaData;
 
 storage#_ admin_address:MsgAddress jetton_wallet:MsgAddress
           jetton_reserve:(VarUInteger 16) lp_supply:(VarUInteger 16)
-          lp_wallet_code:^Cell, lp_meta_data:^MetaData
-          part2:^Storage2 = Storage;
+          lp_wallet_code:^Cell lp_meta_data:^MetaData
+          ^[ fee_to:MsgAddress price0_cumulative_last:uint256
+           price1_cumulative_last:uint256 time_elapsed:uint40
+           kLast:uint122 ] = Storage;
 -}
 
 global int left_reserve; ;; TON

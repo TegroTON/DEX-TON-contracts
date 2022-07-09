@@ -46,6 +46,6 @@
   accumulate_price();
   right_reserve += jetton_amount;
 
-  send_tons_payload(to_address, ton_amount_out + fee::send_jetton(), p::successful_swap(), query_id);
+  send_tons_payload(to_address, ton_amount_out + fee::send_jetton(), op::successful_swap(), query_id);
   save_data();
 }
