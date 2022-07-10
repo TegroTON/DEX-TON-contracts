@@ -17,7 +17,7 @@ CREATE TABLE "jettons"
     "admin"        BYTEA       NOT NULL,
     "name"         VARCHAR(255),
     "description"  TEXT,
-    "symbol"       VARCHAR(255),
+    "symbol"       VARCHAR(10), /* Usually these are 4-5 characters long */
     "decimals"     INTEGER     NOT NULL,
     "image"        TEXT,
     "image_data"   BYTEA       NOT NULL,
