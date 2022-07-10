@@ -1,16 +1,33 @@
 package money.tegro.dex.controller
 
-import money.tegro.dex.dto.CurrencyDTO
+import io.micronaut.http.annotation.Controller
+import kotlinx.coroutines.reactor.mono
+import money.tegro.dex.contract.toSafeBounceable
+import money.tegro.dex.dto.JettonDTO
+import money.tegro.dex.model.JettonModel
 import money.tegro.dex.operations.JettonOperations
+import money.tegro.dex.repository.JettonRepository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-class JettonController : JettonOperations {
-    override fun allJettons(): Flux<CurrencyDTO> {
-        TODO("Not yet implemented")
-    }
+@Controller
+class JettonController(
+    private val jettonRepository: JettonRepository,
+) : JettonOperations {
+    override fun allJettons(): Flux<JettonDTO> =
+        jettonRepository.findAll()
+            .flatMap(::mapJetton)
 
-    override fun getJetton(symbol: String): Mono<CurrencyDTO> {
-        TODO("Not yet implemented")
+    override fun getJetton(symbol: String): Mono<JettonDTO> =
+        jettonRepository.findBySymbol(symbol)
+            .flatMap(::mapJetton)
+
+    private fun mapJetton(model: JettonModel) = mono {
+        JettonDTO(
+            updated = model.updated.epochSecond,
+            name = model.name ?: "Unknown Jetton",
+            symbol = model.symbol ?: "UNKNOWN",
+            address = model.address.toSafeBounceable()
+        )
     }
 }

@@ -6,7 +6,8 @@ CREATE TABLE "exchange_pairs"
     "right"          BYTEA       NOT NULL,
     "right_reserved" NUMERIC(40) NOT NULL,
     "discovered"     TIMESTAMP   NOT NULL,
-    "updated"        TIMESTAMP   NOT NULL
+    "updated"        TIMESTAMP   NOT NULL,
+    UNIQUE ("left", "right") /* All exchange pairs must be unique */
 );
 
 CREATE TABLE "jettons"
@@ -17,7 +18,7 @@ CREATE TABLE "jettons"
     "admin"        BYTEA       NOT NULL,
     "name"         VARCHAR(255),
     "description"  TEXT,
-    "symbol"       VARCHAR(10), /* Usually these are 4-5 characters long */
+    "symbol"       VARCHAR(10) UNIQUE, /* Usually these are 4-5 characters long */
     "decimals"     INTEGER     NOT NULL,
     "image"        TEXT,
     "image_data"   BYTEA       NOT NULL,

@@ -20,8 +20,8 @@ data class ExchangePairDTO(
     @get:Schema(description = "Address of the left currency, null in case of TON; base64url, bounceable")
     val leftAddress: String?,
 
-    @get:Schema(description = "Volume of the left currency")
-    val leftVolume: BigInt,
+    @get:Schema(description = "Reserved amount in the liquidity pool for the left currency")
+    val leftReserved: BigInt,
 
     @get:Schema(description = "Full name of the second currency")
     val rightName: String,
@@ -32,12 +32,6 @@ data class ExchangePairDTO(
     @get:Schema(description = "Address of the right currency, base64url, bounceable")
     val rightAddress: String,
 
-    @get:Schema(description = "Volume of the right currency")
-    val rightVolume: BigInt,
-
-    @get:Schema(description = "Price denominated in right/left")
-    val price: BigInt,
-
-    @get:Schema(description = "Liquidity in (nano)TON")
-    val liquidity: BigInt,
+    @get:Schema(description = "Reserved amount in the liquidity pool for the right jetton")
+    val rightReserved: BigInt,
 )
