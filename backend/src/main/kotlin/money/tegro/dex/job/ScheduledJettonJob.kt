@@ -5,6 +5,7 @@ import jakarta.inject.Singleton
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.mono
 import money.tegro.dex.contract.JettonContract
+import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.model.JettonModel
 import money.tegro.dex.repository.ExchangePairRepository
 import money.tegro.dex.repository.JettonRepository
@@ -20,7 +21,7 @@ class ScheduledJettonJob(
     private val exchangePairRepository: ExchangePairRepository,
     private val jettonRepository: JettonRepository,
 ) {
-    @Scheduled(initialDelay = "0s")
+    @Scheduled(initialDelay = "0s", fixedDelay = "12h")
     fun run() {
         logger.info { "updating jetton information" }
 
@@ -30,7 +31,7 @@ class ScheduledJettonJob(
             .filterWhen { jettonRepository.existsById(it).not() }
             .concatMap {
                 mono {
-                    logger.debug("adding missing jetton {} information", v("address", it))
+                    logger.debug("adding missing jetton {} information", v("address", it.toSafeBounceable()))
                     val jetton = JettonContract.of(it, liteApi)
                     jettonRepository.save(
                         JettonModel(
@@ -48,7 +49,7 @@ class ScheduledJettonJob(
         jettonRepository.findAll()
             .concatMap {
                 mono {
-                    logger.debug("updating jetton {} information", v("address", it.address))
+                    logger.debug("updating jetton {} information", v("address", it.address.toSafeBounceable()))
                     val jetton = JettonContract.of(it.address, liteApi)
                     val metadata = jetton.metadata()
 

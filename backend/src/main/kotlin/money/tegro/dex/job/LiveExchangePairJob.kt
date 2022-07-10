@@ -4,6 +4,7 @@ import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactor.mono
 import money.tegro.dex.contract.ExchangePairContract
+import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.repository.ExchangePairRepository
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.v
@@ -20,12 +21,15 @@ class LiveExchangePairJob(
         liveBlocks()
             .flatMap { extractAffectedAccounts(it).toFlux() }
             .filter { it !in SYSTEM_ADDRESSES }
-            .doOnNext { logger.debug("affected account {}", v("address", it)) }
+            .doOnNext { logger.debug("affected account {}", v("address", it.toSafeBounceable())) }
             .subscribe {
                 exchangePairRepository.findById(it)
                     .subscribe {
                         mono {
-                            logger.info("address {} matched database exchange pair entity", v("address", it.address))
+                            logger.info(
+                                "address {} matched database exchange pair entity",
+                                v("address", it.address.toSafeBounceable())
+                            )
 
                             val reserves = ExchangePairContract.getReserves(it.address, liteApi)
 
