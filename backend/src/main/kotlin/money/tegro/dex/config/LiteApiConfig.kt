@@ -4,7 +4,7 @@ import io.micronaut.context.annotation.ConfigurationProperties
 
 @ConfigurationProperties("money.tegro.dex.liteapi")
 class LiteApiConfig {
-    var ipv4 = 1091947910
-    var port = 7496
-    var key = "EI32HF4Lr9mKSnw/dqiXQabpydo/FsyAPSwoeav4lbI="
+    var ipv4 = 1959448750
+    var port = 51281
+    var key = "hyXd2d6yyiD/wirjoraSrKek1jYhOyzbQoIzV85CB98="
 }
