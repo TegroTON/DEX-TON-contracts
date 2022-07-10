@@ -1,4 +1,4 @@
-package money.tegro.dex.blockchain
+package money.tegro.dex.contract
 
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.value
@@ -9,7 +9,7 @@ import org.ton.block.VmStackValue
 import org.ton.lite.api.LiteApi
 import org.ton.lite.api.liteserver.LiteServerAccountId
 
-interface ExchangePair {
+interface ExchangePairContract {
     companion object : KLogging() {
         @JvmStatic
         suspend fun isInitialized(address: AddrStd, liteApi: LiteApi): Boolean {
