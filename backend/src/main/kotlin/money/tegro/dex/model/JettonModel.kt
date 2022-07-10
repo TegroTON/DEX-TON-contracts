@@ -9,6 +9,7 @@ import money.tegro.dex.converter.MsgAddressIntAttributeConverter
 import org.ton.bigint.BigInt
 import org.ton.block.AddrStd
 import org.ton.block.MsgAddressInt
+import java.time.Instant
 
 @MappedEntity("jettons")
 data class JettonModel(
@@ -23,16 +24,19 @@ data class JettonModel(
     @field:TypeDef(type = DataType.BYTE_ARRAY, converter = MsgAddressIntAttributeConverter::class)
     val admin: MsgAddressInt,
 
-    val name: String?,
+    val name: String? = null,
 
-    val description: String?,
+    val description: String? = null,
 
-    val symbol: String?,
+    val symbol: String? = null,
 
     val decimals: Int = 9,
 
-    val image: String?,
+    val image: String? = null,
 
     // Cannot be nullable, idk why but the driver really doesn't like nullable byte arrays
-    val imageData: ByteArray,
+    val imageData: ByteArray = byteArrayOf(),
+
+    val discovered: Instant = Instant.now(),
+    val updated: Instant = Instant.now(),
 )
