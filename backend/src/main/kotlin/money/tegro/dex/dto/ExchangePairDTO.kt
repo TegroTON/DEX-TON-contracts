@@ -1,7 +1,7 @@
 package money.tegro.dex.dto
 
-import io.ktor.network.sockets.*
 import io.swagger.v3.oas.annotations.media.Schema
+import org.ton.bigint.BigInt
 
 @Schema(name = "Pair", description = "Information about an exchange pair")
 data class ExchangePairDTO(
@@ -17,11 +17,11 @@ data class ExchangePairDTO(
     @get:Schema(description = "Symbol, ticker, of the first currency")
     val leftSymbol: String,
 
-    @get:Schema(description = "Address of the left currency, null in case of TON; base64, bounceable")
+    @get:Schema(description = "Address of the left currency, null in case of TON; base64url, bounceable")
     val leftAddress: String?,
 
     @get:Schema(description = "Volume of the left currency")
-    val leftVolume: Long,
+    val leftVolume: BigInt,
 
     @get:Schema(description = "Full name of the second currency")
     val rightName: String,
@@ -29,15 +29,15 @@ data class ExchangePairDTO(
     @get:Schema(description = "Symbol, ticker, of the second currency")
     val rightSymbol: String,
 
-    @get:Schema(description = "Address of the right currency, base64, bounceable")
+    @get:Schema(description = "Address of the right currency, base64url, bounceable")
     val rightAddress: String,
 
     @get:Schema(description = "Volume of the right currency")
-    val rightVolume: Long,
+    val rightVolume: BigInt,
 
     @get:Schema(description = "Price denominated in right/left")
-    val price: Long,
+    val price: BigInt,
 
-    @get:Schema(description = "Liquidity in TON")
-    val liquidity: Long,
+    @get:Schema(description = "Liquidity in (nano)TON")
+    val liquidity: BigInt,
 )
