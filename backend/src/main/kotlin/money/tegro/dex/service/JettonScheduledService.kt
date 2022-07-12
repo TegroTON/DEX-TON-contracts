@@ -1,4 +1,4 @@
-package money.tegro.dex.job
+package money.tegro.dex.service
 
 import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.inject.Singleton
@@ -16,7 +16,7 @@ import reactor.kotlin.extra.bool.not
 import java.time.Instant
 
 @Singleton
-class ScheduledJettonJob(
+class JettonScheduledService(
     private val liteApi: LiteApi,
     private val exchangePairRepository: ExchangePairRepository,
     private val jettonRepository: JettonRepository,

@@ -1,4 +1,4 @@
-package money.tegro.dex.job
+package money.tegro.dex.service
 
 import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.inject.Singleton
@@ -9,32 +9,30 @@ import money.tegro.dex.repository.ExchangePairRepository
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.v
 import org.ton.lite.api.LiteApi
-import reactor.kotlin.core.publisher.toFlux
 
 @Singleton
-class LiveExchangePairJob(
+class ExchangePairWatchService(
     private val liteApi: LiteApi,
+    private val accountService: LiveAccountService,
     private val exchangePairRepository: ExchangePairRepository,
-) : AbstractLiveJob(liteApi) {
+) {
     @Scheduled(initialDelay = "0s") // Set it up as soon as possible
-    fun run() {
-        liveBlocks()
-            .flatMap { extractAffectedAccounts(it).toFlux() }
-            .filter { it !in SYSTEM_ADDRESSES }
+    fun setup() {
+        accountService
+            .asFlux()
             .doOnNext { logger.debug("affected account {}", v("address", it.toSafeBounceable())) }
             .subscribe {
                 exchangePairRepository.findById(it)
+                    .doOnNext {
+                        logger.info(
+                            "address {} matched database exchange pair entity",
+                            v("address", it.address.toSafeBounceable())
+                        )
+                    }
+                    .flatMap { mono { it.address to ExchangePairContract.getReserves(it.address, liteApi) } }
                     .subscribe {
-                        mono {
-                            logger.info(
-                                "address {} matched database exchange pair entity",
-                                v("address", it.address.toSafeBounceable())
-                            )
-
-                            val reserves = ExchangePairContract.getReserves(it.address, liteApi)
-
-                            exchangePairRepository.update(it.address, reserves.first, reserves.second)
-                        }.subscribe()
+                        val (address, reserves) = it
+                        exchangePairRepository.update(address, reserves.first, reserves.second)
                     }
             }
     }
