@@ -2,7 +2,10 @@ package money.tegro.dex.service
 
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactor.mono
-import org.ton.bitstring.BitString
+import money.tegro.dex.contract.toSafeBounceable
+import money.tegro.dex.service.LiveBlockService.Companion.SYSTEM_ADDRESSES
+import mu.KLogging
+import net.logstash.logback.argument.StructuredArguments.v
 import org.ton.block.AddrStd
 import reactor.core.publisher.Sinks
 
@@ -15,7 +18,7 @@ class LiveAccountService(
     init {
         setup()
     }
-    
+
     fun asFlux() = sink.asFlux()
 
     private fun setup() =
@@ -32,16 +35,11 @@ class LiveAccountService(
                         }
                         .filter { it !in SYSTEM_ADDRESSES }
                         .forEach {
+                            logger.debug("affected account {}", v("address", it.toSafeBounceable()))
                             sink.emitNext(it, Sinks.EmitFailureHandler.FAIL_FAST) // TODO: more robust handler
                         }
                 }.subscribe()
             }
 
-    companion object {
-        val SYSTEM_ADDRESSES = listOf(
-            AddrStd(-1, BitString.of("5555555555555555555555555555555555555555555555555555555555555555")),
-            AddrStd(-1, BitString.of("3333333333333333333333333333333333333333333333333333333333333333")),
-            AddrStd(-1, BitString.of("0000000000000000000000000000000000000000000000000000000000000000")),
-        )
-    }
+    companion object : KLogging()
 }

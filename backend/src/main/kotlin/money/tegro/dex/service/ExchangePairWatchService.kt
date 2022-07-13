@@ -20,7 +20,6 @@ class ExchangePairWatchService(
     fun setup() {
         accountService
             .asFlux()
-            .doOnNext { logger.debug("affected account {}", v("address", it.toSafeBounceable())) }
             .subscribe {
                 exchangePairRepository.findById(it)
                     .doOnNext {

@@ -6,6 +6,8 @@ import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.*
 import org.ton.api.tonnode.TonNodeBlockIdExt
 import org.ton.bigint.BigInt
+import org.ton.bitstring.BitString
+import org.ton.block.AddrStd
 import org.ton.block.Block
 import org.ton.block.ShardDescr
 import org.ton.lite.api.LiteApi
@@ -73,6 +75,12 @@ class LiveBlockService(
             seqno = descr.seq_no.toInt(),
             root_hash = descr.root_hash,
             file_hash = descr.file_hash
+        )
+
+        val SYSTEM_ADDRESSES = listOf(
+            AddrStd(-1, BitString.of("5555555555555555555555555555555555555555555555555555555555555555")),
+            AddrStd(-1, BitString.of("3333333333333333333333333333333333333333333333333333333333333333")),
+            AddrStd(-1, BitString.of("0000000000000000000000000000000000000000000000000000000000000000")),
         )
     }
 }
