@@ -28,6 +28,7 @@ jobs:
       - name: Build and push image with Gradle + Jib
         uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
         with:
-          arguments: jib -Djib.to.image=ghcr.io/TegroTON/DEX:latest \
-          -Djib.to.auth.username=${{ github.actor }} \
-          -Djib.to.auth.password=${{ secrets.GITHUB_TOKEN }}
+          arguments: |
+            jib -Djib.to.image=ghcr.io/TegroTON/DEX:latest \
+            -Djib.to.auth.username=${{ github.actor }} \
+            -Djib.to.auth.password=${{ secrets.GITHUB_TOKEN }}
