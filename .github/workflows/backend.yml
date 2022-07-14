@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/
 
     steps:
       - name: Checkout repository
@@ -21,9 +24,6 @@ jobs:
         with:
           java-version: '11'
           distribution: 'adopt'
-
-      - name: Go to backend directory
-        run: cd backend/
 
       - name: Make sure gradlew is executable
         run: chmod +x gradlew
