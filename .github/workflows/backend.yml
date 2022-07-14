@@ -33,6 +33,6 @@ jobs:
         with:
           build-root-directory: backend/
           arguments: |
-            :jib -Djib.to.image=ghcr.io/tegroton/dex:latest
+            :jib -Djib.to.image=ghcr.io/tegroton/dex_backend:latest
             -Djib.to.auth.username=${{ github.actor }}
             -Djib.to.auth.password=${{ secrets.GITHUB_TOKEN }}
