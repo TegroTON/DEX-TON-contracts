@@ -27,6 +27,7 @@ postgresql = { prefer = "42.4.0" }
 kotlin = "1.7.0"
 shadow = "7.1.2"
 micronaut-plugins = "3.4.1"
+jib = "3.2.1"
 
 [libraries]
 coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "coroutines" }
@@ -82,3 +83,4 @@ kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 kotlin-plugin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
 micronaut-application = { id = "io.micronaut.application", version.ref = "micronaut-plugins" }
+jib = { id = "com.google.cloud.tools.jib", version.ref = "jib" }

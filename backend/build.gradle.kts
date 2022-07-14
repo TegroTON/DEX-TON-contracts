@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.plugin.allopen)
     alias(libs.plugins.shadow)
     alias(libs.plugins.micronaut.application)
+    alias(libs.plugins.jib)
 }
 
 application {
@@ -17,6 +18,37 @@ micronaut {
     processing {
         incremental(true)
         annotations("money.tegro.dex.*")
+    }
+}
+
+jib {
+    container {
+        ports = listOf("80")
+        jvmFlags = listOf(
+            // Flags to make the GC not suck as much; https://aikar.co/mcflags.html
+            "-XX:+UseG1GC",
+            "-XX:+ParallelRefProcEnabled",
+            "-XX:MaxGCPauseMillis=200",
+            "-XX:+UnlockExperimentalVMOptions",
+            "-XX:+DisableExplicitGC",
+            "-XX:+AlwaysPreTouch",
+            "-XX:G1NewSizePercent=30",
+            "-XX:G1MaxNewSizePercent=40",
+            "-XX:G1HeapRegionSize=8M",
+            "-XX:G1ReservePercent=20",
+            "-XX:G1HeapWastePercent=5",
+            "-XX:G1MixedGCCountTarget=4",
+            "-XX:InitiatingHeapOccupancyPercent=15",
+            "-XX:G1MixedGCLiveThresholdPercent=90",
+            "-XX:G1RSetUpdatingPauseTimePercent=5",
+            "-XX:SurvivorRatio=32",
+            "-XX:+PerfDisableSharedMem",
+            "-XX:MaxTenuringThreshold=1",
+            "-Xms6G",
+            "-Xmx6G",
+            "-Dmicronaut.environments=prod",
+            "-Dlogback.configurationFile=logback-prod.xml"
+        )
     }
 }
 

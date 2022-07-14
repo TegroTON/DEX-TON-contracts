@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.info.Info
 object Application {
     @JvmStatic
     fun main(args: Array<String>) {
-        Micronaut.run(*args)
+        Micronaut.build(*args)
+            .banner(false)
+            .start()
     }
 }
