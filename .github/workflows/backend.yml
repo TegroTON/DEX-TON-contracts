@@ -2,7 +2,7 @@ name: Backend docker container
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, backend ]
   release:
     types: [ created ]
 
