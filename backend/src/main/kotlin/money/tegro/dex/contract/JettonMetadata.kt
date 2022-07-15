@@ -28,7 +28,7 @@ data class JettonMetadata(
             content: Cell,
             httpClient: HttpClient
         ): JettonMetadata {
-            val full = content.beginParse().loadTlb(FullContent)
+            val full = content.parse { loadTlb(FullContent) }
             return when (full) {
                 is FullContent.OnChain -> {
                     logger.debug { "on-chain content layout, frick" }
@@ -47,7 +47,7 @@ data class JettonMetadata(
                     )
                 }
                 is FullContent.OffChain -> {
-                    logger.debug { "off-chain content layout, thank's god" }
+                    logger.debug { "off-chain content layout, thanks god" }
 
 
                     val url = String(full.uri.data.flatten())
