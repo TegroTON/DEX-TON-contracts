@@ -21,7 +21,7 @@ interface JettonContract {
     val walletCode: Cell
 
     suspend fun metadata(): JettonMetadata
-    
+
     companion object : KLogging() {
         @JvmStatic
         suspend fun of(address: AddrStd, liteApi: LiteApi): JettonContract {
