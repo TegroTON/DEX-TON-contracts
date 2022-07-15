@@ -23,6 +23,14 @@ data class JettonMetadata(
     companion object : KLogging() {
         private val mapper by lazy { jacksonObjectMapper() }
 
+        val ONCHAIN_URI_KEY = sha256("uri".toByteArray())
+        val ONCHAIN_NAME_KEY = sha256("name".toByteArray())
+        val ONCHAIN_DESCRIPTION_KEY = sha256("description".toByteArray())
+        val ONCHAIN_IMAGE_KEY = sha256("image".toByteArray())
+        val ONCHAIN_IMAGE_DATA_KEY = sha256("image_data".toByteArray())
+        val ONCHAIN_SYMBOL_KEY = sha256("symbol".toByteArray())
+        val ONCHAIN_DECIMALS_KEY = sha256("decimals".toByteArray())
+
         @JvmStatic
         suspend fun of(
             content: Cell,
@@ -35,15 +43,13 @@ data class JettonMetadata(
                     val entries = full.data.toMap().mapKeys { it.key.toByteArray() }
 
                     JettonMetadata(
-                        uri = entries.get(sha256("uri".toByteArray()))?.flatten()
-                            ?.decodeToString(), // TODO: Semi-on-chain content
-                        name = entries.get(sha256("name".toByteArray()))?.flatten()?.decodeToString(),
-                        description = entries.get(sha256("description".toByteArray()))?.flatten()?.decodeToString(),
-                        image = entries.get(sha256("image".toByteArray()))?.flatten()?.decodeToString(),
-                        imageData = entries.get(sha256("image_data".toByteArray()))?.flatten(),
-                        symbol = entries.get(sha256("symbol".toByteArray()))?.flatten()?.decodeToString(),
-                        decimals = entries.get(sha256("decimals".toByteArray()))?.flatten()?.decodeToString()?.toInt()
-                            ?: 9
+                        uri = entries.get(ONCHAIN_URI_KEY)?.flatten()?.decodeToString(), // TODO: Semi-on-chain content
+                        name = entries.get(ONCHAIN_NAME_KEY)?.flatten()?.decodeToString(),
+                        description = entries.get(ONCHAIN_DESCRIPTION_KEY)?.flatten()?.decodeToString(),
+                        image = entries.get(ONCHAIN_IMAGE_KEY)?.flatten()?.decodeToString(),
+                        imageData = entries.get(ONCHAIN_IMAGE_DATA_KEY)?.flatten(),
+                        symbol = entries.get(ONCHAIN_SYMBOL_KEY)?.flatten()?.decodeToString(),
+                        decimals = entries.get(ONCHAIN_DECIMALS_KEY)?.flatten()?.decodeToString()?.toInt() ?: 9,
                     )
                 }
                 is FullContent.OffChain -> {
