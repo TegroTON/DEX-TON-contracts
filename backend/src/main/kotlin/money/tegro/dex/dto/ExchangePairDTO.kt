@@ -1,5 +1,6 @@
 package money.tegro.dex.dto
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import io.swagger.v3.oas.annotations.media.Schema
 import org.ton.bigint.BigInt
 
@@ -21,6 +22,7 @@ data class ExchangePairDTO(
     val leftAddress: String?,
 
     @field:Schema(description = "Reserved amount in the liquidity pool for the left currency", type = "integer")
+    @field:JsonFormat(shape = JsonFormat.Shape.STRING)
     val leftReserved: BigInt,
 
     @field:Schema(description = "Full name of the second currency")
@@ -33,5 +35,6 @@ data class ExchangePairDTO(
     val rightAddress: String,
 
     @field:Schema(description = "Reserved amount in the liquidity pool for the right jetton", type = "integer")
+    @field:JsonFormat(shape = JsonFormat.Shape.STRING)
     val rightReserved: BigInt,
 )
