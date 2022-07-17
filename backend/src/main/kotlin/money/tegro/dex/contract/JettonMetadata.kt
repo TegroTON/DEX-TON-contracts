@@ -6,6 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.v
+import org.ton.bitstring.BitString
 import org.ton.cell.Cell
 import org.ton.crypto.sha256
 import org.ton.smartcontract.*
@@ -23,13 +24,13 @@ data class JettonMetadata(
     companion object : KLogging() {
         private val mapper by lazy { jacksonObjectMapper() }
 
-        val ONCHAIN_URI_KEY = sha256("uri".toByteArray())
-        val ONCHAIN_NAME_KEY = sha256("name".toByteArray())
-        val ONCHAIN_DESCRIPTION_KEY = sha256("description".toByteArray())
-        val ONCHAIN_IMAGE_KEY = sha256("image".toByteArray())
-        val ONCHAIN_IMAGE_DATA_KEY = sha256("image_data".toByteArray())
-        val ONCHAIN_SYMBOL_KEY = sha256("symbol".toByteArray())
-        val ONCHAIN_DECIMALS_KEY = sha256("decimals".toByteArray())
+        val ONCHAIN_URI_KEY = BitString(sha256("uri".toByteArray()))
+        val ONCHAIN_NAME_KEY = BitString(sha256("name".toByteArray()))
+        val ONCHAIN_DESCRIPTION_KEY = BitString(sha256("description".toByteArray()))
+        val ONCHAIN_IMAGE_KEY = BitString(sha256("image".toByteArray()))
+        val ONCHAIN_IMAGE_DATA_KEY = BitString(sha256("image_data".toByteArray()))
+        val ONCHAIN_SYMBOL_KEY = BitString(sha256("symbol".toByteArray()))
+        val ONCHAIN_DECIMALS_KEY = BitString(sha256("decimals".toByteArray()))
 
         @JvmStatic
         suspend fun of(
@@ -40,7 +41,7 @@ data class JettonMetadata(
             return when (full) {
                 is FullContent.OnChain -> {
                     logger.debug { "on-chain content layout, frick" }
-                    val entries = full.data.toMap().mapKeys { it.key.toByteArray() }
+                    val entries = full.data.toMap()
 
                     JettonMetadata(
                         uri = entries.get(ONCHAIN_URI_KEY)?.flatten()?.decodeToString(), // TODO: Semi-on-chain content
