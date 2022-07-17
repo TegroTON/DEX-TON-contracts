@@ -23,7 +23,6 @@ micronaut {
 
 jib {
     container {
-        ports = listOf("80")
         jvmFlags = listOf(
             // Flags to make the GC not suck as much; https://aikar.co/mcflags.html
             "-XX:+UseG1GC",
@@ -45,9 +44,7 @@ jib {
             "-XX:+PerfDisableSharedMem",
             "-XX:MaxTenuringThreshold=1",
             "-Xms6G",
-            "-Xmx6G",
-            "-Dmicronaut.environments=prod",
-            "-Dlogback.configurationFile=logback-prod.xml"
+            "-Xmx6G"
         )
     }
 }
