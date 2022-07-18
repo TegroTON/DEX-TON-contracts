@@ -1,39 +1,44 @@
-package money.tegro.dex.service
+package money.tegro.dex.service.scheduled
 
 import io.micronaut.scheduling.annotation.Scheduled
+import jakarta.annotation.PostConstruct
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactor.mono
+import money.tegro.dex.config.ScheduledServiceConfiguration
 import money.tegro.dex.contract.ExchangePairContract
 import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.repository.ExchangePairRepository
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.v
 import org.ton.lite.api.LiteApi
+import reactor.core.publisher.Flux
+import java.time.Duration
 
 @Singleton
 class ExchangePairScheduledService(
+    private val config: ScheduledServiceConfiguration,
     private val liteApi: LiteApi,
     private val exchangePairRepository: ExchangePairRepository,
 ) {
-    @Scheduled(initialDelay = "0s", fixedDelay = "10m")
-    fun run() {
-        logger.info { "updating exchange pair information" }
-
-        exchangePairRepository.findAll()
+    @PostConstruct
+    private fun setup() {
+        Flux.interval(Duration.ZERO, config.exchangePairUpdatePeriod)
+            .concatMap { exchangePairRepository.findAll() }
             .doOnNext {
                 logger.info(
                     "updating {} exchange pair reserves",
                     v("address", it.address.toSafeBounceable())
                 )
             }
-            .flatMap { mono { it.address to ExchangePairContract.getReserves(it.address, liteApi) } }
-            .doOnNext {
+            .concatMap { mono { it.address to ExchangePairContract.getReserves(it.address, liteApi) } }
+            .subscribe {
                 val (address, reserves) = it
                 exchangePairRepository.update(address, reserves.first, reserves.second)
             }
-            .blockLast()
+    }
 
-        logger.info { "all done" }
+    @Scheduled(initialDelay = "0s")
+    internal fun run() {
     }
 
     companion object : KLogging()

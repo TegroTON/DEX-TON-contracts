@@ -1,4 +1,4 @@
-package money.tegro.dex.service
+package money.tegro.dex.service.watch
 
 import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.inject.Singleton
@@ -6,6 +6,7 @@ import kotlinx.coroutines.reactor.mono
 import money.tegro.dex.contract.ExchangePairContract
 import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.repository.ExchangePairRepository
+import money.tegro.dex.service.live.LiveAccountService
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.v
 import org.ton.lite.api.LiteApi

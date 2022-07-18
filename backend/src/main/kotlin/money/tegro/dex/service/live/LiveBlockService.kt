@@ -1,5 +1,6 @@
-package money.tegro.dex.service
+package money.tegro.dex.service.live
 
+import jakarta.annotation.PostConstruct
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactor.mono
 import mu.KLogging
@@ -22,12 +23,9 @@ class LiveBlockService(
 ) {
     private val sink: Sinks.Many<Block> = Sinks.many().multicast().onBackpressureBuffer()
 
-    init {
-        setup()
-    }
-
     fun asFlux() = sink.asFlux()
 
+    @PostConstruct
     private fun setup() =
         Flux.interval(Duration.ofSeconds(2))
             .concatMap { mono { liteApi.getMasterchainInfo().last } }

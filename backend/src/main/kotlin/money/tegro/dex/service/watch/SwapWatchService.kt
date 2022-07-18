@@ -1,7 +1,8 @@
-package money.tegro.dex.service
+package money.tegro.dex.service.watch
 
 import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.inject.Singleton
+import money.tegro.dex.service.live.LiveTransactionService
 import mu.KLogging
 
 @Singleton
