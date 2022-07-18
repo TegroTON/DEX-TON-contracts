@@ -1,10 +1,10 @@
-package money.tegro.dex.service.live
+package money.tegro.dex.source
 
 import jakarta.annotation.PostConstruct
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactor.mono
 import money.tegro.dex.contract.toSafeBounceable
-import money.tegro.dex.service.live.LiveBlockService.Companion.SYSTEM_ADDRESSES
+import money.tegro.dex.source.LiveBlockSource.Companion.SYSTEM_ADDRESSES
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.v
 import org.ton.block.AddrStd
@@ -13,8 +13,8 @@ import org.ton.block.Transaction
 import reactor.core.publisher.Sinks
 
 @Singleton
-class LiveTransactionService(
-    private val blockService: LiveBlockService,
+class LiveTransactionSource(
+    private val blockSource: LiveBlockSource,
 ) {
     private val sink: Sinks.Many<Transaction> = Sinks.many().multicast().onBackpressureBuffer()
 
@@ -22,7 +22,7 @@ class LiveTransactionService(
 
     @PostConstruct
     private fun setup() =
-        blockService.asFlux()
+        blockSource.asFlux()
             .subscribe { block ->
                 mono {// Processing each block asynchronously
                     block.extra.account_blocks.nodes()

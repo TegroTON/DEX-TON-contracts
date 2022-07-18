@@ -1,4 +1,4 @@
-package money.tegro.dex.service.live
+package money.tegro.dex.source
 
 import jakarta.annotation.PostConstruct
 import jakarta.inject.Singleton
@@ -18,7 +18,7 @@ import reactor.kotlin.core.publisher.toFlux
 import java.time.Duration
 
 @Singleton
-class LiveBlockService(
+class LiveBlockSource(
     private val liteApi: LiteApi,
 ) {
     private val sink: Sinks.Many<Block> = Sinks.many().multicast().onBackpressureBuffer()
