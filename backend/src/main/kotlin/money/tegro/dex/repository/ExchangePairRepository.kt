@@ -12,15 +12,23 @@ import reactor.core.publisher.Mono
 import java.time.Instant
 
 @R2dbcRepository(dialect = Dialect.POSTGRES)
-interface ExchangePairRepository : ReactorPageableRepository<ExchangePairModel, AddrStd> {
-    fun findByLeftIsNull(): Flux<ExchangePairModel>
+abstract class ExchangePairRepository : ReactorPageableRepository<ExchangePairModel, AddrStd> {
+    abstract fun findByLeftIsNull(): Flux<ExchangePairModel>
 
-    fun findByLeftIsNotNull(): Flux<ExchangePairModel>
+    abstract fun findByLeftIsNotNull(): Flux<ExchangePairModel>
 
     // This is guaranteed to only return one unique pair at most
-    fun findByLeftAndRight(left: AddrStd?, right: AddrStd): Mono<ExchangePairModel>
+    abstract fun findByLeftAndRight(left: AddrStd, right: AddrStd): Mono<ExchangePairModel>
 
-    fun update(
+    // This is guaranteed to only return one TON/XXX unique pair
+    abstract fun findByLeftIsNullAndRight(right: AddrStd): Mono<ExchangePairModel>
+
+    // Workaround of a silly null-related bytea handling issue
+    @JvmName("findByLeftAndRight1")
+    fun findByLeftAndRight(left: AddrStd?, right: AddrStd): Mono<ExchangePairModel> =
+        left?.let { findByLeftAndRight(it, right) } ?: findByLeftIsNullAndRight(right)
+
+    abstract fun update(
         @Id address: AddrStd,
         leftReserved: BigInt,
         rightReserved: BigInt,
