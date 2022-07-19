@@ -11,7 +11,8 @@ logging = { prefer = "2.1.23" }
 logback = { prefer = "1.2.11" }
 logstash-logback-encoder = { prefer = "7.2" }
 jakarta = { prefer = "2.1.1" }
-r2dbc = { prefer = "0.8.5.RELEASE" }
+r2dbc = { strictly = "0.8.5.RELEASE" }
+r2dbc-postgresql = { prefer = "0.8.12.RELEASE" }
 micronaut = { prefer = "3.5.1" }
 micronaut-data = { prefer = "3.4.2" }
 micronaut-flyway = { prefer = "5.3.0" }
@@ -45,7 +46,8 @@ reactor-kotlin = { group = "io.projectreactor.kotlin", name = "reactor-kotlin-ex
 # Data
 jackson = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
 r2dbc-pool = { group = "io.r2dbc", name = "r2dbc-pool", version.ref = "r2dbc" }
-r2dbc-postgresql = { group = "io.r2dbc", name = "r2dbc-postgresql", version.ref = "r2dbc" }
+r2dbc-postgresql = { group = "io.r2dbc", name = "r2dbc-postgresql", version.ref = "r2dbc-postgresql" }
+r2dbc-spi = { group = "io.r2dbc", name = "r2dbc-spi", version.ref = "r2dbc" }
 postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "postgresql" }
 
 # Logging
@@ -92,7 +94,7 @@ micronaut-micrometer-annotations = { group = "io.micronaut.micrometer", name = "
 [bundles]
 annotations = ["jakarta-annotations", "swagger-annotations"]
 coroutines = ["coroutines-core", "coroutines-reactive", "coroutines-reactor"]
-data-runtime = ["r2dbc-pool", "r2dbc-postgresql", "postgresql"]
+data-runtime = ["r2dbc-pool", "r2dbc-postgresql", "r2dbc-spi", "postgresql"]
 logging = ["logging", "logstash-logback-encoder"]
 logging-runtime = ["logback-core", "logback-classic"]
 reactor = ["reactor-core", "reactor-extra", "reactor-pool", "reactor-kotlin"]
