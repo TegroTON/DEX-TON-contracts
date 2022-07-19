@@ -3,6 +3,7 @@ package money.tegro.dex
 import io.micronaut.runtime.Micronaut
 import io.swagger.v3.oas.annotations.OpenAPIDefinition
 import io.swagger.v3.oas.annotations.info.Info
+import reactor.core.scheduler.Schedulers
 
 @OpenAPIDefinition(
     info = Info(
@@ -13,6 +14,8 @@ import io.swagger.v3.oas.annotations.info.Info
 object Application {
     @JvmStatic
     fun main(args: Array<String>) {
+        Schedulers.enableMetrics()
+
         Micronaut.build(*args)
             .banner(false)
             .start()

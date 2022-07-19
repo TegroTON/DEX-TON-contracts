@@ -86,7 +86,8 @@ micronaut-data-r2dbc = { group = "io.micronaut.data", name = "micronaut-data-r2d
 micronaut-flyway = { group = "io.micronaut.flyway", name = "micronaut-flyway", version.ref = "micronaut.flyway" }
 
 # Extra
-micronaut-micrometer = { group = "io.micronaut.micrometer", name = "micronaut-micrometer-core", version.ref = "micronaut-micrometer" }
+micronaut-micrometer-core = { group = "io.micronaut.micrometer", name = "micronaut-micrometer-core", version.ref = "micronaut-micrometer" }
+micronaut-micrometer-annotations = { group = "io.micronaut.micrometer", name = "micronaut-micrometer-annotation", version.ref = "micronaut-micrometer" }
 
 [bundles]
 annotations = ["jakarta-annotations", "swagger-annotations"]

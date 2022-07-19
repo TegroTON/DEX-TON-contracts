@@ -62,7 +62,7 @@ dependencies {
     runtimeOnly(libs.bundles.logging.runtime)
 
     implementation(libs.bundles.annotations)
-    
+
 
     implementation(libs.micronaut.jackson.databind)
     implementation(libs.micronaut.kotlin.extensions)
@@ -82,7 +82,8 @@ dependencies {
     implementation(libs.micronaut.data.r2dbc)
     implementation(libs.micronaut.flyway)
 
-    implementation(libs.micronaut.micrometer)
+    implementation(libs.micronaut.micrometer.core)
+    implementation(libs.micronaut.micrometer.annotations)
 }
 
 group = "money.tegro"

@@ -1,5 +1,6 @@
 package money.tegro.dex.controller
 
+import io.micrometer.core.annotation.Timed
 import io.micronaut.http.annotation.Controller
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
@@ -15,18 +16,21 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Controller
-class ExchangePairController(
+open class ExchangePairController(
     private val exchangePairRepository: ExchangePairRepository,
     private val jettonRepository: JettonRepository,
 ) : ExchangePairOperations {
+    @Timed
     override fun allPairs(): Flux<ExchangePairDTO> =
         exchangePairRepository.findAll()
             .flatMap(::mapPair)
 
+    @Timed
     override fun allToncoinPairs(): Flux<ExchangePairDTO> =
         exchangePairRepository.findByLeftIsNull()
             .flatMap(::mapPair)
 
+    @Timed
     override fun allJettonPairs(): Flux<ExchangePairDTO> =
         exchangePairRepository.findByLeftIsNotNull()
             .flatMap(::mapPair)
