@@ -8,7 +8,7 @@ import org.ton.crypto.base64
 import org.ton.lite.client.LiteClient
 
 @Factory
-class LiteApiBean(private val config: LiteApiConfig) {
+class LiteApiFactory(private val config: LiteApiConfig) {
     @Singleton
     fun liteApi() = runBlocking {
         LiteClient(config.ipv4, config.port, base64(config.key)).connect()

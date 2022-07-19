@@ -5,12 +5,12 @@ import io.micronaut.core.bind.annotation.Bindable
 
 @ConfigurationProperties("money.tegro.dex.liteapi")
 interface LiteApiConfig {
-    @get:Bindable(defaultValue = "\${LITEAPI_IPV4:1426768764}")
+    @get:Bindable(defaultValue = "\${LITEAPI_IPV4:1097622104}")
     val ipv4: Int
 
-    @get:Bindable(defaultValue = "\${LITEAPI_PORT:13724}")
+    @get:Bindable(defaultValue = "\${LITEAPI_PORT:6345}")
     val port: Int
 
-    @get:Bindable(defaultValue = "\${LITEAPI_KEY:`R1KsqYlNks2Zows+I9s4ywhilbSevs9dH1x2KF9MeSU=`}")
+    @get:Bindable(defaultValue = "\${LITEAPI_KEY:`IzrzWCLuY6SMeYUeFzI7z7p/AEs6o8tXMTyqAZwMDyA=`}")
     val key: String
 }
