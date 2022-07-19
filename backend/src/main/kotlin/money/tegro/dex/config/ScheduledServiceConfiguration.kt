@@ -9,9 +9,9 @@ interface ScheduledServiceConfiguration {
     @get:Bindable(defaultValue = "PT30M")
     val exchangePairJettonUpdatePeriod: Duration
 
-    @get:Bindable(defaultValue = "PT12H")
+    @get:Bindable(defaultValue = "PT10M")
     val exchangePairUpdatePeriod: Duration
 
-    @get:Bindable(defaultValue = "PT10M")
+    @get:Bindable(defaultValue = "PT12H")
     val jettonUpdatePeriod: Duration
 }
