@@ -8,7 +8,7 @@ import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.repository.ExchangePairRepository
 import money.tegro.dex.source.LiveAccountSource
 import mu.KLogging
-import net.logstash.logback.argument.StructuredArguments.v
+import net.logstash.logback.argument.StructuredArguments.kv
 import org.ton.lite.api.LiteApi
 
 @Singleton
@@ -21,19 +21,14 @@ class ExchangePairWatchService(
     fun setup() {
         accountSource
             .asFlux()
+            .concatMap { exchangePairRepository.findById(it) }
+            .doOnNext {
+                logger.info("{} matched database exchange pair entity", kv("address", it.address.toSafeBounceable()))
+            }
+            .concatMap { mono { it.address to ExchangePairContract.getReserves(it.address, liteApi) } }
             .subscribe {
-                exchangePairRepository.findById(it)
-                    .doOnNext {
-                        logger.info(
-                            "address {} matched database exchange pair entity",
-                            v("address", it.address.toSafeBounceable())
-                        )
-                    }
-                    .flatMap { mono { it.address to ExchangePairContract.getReserves(it.address, liteApi) } }
-                    .subscribe {
-                        val (address, reserves) = it
-                        exchangePairRepository.update(address, reserves.first, reserves.second)
-                    }
+                val (address, reserves) = it
+                exchangePairRepository.update(address, reserves.first, reserves.second)
             }
     }
 
