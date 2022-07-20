@@ -30,8 +30,8 @@ abstract class ExchangePairRepository : ReactorPageableRepository<ExchangePairMo
 
     abstract fun update(
         @Id address: AddrStd,
-        leftReserved: BigInt,
-        rightReserved: BigInt,
+        leftReserve: BigInt,
+        rightReserve: BigInt,
         updated: Instant = Instant.now()
     )
 }
