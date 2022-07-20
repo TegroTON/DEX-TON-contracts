@@ -7,7 +7,7 @@ import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.reactor.mono
 import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.dto.ExchangePairDTO
-import money.tegro.dex.meter.KickassMeterRegistry
+import money.tegro.dex.measurement.MeasurementRegistry
 import money.tegro.dex.model.ExchangePairModel
 import money.tegro.dex.model.JettonModel
 import money.tegro.dex.operations.ExchangePairOperations
@@ -18,7 +18,7 @@ import reactor.core.publisher.Mono
 
 @Controller
 open class ExchangePairController(
-    private val meterRegistry: KickassMeterRegistry,
+    private val meterRegistry: MeasurementRegistry,
 
     private val exchangePairRepository: ExchangePairRepository,
     private val jettonRepository: JettonRepository,

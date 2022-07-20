@@ -1,15 +1,13 @@
-package money.tegro.dex.meter
+package money.tegro.dex.measurement
 
 import io.micrometer.core.instrument.step.StepRegistryConfig
-import io.r2dbc.spi.ConnectionFactory
 import java.time.Duration
 
-class KickassMeterConfig(
-    val connectionFactory: ConnectionFactory,
+class MeasurementConfig(
+    val repository: MeasurementRepository,
     val dimension: Map<String, String> = mapOf("app" to "dex")
-) :
-    StepRegistryConfig {
-    override fun prefix(): String = "meter"
+) : StepRegistryConfig {
+    override fun prefix(): String = "measurement"
 
     override fun get(key: String): String? = null
 

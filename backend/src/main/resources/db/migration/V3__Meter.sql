@@ -1,4 +1,4 @@
-CREATE TABLE "meter_metrics"
+CREATE TABLE measurements_metrics
 (
     "id"         BIGSERIAL PRIMARY KEY,
     "name"       TEXT  NOT NULL,
@@ -6,18 +6,18 @@ CREATE TABLE "meter_metrics"
     UNIQUE ("name", "dimensions")
 );
 
-CREATE TABLE "meter_values"
+CREATE TABLE measurements_values
 (
     "timestamp" TIMESTAMPTZ NOT NULL,
     "value"     FLOAT8      NOT NULL,
-    "metric_id" BIGINT      NOT NULL REFERENCES "meter_metrics" ("id"),
+    "metric_id" BIGINT      NOT NULL REFERENCES measurements_metrics ("id"),
     "metadata"  JSON        NOT NULL
 );
 
-CREATE VIEW "meter_measurements" AS
-SELECT "timestamp", "value", "name", "dimensions", "metadata"
-FROM "meter_values"
-         INNER JOIN meter_metrics ON (metric_id = id);
+CREATE VIEW measurements AS
+SELECT "name", "dimensions", "metadata", "timestamp", "value"
+FROM measurements_values
+         INNER JOIN measurements_metrics ON (metric_id = id);
 
 CREATE FUNCTION create_metric(in_name TEXT, in_dims JSONB) RETURNS INT
     LANGUAGE plpgsql AS
@@ -27,11 +27,11 @@ DECLARE
 BEGIN
     SELECT id
     INTO out_id
-    FROM "meter_metrics" AS m
-    WHERE m.name = in_name
-      AND m.dimensions = in_dims;
+    FROM measurements_metrics
+    WHERE name = in_name
+      AND dimensions = in_dims;
     IF NOT FOUND THEN
-        INSERT INTO "meter_metrics"
+        INSERT INTO measurements_metrics
             ("name", "dimensions")
         VALUES (in_name, in_dims)
         RETURNING id into out_id;
@@ -40,16 +40,16 @@ BEGIN
 END;
 $_$;
 
-CREATE RULE metrics_view_insert
-    AS ON INSERT TO "meter_measurements"
+CREATE RULE measurements_insert
+    AS ON INSERT TO measurements
     DO INSTEAD
-    INSERT INTO "meter_values" (timestamp, value, metric_id, metadata)
-    VALUES (NEW.TIMESTAMP,
+    INSERT INTO measurements_values (timestamp, value, metric_id, metadata)
+    VALUES (NEW.timestamp,
             NEW.value,
             create_metric(NEW.name,
                           NEW.dimensions),
             NEW.metadata);
 
-CREATE INDEX ON "meter_metrics" USING GIN (dimensions);
+CREATE INDEX ON measurements_metrics USING GIN (dimensions);
 
-CREATE INDEX ON "meter_values" USING BTREE ("metric_id", "timestamp");
+CREATE INDEX ON measurements_values USING BTREE ("metric_id", "timestamp");
