@@ -63,11 +63,11 @@ open class ExchangePairController(
             leftName = leftModel?.let { it.name ?: "Unknown Jetton" } ?: "Toncoin",
             leftSymbol = leftModel?.let { it.symbol ?: "UNKNOWN" } ?: "TON",
             leftAddress = model.left?.toSafeBounceable(),
-            leftReserved = model.leftReserved,
+            leftReserved = model.leftReserve,
             rightName = rightModel.name ?: "Unknown Jetton",
             rightSymbol = rightModel.symbol ?: "UNKNOWN",
             rightAddress = model.right.toSafeBounceable(),
-            rightReserved = model.rightReserved,
+            rightReserved = model.rightReserve,
         )
     }
 }

@@ -19,15 +19,15 @@ data class ExchangePairModel(
     @field:TypeDef(type = DataType.BYTE_ARRAY, converter = AddrStdAttributeConverter::class)
     val left: AddrStd?,
 
-    /** Amount reserved in the liquidity pool of the left currency */
-    val leftReserved: BigInt,
-
     /** Address of the right jetton */
     @field:TypeDef(type = DataType.BYTE_ARRAY, converter = AddrStdAttributeConverter::class)
     val right: AddrStd,
 
+    /** Amount reserved in the liquidity pool of the left currency */
+    val leftReserve: BigInt,
+
     /** Amount reserved in the liquidity pool of the right jetton */
-    val rightReserved: BigInt,
+    val rightReserve: BigInt,
 
     val discovered: Instant = Instant.now(),
     val updated: Instant = Instant.now(),

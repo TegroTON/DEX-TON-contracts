@@ -1,12 +1,12 @@
 CREATE TABLE "exchange_pairs"
 (
-    "address"        BYTEA PRIMARY KEY,
-    "left"           BYTEA,
-    "left_reserved"  NUMERIC(40) NOT NULL, /* up to 120 bits, that's like ~37 digits or so */
-    "right"          BYTEA       NOT NULL,
-    "right_reserved" NUMERIC(40) NOT NULL,
-    "discovered"     TIMESTAMPTZ NOT NULL,
-    "updated"        TIMESTAMPTZ NOT NULL,
+    "address"       BYTEA PRIMARY KEY,
+    "left"          BYTEA,
+    "right"         BYTEA       NOT NULL,
+    "left_reserve"  NUMERIC(40) NOT NULL, /* up to 120 bits, that's like ~37 digits or so */
+    "right_reserve" NUMERIC(40) NOT NULL,
+    "discovered"    TIMESTAMPTZ NOT NULL,
+    "updated"       TIMESTAMPTZ NOT NULL,
     UNIQUE ("left", "right") /* All exchange pairs must be unique */
 );
 
