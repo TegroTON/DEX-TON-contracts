@@ -7,7 +7,6 @@ import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.reactor.mono
 import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.dto.ExchangePairDTO
-import money.tegro.dex.measurement.MeasurementRegistry
 import money.tegro.dex.model.ExchangePairModel
 import money.tegro.dex.model.JettonModel
 import money.tegro.dex.operations.ExchangePairOperations
@@ -18,26 +17,25 @@ import reactor.core.publisher.Mono
 
 @Controller
 open class ExchangePairController(
-    private val meterRegistry: MeasurementRegistry,
-
     private val exchangePairRepository: ExchangePairRepository,
     private val jettonRepository: JettonRepository,
 ) : ExchangePairOperations {
-    @Timed
+    @Timed("controller.exchangepair.all")
     override fun allPairs(): Flux<ExchangePairDTO> =
         exchangePairRepository.findAll()
             .flatMap(::mapPair)
 
-    @Timed
+    @Timed("controller.exchangepair.ton")
     override fun allToncoinPairs(): Flux<ExchangePairDTO> =
         exchangePairRepository.findByLeftIsNull()
             .flatMap(::mapPair)
 
-    @Timed
+    @Timed("controller.exchangepair.jetton")
     override fun allJettonPairs(): Flux<ExchangePairDTO> =
         exchangePairRepository.findByLeftIsNotNull()
             .flatMap(::mapPair)
 
+    @Timed("controller.exchangepair.get")
     override fun getPair(left: String, right: String): Mono<ExchangePairDTO> = mono {
         val leftModel =
             if (left.equals("TON", ignoreCase = true)) null else jettonRepository.findBySymbol(left).awaitSingle()

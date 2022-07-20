@@ -11,7 +11,7 @@ data class MeasurementModel(
     val name: String,
 
     @field:TypeDef(type = DataType.JSON)
-    val dimensions: Map<String, String>,
+    val dimension: Map<String, String>,
 
     @field:TypeDef(type = DataType.JSON)
     val metadata: Map<String, String>,

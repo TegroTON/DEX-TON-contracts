@@ -1,5 +1,6 @@
 package money.tegro.dex.source
 
+import io.micrometer.core.instrument.MeterRegistry
 import jakarta.annotation.PostConstruct
 import jakarta.inject.Singleton
 import money.tegro.dex.contract.toSafeBounceable
@@ -12,6 +13,7 @@ import reactor.kotlin.core.publisher.toFlux
 
 @Singleton
 class LiveAccountSource(
+    private val registry: MeterRegistry,
     private val blockSource: LiveBlockSource,
 ) {
     private val sink: Sinks.Many<AddrStd> = Sinks.many().multicast().onBackpressureBuffer()
@@ -34,6 +36,8 @@ class LiveAccountSource(
             }
             .filter { it !in SYSTEM_ADDRESSES }
             .subscribe {
+                registry.counter("source.live.account.affected").increment()
+                
                 logger.debug("affected account {}", v("address", it.toSafeBounceable()))
                 sink.emitNext(it, Sinks.EmitFailureHandler.FAIL_FAST) // TODO: more robust handler
             }

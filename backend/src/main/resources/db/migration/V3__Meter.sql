@@ -1,9 +1,9 @@
 CREATE TABLE measurements_metrics
 (
-    "id"         BIGSERIAL PRIMARY KEY,
-    "name"       TEXT  NOT NULL,
-    "dimensions" JSONB NOT NULL,
-    UNIQUE ("name", "dimensions")
+    "id"        BIGSERIAL PRIMARY KEY,
+    "name"      TEXT  NOT NULL,
+    "dimension" JSONB NOT NULL,
+    UNIQUE ("name", dimension)
 );
 
 CREATE TABLE measurements_values
@@ -15,7 +15,7 @@ CREATE TABLE measurements_values
 );
 
 CREATE VIEW measurements AS
-SELECT "name", "dimensions", "metadata", "timestamp", "value"
+SELECT "name", dimension, "metadata", "timestamp", "value"
 FROM measurements_values
          INNER JOIN measurements_metrics ON (metric_id = id);
 
@@ -29,10 +29,10 @@ BEGIN
     INTO out_id
     FROM measurements_metrics
     WHERE name = in_name
-      AND dimensions = in_dims;
+      AND dimension = in_dims;
     IF NOT FOUND THEN
         INSERT INTO measurements_metrics
-            ("name", "dimensions")
+            ("name", dimension)
         VALUES (in_name, in_dims)
         RETURNING id into out_id;
     END IF;
@@ -47,9 +47,9 @@ CREATE RULE measurements_insert
     VALUES (NEW.timestamp,
             NEW.value,
             create_metric(NEW.name,
-                          NEW.dimensions),
+                          NEW.dimension),
             NEW.metadata);
 
-CREATE INDEX ON measurements_metrics USING GIN (dimensions);
+CREATE INDEX ON measurements_metrics USING GIN (dimension);
 
 CREATE INDEX ON measurements_values USING BTREE ("metric_id", "timestamp");

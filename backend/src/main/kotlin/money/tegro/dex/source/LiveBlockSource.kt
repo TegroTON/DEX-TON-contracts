@@ -1,5 +1,6 @@
 package money.tegro.dex.source
 
+import io.micrometer.core.instrument.MeterRegistry
 import jakarta.annotation.PostConstruct
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactor.mono
@@ -19,6 +20,7 @@ import java.time.Duration
 
 @Singleton
 class LiveBlockSource(
+    private val registry: MeterRegistry,
     private val liteApi: LiteApi,
 ) {
     private val sink: Sinks.Many<Block> = Sinks.many().multicast().onBackpressureBuffer()
@@ -27,16 +29,21 @@ class LiveBlockSource(
 
     @PostConstruct
     private fun setup() =
-        Flux.interval(Duration.ofSeconds(2))
+        Flux.interval(Duration.ofSeconds(1))
             .concatMap { mono { liteApi.getMasterchainInfo().last } }
             .distinctUntilChanged()
+            .timed()
             .concatMap {
                 mono {
                     try {
-                        logger.debug("getting masterchain block no. {}", value("seqno", it.seqno))
-                        liteApi.getBlock(it).toBlock()
+                        registry.timer("source.live.block.masterchain.info.elapsed").record(it.elapsed())
+
+                        logger.debug("getting masterchain block no. {}", value("seqno", it.get().seqno))
+                        liteApi.getBlock(it.get()).toBlock()
                     } catch (e: Exception) {
-                        logger.warn("failed to get masterchain block no. {}", value("seqno", it.seqno), e)
+                        registry.counter("source.live.block.masterchain.failed").increment()
+
+                        logger.warn("failed to get masterchain block no. {}", value("seqno", it.get().seqno), e)
                         null
                     }
                 }

@@ -1,7 +1,6 @@
 package money.tegro.dex.controller
 
 import io.micrometer.core.annotation.Timed
-import io.micrometer.core.instrument.MeterRegistry
 import io.micronaut.http.annotation.Controller
 import kotlinx.coroutines.reactor.mono
 import money.tegro.dex.contract.toSafeBounceable
@@ -14,16 +13,14 @@ import reactor.core.publisher.Mono
 
 @Controller
 open class JettonController(
-    private val meterRegistry: MeterRegistry,
-
     private val jettonRepository: JettonRepository,
 ) : JettonOperations {
-    @Timed
+    @Timed("controller.jetton.all")
     override fun allJettons(): Flux<JettonDTO> =
         jettonRepository.findAll()
             .flatMap(::mapJetton)
 
-    @Timed
+    @Timed("controller.jetton.get")
     override fun getJetton(symbol: String): Mono<JettonDTO> =
         jettonRepository.findBySymbol(symbol)
             .flatMap(::mapJetton)

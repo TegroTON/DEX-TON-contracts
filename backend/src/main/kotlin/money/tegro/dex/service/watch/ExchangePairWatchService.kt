@@ -1,5 +1,6 @@
 package money.tegro.dex.service.watch
 
+import io.micrometer.core.instrument.MeterRegistry
 import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactor.mono
@@ -13,6 +14,7 @@ import org.ton.lite.api.LiteApi
 
 @Singleton
 class ExchangePairWatchService(
+    private val registry: MeterRegistry,
     private val liteApi: LiteApi,
     private val accountSource: LiveAccountSource,
     private val exchangePairRepository: ExchangePairRepository,
@@ -22,10 +24,17 @@ class ExchangePairWatchService(
         accountSource
             .asFlux()
             .concatMap { exchangePairRepository.findById(it) }
+            .timed()
             .doOnNext {
-                logger.info("{} matched database exchange pair entity", kv("address", it.address.toSafeBounceable()))
+                registry.timer("service.watch.exchangepair.elapsed").record(it.elapsed())
+                registry.counter("service.watch.exchangepair.hits").increment()
+
+                logger.info(
+                    "{} matched database exchange pair entity",
+                    kv("address", it.get().address.toSafeBounceable())
+                )
             }
-            .concatMap { mono { it.address to ExchangePairContract.getReserves(it.address, liteApi) } }
+            .concatMap { mono { it.get().address to ExchangePairContract.getReserves(it.get().address, liteApi) } }
             .subscribe {
                 val (address, reserves) = it
                 exchangePairRepository.update(address, reserves.first, reserves.second)

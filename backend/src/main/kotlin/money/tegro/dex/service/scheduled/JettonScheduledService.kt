@@ -45,7 +45,11 @@ class JettonScheduledService(
                         updated = Instant.now()
                     )
                     jettonRepository.update(new).awaitSingle()
-                }.subscribe()
+                }
+                    .name("service.scheduled.jetton")
+                    .tag("address", it.address.toSafeBounceable())
+                    .metrics()
+                    .subscribe()
             }
     }
 

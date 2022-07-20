@@ -53,7 +53,11 @@ class ExchangePairJettonScheduledService(
                             updated = Instant.now()
                         )
                     ).awaitSingle()
-                }.subscribe()
+                }
+                    .name("service.scheduled.exchangepair.jetton")
+                    .tag("address", it.toSafeBounceable())
+                    .metrics()
+                    .subscribe()
             }
     }
 
