@@ -10,5 +10,6 @@ class MeasurementFactory {
     fun meterRegistry(config: MeasurementConfig) = MeasurementRegistry(config, Clock.SYSTEM)
 
     @Singleton
-    fun meterConfig(repository: MeasurementRepository) = MeasurementConfig(repository)
+    fun meterConfig(config: money.tegro.dex.config.MeasurementConfig, repository: MeasurementRepository) =
+        MeasurementConfig(config, repository)
 }
