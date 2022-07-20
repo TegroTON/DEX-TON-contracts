@@ -36,11 +36,7 @@ class ExchangePairWatchService(
                 mono { it.address to ExchangePairContract.getReserves(it.address, liteApi) }
                     .timed()
                     .doOnNext {
-                        registry.timer(
-                            "service.watch.exchangepair.reserves",
-                            "address",
-                            it.get().first.toSafeBounceable()
-                        )
+                        registry.timer("service.watch.exchangepair.reserves")
                             .record(it.elapsed())
                     }
             }

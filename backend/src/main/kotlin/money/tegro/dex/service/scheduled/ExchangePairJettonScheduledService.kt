@@ -59,11 +59,7 @@ class ExchangePairJettonScheduledService(
                 }
                     .timed()
                     .doOnNext {
-                        registry.timer(
-                            "service.scheduled.exchangepair.jetton",
-                            "address",
-                            it.get().address.toSafeBounceable()
-                        )
+                        registry.timer("service.scheduled.exchangepair.jetton")
                             .record(it.elapsed())
                     }
                     .subscribe()

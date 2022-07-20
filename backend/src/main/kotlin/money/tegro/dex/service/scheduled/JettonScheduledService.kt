@@ -50,11 +50,7 @@ class JettonScheduledService(
                 }
                     .timed()
                     .doOnNext {
-                        registry.timer(
-                            "service.scheduled.jetton",
-                            "address",
-                            it.get().address.toSafeBounceable()
-                        )
+                        registry.timer("service.scheduled.jetton")
                             .record(it.elapsed())
                     }
                     .subscribe()

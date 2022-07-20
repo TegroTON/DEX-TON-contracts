@@ -36,7 +36,7 @@ class LiveAccountSource(
             }
             .filter { it !in SYSTEM_ADDRESSES }
             .subscribe {
-                registry.counter("source.live.account.affected", "address", it.toSafeBounceable()).increment()
+                registry.counter("source.live.account.affected").increment()
 
                 logger.debug("affected account {}", v("address", it.toSafeBounceable()))
                 sink.emitNext(it, Sinks.EmitFailureHandler.FAIL_FAST) // TODO: more robust handler

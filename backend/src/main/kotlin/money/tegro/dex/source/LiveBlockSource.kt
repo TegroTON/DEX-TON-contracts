@@ -36,7 +36,7 @@ class LiveBlockSource(
             .concatMap {
                 mono {
                     try {
-                        registry.timer("source.live.block.masterchain.info.elapsed", "seqno", it.get().seqno.toString())
+                        registry.timer("source.live.block.masterchain.info.elapsed")
                             .record(it.elapsed())
 
                         logger.debug("getting masterchain block no. {}", value("seqno", it.get().seqno))
@@ -51,11 +51,7 @@ class LiveBlockSource(
             }
             .timed()
             .doOnNext {
-                registry.timer(
-                    "source.live.block.masterchain",
-                    "seqno",
-                    it.get().info.seq_no.toString()
-                )
+                registry.timer("source.live.block.masterchain")
                     .record(it.elapsed())
             }
             .concatMap {
