@@ -1,5 +1,6 @@
 package money.tegro.dex.service.scheduled
 
+import io.micrometer.core.instrument.MeterRegistry
 import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.annotation.PostConstruct
 import jakarta.inject.Singleton
@@ -18,6 +19,7 @@ import java.time.Instant
 
 @Singleton
 class JettonScheduledService(
+    private val registry: MeterRegistry,
     private val config: ScheduledServiceConfiguration,
     private val liteApi: LiteApi,
     private val jettonRepository: JettonRepository,
@@ -46,9 +48,15 @@ class JettonScheduledService(
                     )
                     jettonRepository.update(new).awaitSingle()
                 }
-                    .name("service.scheduled.jetton")
-                    .tag("address", it.address.toSafeBounceable())
-                    .metrics()
+                    .timed()
+                    .doOnNext {
+                        registry.timer(
+                            "service.scheduled.jetton",
+                            "address",
+                            it.get().address.toSafeBounceable()
+                        )
+                            .record(it.elapsed())
+                    }
                     .subscribe()
             }
     }

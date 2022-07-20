@@ -1,5 +1,6 @@
 package money.tegro.dex.service.scheduled
 
+import io.micrometer.core.instrument.MeterRegistry
 import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.annotation.PostConstruct
 import jakarta.inject.Singleton
@@ -16,6 +17,7 @@ import java.time.Duration
 
 @Singleton
 class ExchangePairScheduledService(
+    private val registry: MeterRegistry,
     private val config: ScheduledServiceConfiguration,
     private val liteApi: LiteApi,
     private val exchangePairRepository: ExchangePairRepository,
@@ -30,9 +32,20 @@ class ExchangePairScheduledService(
                     v("address", it.address.toSafeBounceable())
                 )
             }
-            .concatMap { mono { it.address to ExchangePairContract.getReserves(it.address, liteApi) } }
+            .concatMap {
+                mono { it.address to ExchangePairContract.getReserves(it.address, liteApi) }
+                    .timed()
+                    .doOnNext {
+                        registry.timer(
+                            "service.scheduled.exchangepair",
+                            "address",
+                            it.get().first.toSafeBounceable()
+                        )
+                            .record(it.elapsed())
+                    }
+            }
             .subscribe {
-                val (address, reserves) = it
+                val (address, reserves) = it.get()
                 exchangePairRepository.update(address, reserves.first, reserves.second)
             }
     }

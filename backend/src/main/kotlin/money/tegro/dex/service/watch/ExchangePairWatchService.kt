@@ -24,19 +24,28 @@ class ExchangePairWatchService(
         accountSource
             .asFlux()
             .concatMap { exchangePairRepository.findById(it) }
-            .timed()
             .doOnNext {
-                registry.timer("service.watch.exchangepair.elapsed").record(it.elapsed())
                 registry.counter("service.watch.exchangepair.hits").increment()
 
                 logger.info(
                     "{} matched database exchange pair entity",
-                    kv("address", it.get().address.toSafeBounceable())
+                    kv("address", it.address.toSafeBounceable())
                 )
             }
-            .concatMap { mono { it.get().address to ExchangePairContract.getReserves(it.get().address, liteApi) } }
+            .concatMap {
+                mono { it.address to ExchangePairContract.getReserves(it.address, liteApi) }
+                    .timed()
+                    .doOnNext {
+                        registry.timer(
+                            "service.watch.exchangepair.reserves",
+                            "address",
+                            it.get().first.toSafeBounceable()
+                        )
+                            .record(it.elapsed())
+                    }
+            }
             .subscribe {
-                val (address, reserves) = it
+                val (address, reserves) = it.get()
                 exchangePairRepository.update(address, reserves.first, reserves.second)
             }
     }

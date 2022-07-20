@@ -36,7 +36,8 @@ class LiveBlockSource(
             .concatMap {
                 mono {
                     try {
-                        registry.timer("source.live.block.masterchain.info.elapsed").record(it.elapsed())
+                        registry.timer("source.live.block.masterchain.info.elapsed", "seqno", it.get().seqno.toString())
+                            .record(it.elapsed())
 
                         logger.debug("getting masterchain block no. {}", value("seqno", it.get().seqno))
                         liteApi.getBlock(it.get()).toBlock()
@@ -48,8 +49,17 @@ class LiveBlockSource(
                     }
                 }
             }
+            .timed()
+            .doOnNext {
+                registry.timer(
+                    "source.live.block.masterchain",
+                    "seqno",
+                    it.get().info.seq_no.toString()
+                )
+                    .record(it.elapsed())
+            }
             .concatMap {
-                it.extra.custom.value?.shard_hashes
+                it.get().extra.custom.value?.shard_hashes
                     ?.nodes()
                     .orEmpty()
                     .flatMap {
@@ -66,7 +76,7 @@ class LiveBlockSource(
                             liteApi.getBlock(getBlockId(workchain, descr)).toBlock()
                         }
                     }
-                    .mergeWith(mono { it }) // Don't forget the original masterchain block
+                    .mergeWith(mono { it.get() }) // Don't forget the original masterchain block
             }
             .subscribe {
                 sink.emitNext(it, Sinks.EmitFailureHandler.FAIL_FAST) // TODO: Replace with something more robust
