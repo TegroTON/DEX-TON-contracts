@@ -6,9 +6,6 @@ import java.time.Duration
 
 @ConfigurationProperties("money.tegro.dex.service.scheduled")
 interface ScheduledServiceConfig {
-    @get:Bindable(defaultValue = "PT30M")
-    val exchangePairJettonUpdatePeriod: Duration
-
     @get:Bindable(defaultValue = "PT10M")
     val exchangePairUpdatePeriod: Duration
 
