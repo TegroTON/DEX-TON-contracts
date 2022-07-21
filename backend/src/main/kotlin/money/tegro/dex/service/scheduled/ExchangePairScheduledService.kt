@@ -5,7 +5,7 @@ import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.annotation.PostConstruct
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactor.mono
-import money.tegro.dex.config.ScheduledServiceConfiguration
+import money.tegro.dex.config.ScheduledServiceConfig
 import money.tegro.dex.contract.ExchangePairContract
 import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.repository.ExchangePairRepository
@@ -18,7 +18,7 @@ import java.time.Duration
 @Singleton
 class ExchangePairScheduledService(
     private val registry: MeterRegistry,
-    private val config: ScheduledServiceConfiguration,
+    private val config: ScheduledServiceConfig,
     private val liteApi: LiteApi,
     private val exchangePairRepository: ExchangePairRepository,
 ) {

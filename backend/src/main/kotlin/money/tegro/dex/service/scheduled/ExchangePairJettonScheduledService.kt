@@ -6,7 +6,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.mono
-import money.tegro.dex.config.ScheduledServiceConfiguration
+import money.tegro.dex.config.ScheduledServiceConfig
 import money.tegro.dex.contract.JettonContract
 import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.model.JettonModel
@@ -23,7 +23,7 @@ import java.time.Instant
 @Singleton
 class ExchangePairJettonScheduledService(
     private val registry: MeterRegistry,
-    private val config: ScheduledServiceConfiguration,
+    private val config: ScheduledServiceConfig,
     private val liteApi: LiteApi,
     private val exchangePairRepository: ExchangePairRepository,
     private val jettonRepository: JettonRepository,
