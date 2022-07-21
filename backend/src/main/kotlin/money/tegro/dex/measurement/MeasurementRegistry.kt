@@ -166,7 +166,7 @@ class MeasurementRegistry(private val config: MeasurementConfig, clock: Clock) :
                     name = t.id.name + ".count",
                     dimension = config.dimension,
                     metadata = t.id.tags.map { it.key to it.value }.toMap(),
-                    value = t.count().toDouble(),
+                    value = t.count(),
                     timestamp = time,
                 )
             )
