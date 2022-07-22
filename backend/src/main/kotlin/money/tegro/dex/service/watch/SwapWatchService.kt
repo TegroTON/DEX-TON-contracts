@@ -36,6 +36,7 @@ class SwapWatchService(
                     .flatMap { exchangePairRepository.existsById(it) }
             }
             .subscribe {
+                val info = it.info as IntMsgInfo
                 (it.body.x ?: it.body.y)?.let { body ->
                     val bs = body.beginParse()
 
@@ -59,6 +60,7 @@ class SwapWatchService(
                                         kv("value", amount),
                                         kv("address", destination.toSafeBounceable())
                                     )
+                                    // TODO: We don't know what particular jetton was sent in case of Jetton/Jetton pairs
                                 }
                                 else ->
                                     TODO("unsupported inner op")
@@ -66,7 +68,12 @@ class SwapWatchService(
 
                         }
                         OP_SUCCESSFUL_SWAP -> { // TON transfer, easy one
-                            TODO("implement XXX->TON swap gathering")
+                            logger.debug(
+                                "{} - successful ton swap of {} to {}",
+                                kv("op", op.toString(16)),
+                                kv("value", info.value.coins.amount.value),
+                                kv("address", (info.dest as AddrStd).toSafeBounceable())
+                            )
                         }
                         else -> {
                             logger.warn(
