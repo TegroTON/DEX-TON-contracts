@@ -18,7 +18,8 @@ CREATE TABLE "jettons"
     "admin"        BYTEA       NOT NULL,
     "name"         VARCHAR(255),
     "description"  TEXT,
-    "symbol"       VARCHAR(10) UNIQUE, /* Usually these are 4-5 characters long */
+    "symbol"       VARCHAR(12) UNIQUE, /* Usually these are 4-5 characters long.
+                                          A dozen selected to accommodate rather long LP-tokens */
     "decimals"     INTEGER     NOT NULL,
     "image"        TEXT,
     "image_data"   BYTEA       NOT NULL,

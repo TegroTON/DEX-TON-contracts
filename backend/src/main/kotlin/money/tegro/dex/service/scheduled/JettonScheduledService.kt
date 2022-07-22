@@ -63,7 +63,8 @@ class JettonScheduledService(
         // Jettons of exchange pairs that are not yet indexed for some reason
         Flux.interval(Duration.ZERO, config.jettonUpdatePeriod)
             .concatMap { exchangePairRepository.findAll() }
-            .concatMapIterable { listOfNotNull(it.left, it.right) }
+            // Because exchange pairs are themselves providers of LP-tokens, treat them like any jetton
+            .concatMapIterable { listOfNotNull(it.address, it.left, it.right) }
             .filterWhen { jettonRepository.existsById(it).not() }
             .subscribe {
                 mono {
