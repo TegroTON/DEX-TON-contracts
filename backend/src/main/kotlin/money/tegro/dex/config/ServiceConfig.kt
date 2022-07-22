@@ -4,11 +4,11 @@ import io.micronaut.context.annotation.ConfigurationProperties
 import io.micronaut.core.bind.annotation.Bindable
 import java.time.Duration
 
-@ConfigurationProperties("money.tegro.dex.service.scheduled")
-interface ScheduledServiceConfig {
+@ConfigurationProperties("money.tegro.dex.service")
+interface ServiceConfig {
     @get:Bindable(defaultValue = "PT10M")
-    val exchangePairUpdatePeriod: Duration
+    val pairPeriod: Duration
 
     @get:Bindable(defaultValue = "PT1H")
-    val jettonUpdatePeriod: Duration
+    val tokenPeriod: Duration
 }

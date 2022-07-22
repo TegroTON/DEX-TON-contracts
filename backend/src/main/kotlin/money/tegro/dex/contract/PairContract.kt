@@ -9,7 +9,7 @@ import org.ton.block.VmStackValue
 import org.ton.lite.api.LiteApi
 import org.ton.lite.api.liteserver.LiteServerAccountId
 
-interface ExchangePairContract {
+interface PairContract {
     companion object : KLogging() {
         @JvmStatic
         suspend fun isInitialized(address: AddrStd, liteApi: LiteApi): Boolean {

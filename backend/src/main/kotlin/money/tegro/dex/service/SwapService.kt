@@ -1,29 +1,28 @@
-package money.tegro.dex.service.watch
+package money.tegro.dex.service
 
-import io.micronaut.scheduling.annotation.Scheduled
+import io.micronaut.context.event.StartupEvent
+import io.micronaut.runtime.event.annotation.EventListener
+import io.micronaut.scheduling.annotation.Async
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactor.mono
 import money.tegro.dex.contract.toSafeBounceable
-import money.tegro.dex.repository.ExchangePairRepository
-import money.tegro.dex.source.LiveTransactionSource
+import money.tegro.dex.repository.PairRepository
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.kv
 import org.ton.bigint.BigInt
-import org.ton.block.AddrStd
-import org.ton.block.Coins
-import org.ton.block.IntMsgInfo
-import org.ton.block.MsgAddress
+import org.ton.block.*
 import org.ton.tlb.loadTlb
+import reactor.core.publisher.Flux
 
 @Singleton
-class SwapWatchService(
-    private val transactionSource: LiveTransactionSource,
-    private val exchangePairRepository: ExchangePairRepository,
+open class SwapService(
+    private val liveTransactions: Flux<Transaction>,
+    private val pairRepository: PairRepository,
 ) {
-    @Scheduled(initialDelay = "0s") // Set it up as soon as possible
-    fun setup() {
-        transactionSource
-            .asFlux()
+    @Async
+    @EventListener
+    open fun setup(event: StartupEvent) {
+        liveTransactions
             // We only care for an in message from exchange pairs to:
             // a) Their respective jetton wallet in order to transfer jettons to the user
             // b) The user directly, when swapping XXX->TON
@@ -33,7 +32,7 @@ class SwapWatchService(
                     // If null, this mono emits nothing and we just filter this transaction out
                     (it.info as? IntMsgInfo)?.src as? AddrStd
                 }
-                    .flatMap { exchangePairRepository.existsById(it) }
+                    .flatMap { pairRepository.existsById(it) }
             }
             .subscribe {
                 val info = it.info as IntMsgInfo

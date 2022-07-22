@@ -9,26 +9,21 @@ import org.ton.bigint.BigInt
 import org.ton.block.AddrStd
 import java.time.Instant
 
-@MappedEntity("exchange_pairs")
-data class ExchangePairModel(
+@MappedEntity("pairs")
+data class PairModel(
     @field:Id
     @field:TypeDef(type = DataType.BYTE_ARRAY, converter = AddrStdAttributeConverter::class)
     val address: AddrStd,
 
-    /** Address of the left jetton, null denotes Toncoin */
     @field:TypeDef(type = DataType.BYTE_ARRAY, converter = AddrStdAttributeConverter::class)
-    val left: AddrStd?,
+    val base: AddrStd,
 
-    /** Address of the right jetton */
     @field:TypeDef(type = DataType.BYTE_ARRAY, converter = AddrStdAttributeConverter::class)
-    val right: AddrStd,
+    val quote: AddrStd,
 
-    /** Amount reserved in the liquidity pool of the left currency */
-    val leftReserve: BigInt,
+    val baseReserve: BigInt,
 
-    /** Amount reserved in the liquidity pool of the right jetton */
-    val rightReserve: BigInt,
+    val quoteReserve: BigInt,
 
-    val discovered: Instant = Instant.now(),
     val updated: Instant = Instant.now(),
 )

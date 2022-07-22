@@ -11,32 +11,28 @@ import org.ton.block.AddrStd
 import org.ton.block.MsgAddressInt
 import java.time.Instant
 
-@MappedEntity("jettons")
-data class JettonModel(
+@MappedEntity("tokens")
+data class TokenModel(
     @field:Id
     @field:TypeDef(type = DataType.BYTE_ARRAY, converter = AddrStdAttributeConverter::class)
     val address: AddrStd,
 
-    val totalSupply: BigInt,
+    val supply: BigInt,
 
     val mintable: Boolean,
 
     @field:TypeDef(type = DataType.BYTE_ARRAY, converter = MsgAddressIntAttributeConverter::class)
     val admin: MsgAddressInt,
 
-    val name: String? = null,
+    val name: String,
 
-    val description: String? = null,
+    val description: String,
 
-    val symbol: String? = null,
+    val symbol: String,
 
     val decimals: Int = 9,
 
-    val image: String? = null,
+    val image: String,
 
-    // Cannot be nullable, idk why but the driver really doesn't like nullable byte arrays
-    val imageData: ByteArray = byteArrayOf(),
-
-    val discovered: Instant = Instant.now(),
     val updated: Instant = Instant.now(),
 )

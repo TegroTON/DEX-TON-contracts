@@ -13,18 +13,16 @@ import org.ton.lite.api.LiteApi
 import org.ton.lite.api.liteserver.LiteServerAccountId
 import org.ton.tlb.loadTlb
 
-interface JettonContract {
-    val totalSupply: BigInt
-    val mintable: Boolean
-    val admin: MsgAddressInt
-    val content: Cell
+data class TokenContract(
+    val totalSupply: BigInt,
+    val mintable: Boolean,
+    val admin: MsgAddressInt,
+    val content: Cell,
     val walletCode: Cell
-
-    suspend fun metadata(): JettonMetadata
-
+) {
     companion object : KLogging() {
         @JvmStatic
-        suspend fun of(address: AddrStd, liteApi: LiteApi): JettonContract {
+        suspend fun of(address: AddrStd, liteApi: LiteApi): TokenContract {
             val referenceBlock = liteApi.getMasterchainInfo().last
             logger.trace("reference block no. {}", v("seqno", referenceBlock.seqno))
 
@@ -32,7 +30,7 @@ interface JettonContract {
                 logger.debug(append("result", it), "smc method exit code {}", value("exitCode", it.exitCode))
                 require(it.exitCode == 0) { "failed to run method, exit code is ${it.exitCode}" }
 
-                JettonContractImpl(
+                TokenContract(
                     totalSupply = it[0]!!.asBigInt(),
                     mintable = (it[1] as VmStackValue.TinyInt).value != 0L,
                     admin = (it[2] as VmStackValue.Slice).toCellSlice().loadTlb(MsgAddressInt),

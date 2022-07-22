@@ -1,28 +1,22 @@
-package money.tegro.dex.source
+package money.tegro.dex.factory
 
 import io.micrometer.core.instrument.MeterRegistry
-import jakarta.annotation.PostConstruct
+import io.micronaut.context.annotation.Factory
 import jakarta.inject.Singleton
 import money.tegro.dex.contract.toSafeBounceable
-import money.tegro.dex.source.LiveBlockSource.Companion.SYSTEM_ADDRESSES
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.v
+import org.ton.bitstring.BitString
 import org.ton.block.AddrStd
-import reactor.core.publisher.Sinks
+import org.ton.block.Block
+import reactor.core.publisher.Flux
 import reactor.kotlin.core.publisher.toFlux
 
-@Singleton
-class LiveAccountSource(
-    private val registry: MeterRegistry,
-    private val blockSource: LiveBlockSource,
-) {
-    private val sink: Sinks.Many<AddrStd> = Sinks.many().multicast().onBackpressureBuffer()
-
-    fun asFlux() = sink.asFlux()
-
-    @PostConstruct
-    private fun setup() =
-        blockSource.asFlux()
+@Factory
+class LiveAccountFactory {
+    @Singleton
+    fun liveAccounts(blocks: Flux<Block>, registry: MeterRegistry): Flux<AddrStd> =
+        blocks
             .concatMap { block ->
                 block.extra.account_blocks.nodes()
                     .flatMap {
@@ -35,12 +29,19 @@ class LiveAccountSource(
                     .toFlux()
             }
             .filter { it !in SYSTEM_ADDRESSES }
-            .subscribe {
+            .doOnNext {
                 registry.counter("source.live.account.affected").increment()
 
                 logger.debug("affected account {}", v("address", it.toSafeBounceable()))
-                sink.emitNext(it, Sinks.EmitFailureHandler.FAIL_FAST) // TODO: more robust handler
             }
+            .publish()
+            .autoConnect()
 
-    companion object : KLogging()
+    companion object : KLogging() {
+        val SYSTEM_ADDRESSES = listOf(
+            AddrStd(-1, BitString.of("5555555555555555555555555555555555555555555555555555555555555555")),
+            AddrStd(-1, BitString.of("3333333333333333333333333333333333333333333333333333333333333333")),
+            AddrStd(-1, BitString.of("0000000000000000000000000000000000000000000000000000000000000000")),
+        )
+    }
 }

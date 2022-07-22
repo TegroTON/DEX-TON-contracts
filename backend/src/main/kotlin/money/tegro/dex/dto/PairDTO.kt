@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.ton.bigint.BigInt
 
 @Schema(name = "Pair", description = "Information about an exchange pair")
-data class ExchangePairDTO(
+data class PairDTO(
     @field:Schema(description = "Unix timestamp of the last time data was updated")
     val updated: Long,
 
@@ -31,8 +31,8 @@ data class ExchangePairDTO(
     @field:Schema(description = "Symbol, ticker, of the second currency")
     val rightSymbol: String,
 
-    @field:Schema(description = "Address of the right currency, base64url, bounceable")
-    val rightAddress: String,
+    @field:Schema(description = "Address of the right currency, null in case of TON; base64url, bounceable")
+    val rightAddress: String?,
 
     @field:Schema(description = "Reserved amount in the liquidity pool for the right jetton", type = "integer")
     @field:JsonFormat(shape = JsonFormat.Shape.STRING)

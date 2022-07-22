@@ -1,34 +1,25 @@
 package money.tegro.dex.source
 
 import io.micrometer.core.instrument.MeterRegistry
-import jakarta.annotation.PostConstruct
+import io.micronaut.context.annotation.Factory
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactor.mono
 import mu.KLogging
-import net.logstash.logback.argument.StructuredArguments.*
+import net.logstash.logback.argument.StructuredArguments.kv
+import net.logstash.logback.argument.StructuredArguments.v
 import org.ton.api.tonnode.TonNodeBlockIdExt
 import org.ton.bigint.BigInt
-import org.ton.bitstring.BitString
-import org.ton.block.AddrStd
 import org.ton.block.Block
 import org.ton.block.ShardDescr
 import org.ton.lite.api.LiteApi
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Sinks
 import reactor.kotlin.core.publisher.toFlux
 import java.time.Duration
 
-@Singleton
-class LiveBlockSource(
-    private val registry: MeterRegistry,
-    private val liteApi: LiteApi,
-) {
-    private val sink: Sinks.Many<Block> = Sinks.many().multicast().onBackpressureBuffer()
-
-    fun asFlux() = sink.asFlux()
-
-    @PostConstruct
-    private fun setup() =
+@Factory
+class LiveBlockFactory {
+    @Singleton
+    fun liveBlocks(registry: MeterRegistry, liteApi: LiteApi): Flux<Block> =
         Flux.interval(Duration.ofSeconds(1))
             .concatMap { mono { liteApi.getMasterchainInfo().last } }
             .distinctUntilChanged()
@@ -39,12 +30,12 @@ class LiveBlockSource(
                         registry.timer("source.live.block.masterchain.info.elapsed")
                             .record(it.elapsed())
 
-                        logger.debug("getting masterchain block no. {}", value("seqno", it.get().seqno))
+                        logger.debug("getting masterchain block no. {}", v("seqno", it.get().seqno))
                         liteApi.getBlock(it.get()).toBlock()
                     } catch (e: Exception) {
                         registry.counter("source.live.block.masterchain.failed").increment()
 
-                        logger.warn("failed to get masterchain block no. {}", value("seqno", it.get().seqno), e)
+                        logger.warn("failed to get masterchain block no. {}", v("seqno", it.get().seqno), e)
                         null
                     }
                 }
@@ -74,9 +65,8 @@ class LiveBlockSource(
                     }
                     .mergeWith(mono { it.get() }) // Don't forget the original masterchain block
             }
-            .subscribe {
-                sink.emitNext(it, Sinks.EmitFailureHandler.FAIL_FAST) // TODO: Replace with something more robust
-            }
+            .publish()
+            .autoConnect()
 
     companion object : KLogging() {
         @JvmStatic
@@ -86,12 +76,6 @@ class LiveBlockSource(
             seqno = descr.seq_no.toInt(),
             root_hash = descr.root_hash,
             file_hash = descr.file_hash
-        )
-
-        val SYSTEM_ADDRESSES = listOf(
-            AddrStd(-1, BitString.of("5555555555555555555555555555555555555555555555555555555555555555")),
-            AddrStd(-1, BitString.of("3333333333333333333333333333333333333333333333333333333333333333")),
-            AddrStd(-1, BitString.of("0000000000000000000000000000000000000000000000000000000000000000")),
         )
     }
 }

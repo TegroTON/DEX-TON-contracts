@@ -1,4 +1,4 @@
-package money.tegro.dex.bean
+package money.tegro.dex.factory
 
 import io.micronaut.context.annotation.Factory
 import jakarta.inject.Singleton

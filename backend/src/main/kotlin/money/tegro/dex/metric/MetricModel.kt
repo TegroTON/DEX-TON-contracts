@@ -1,4 +1,4 @@
-package money.tegro.dex.measurement
+package money.tegro.dex.metric
 
 import io.micronaut.data.annotation.Id
 import io.micronaut.data.annotation.MappedEntity
@@ -6,17 +6,14 @@ import io.micronaut.data.annotation.TypeDef
 import io.micronaut.data.model.DataType
 import java.time.Instant
 
-@MappedEntity("measurements")
-data class MeasurementModel(
+@MappedEntity("metrics")
+data class MetricModel(
     val name: String,
 
-    @field:TypeDef(type = DataType.JSON)
-    val dimension: Map<String, String>,
+    val value: Double,
 
     @field:TypeDef(type = DataType.JSON)
     val metadata: Map<String, String>,
-
-    val value: Double,
 
     @field:Id
     val timestamp: Instant = Instant.now(),

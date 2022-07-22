@@ -1,28 +1,23 @@
-package money.tegro.dex.source
+package money.tegro.dex.factory
 
-import jakarta.annotation.PostConstruct
+import io.micronaut.context.annotation.Factory
 import jakarta.inject.Singleton
 import money.tegro.dex.contract.toSafeBounceable
-import money.tegro.dex.source.LiveBlockSource.Companion.SYSTEM_ADDRESSES
+import money.tegro.dex.factory.LiveAccountFactory.Companion.SYSTEM_ADDRESSES
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.kv
 import org.ton.block.AddrStd
+import org.ton.block.Block
 import org.ton.block.IntMsgInfo
 import org.ton.block.Transaction
-import reactor.core.publisher.Sinks
+import reactor.core.publisher.Flux
 import reactor.kotlin.core.publisher.toFlux
 
-@Singleton
-class LiveTransactionSource(
-    private val blockSource: LiveBlockSource,
-) {
-    private val sink: Sinks.Many<Transaction> = Sinks.many().multicast().onBackpressureBuffer()
-
-    fun asFlux() = sink.asFlux()
-
-    @PostConstruct
-    private fun setup() =
-        blockSource.asFlux()
+@Factory
+class LiveTransactionFactory {
+    @Singleton
+    fun liveTransactions(blocks: Flux<Block>): Flux<Transaction> =
+        blocks
             .concatMap { block ->
                 block.extra.account_blocks.nodes()
                     .flatMap { it.first.transactions.nodes().map { it.first } }
@@ -53,9 +48,8 @@ class LiveTransactionSource(
                         }
                     }
             }
-            .subscribe {
-                sink.emitNext(it, Sinks.EmitFailureHandler.FAIL_FAST) // TODO: more robust handler
-            }
+            .publish()
+            .autoConnect()
 
     companion object : KLogging()
 }
