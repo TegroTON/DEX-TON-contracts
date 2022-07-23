@@ -62,11 +62,11 @@ jobs:
         uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
         with:
           build-root-directory: backend/
-          arguments: build :tool:shadowJar
+          arguments: build :tool:shadowDistZip
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: tool
           path: |
-            tool/build/**/libs/*-all.jar
+            backend/tool/build/distributions/*.zip
