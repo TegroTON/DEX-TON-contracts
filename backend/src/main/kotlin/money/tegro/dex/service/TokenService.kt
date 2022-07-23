@@ -42,6 +42,7 @@ open class TokenService(
                 Flux.interval(Duration.ZERO, config.tokenPeriod)
                     .concatMap { tokenRepository.findAll(Sort.of(Sort.Order.asc("updated"))) }
             }
+            .filter { it.symbol.uppercase() != "TON" }
             .concatMap {
                 mono { it.address to TokenContract.of(it.address, liteApi) }
                     .timed()
