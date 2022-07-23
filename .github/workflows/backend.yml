@@ -1,8 +1,8 @@
-name: Backend docker container
+name: Backend build
 
 on:
   push:
-    branches: [ master, backend ]
+    branches: [ backend_live ]
   release:
     types: [ created ]
 
