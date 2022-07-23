@@ -5,33 +5,23 @@ import io.micronaut.data.annotation.MappedEntity
 import io.micronaut.data.annotation.TypeDef
 import io.micronaut.data.model.DataType
 import money.tegro.dex.converter.AddrStdAttributeConverter
-import money.tegro.dex.converter.MsgAddressIntAttributeConverter
 import org.ton.bigint.BigInt
 import org.ton.block.AddrStd
-import org.ton.block.MsgAddressInt
 import java.time.Instant
 
-@MappedEntity("pairs")
-data class PairModel(
-    @field:Id
+@MappedEntity("swaps")
+data class SwapModel(
     @field:TypeDef(type = DataType.BYTE_ARRAY, converter = AddrStdAttributeConverter::class)
     val address: AddrStd,
 
     @field:TypeDef(type = DataType.BYTE_ARRAY, converter = AddrStdAttributeConverter::class)
-    val base: AddrStd,
+    val pair: AddrStd,
 
     @field:TypeDef(type = DataType.BYTE_ARRAY, converter = AddrStdAttributeConverter::class)
-    val quote: AddrStd,
+    val token: AddrStd,
 
-    @field:TypeDef(type = DataType.BYTE_ARRAY, converter = MsgAddressIntAttributeConverter::class)
-    val baseWallet: MsgAddressInt,
+    val amount: BigInt,
 
-    @field:TypeDef(type = DataType.BYTE_ARRAY, converter = MsgAddressIntAttributeConverter::class)
-    val quoteWallet: MsgAddressInt,
-
-    val baseReserve: BigInt,
-
-    val quoteReserve: BigInt,
-
-    val updated: Instant = Instant.now(),
+    @field:Id
+    val timestamp: Instant = Instant.now(),
 )

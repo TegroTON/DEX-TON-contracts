@@ -53,6 +53,7 @@ class AddPairCommand : Runnable {
             }
 
             // TODO: Base and Quote addresses will be possible to determine programmatically in the future
+            // We'd get associated jetton wallets and query them to find their master contracts
             logger.info("Verifying its base and quote tokens")
             val base = baseString?.let { AddrStd(it) } ?: tokenRepository.findBySymbol("TON").awaitSingle().address
 
@@ -95,10 +96,17 @@ class AddPairCommand : Runnable {
             val reserves = PairContract.getReserves(address, liteApi)
             logger.info("Pair LP reserves are {} and {}", kv("left", reserves.first), kv("right", reserves.second))
 
+            // For ton, baseWallet = base address. This is done to avoid using nullable values as it fucks everything else up
+            val baseWallet = if (base == tokenRepository.findBySymbol("TON").awaitSingle().address) base
+            else TokenContract.getWalletAddress(base, address, liteApi)
+            val quoteWallet = TokenContract.getWalletAddress(quote, address, liteApi)
+
             val model = PairModel(
                 address = address,
                 base = base,
                 quote = quote,
+                baseWallet = baseWallet,
+                quoteWallet = quoteWallet,
                 baseReserve = reserves.first,
                 quoteReserve = reserves.second,
             )
