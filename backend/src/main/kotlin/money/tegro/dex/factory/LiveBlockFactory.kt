@@ -23,26 +23,22 @@ class LiveBlockFactory {
         Flux.interval(Duration.ofSeconds(1))
             .concatMap { mono { liteApi.getMasterchainInfo().last } }
             .distinctUntilChanged()
-            .timed()
             .concatMap {
                 mono {
                     try {
-                        registry.timer("source.live.block.masterchain.info.elapsed")
-                            .record(it.elapsed())
-
-                        logger.debug("getting masterchain block no. {}", v("seqno", it.get().seqno))
-                        liteApi.getBlock(it.get()).toBlock()
+                        logger.debug("getting masterchain block no. {}", v("seqno", it.seqno))
+                        liteApi.getBlock(it).toBlock()
                     } catch (e: Exception) {
-                        registry.counter("source.live.block.masterchain.failed").increment()
+                        registry.counter("live.block.masterchain.failed").increment()
 
-                        logger.warn("failed to get masterchain block no. {}", v("seqno", it.get().seqno), e)
+                        logger.warn("failed to get masterchain block no. {}", v("seqno", it.seqno), e)
                         null
                     }
                 }
             }
             .timed()
             .doOnNext {
-                registry.timer("source.live.block.masterchain")
+                registry.timer("live.block.masterchain")
                     .record(it.elapsed())
             }
             .concatMap {

@@ -30,7 +30,7 @@ class LiveAccountFactory {
             }
             .filter { it !in SYSTEM_ADDRESSES }
             .doOnNext {
-                registry.counter("source.live.account.affected").increment()
+                registry.counter("live.account.affected").increment()
 
                 logger.debug("affected account {}", v("address", it.toSafeBounceable()))
             }
