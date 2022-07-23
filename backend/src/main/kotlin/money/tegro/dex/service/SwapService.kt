@@ -4,8 +4,7 @@ import io.micronaut.context.event.StartupEvent
 import io.micronaut.runtime.event.annotation.EventListener
 import io.micronaut.scheduling.annotation.Async
 import jakarta.inject.Singleton
-import kotlinx.coroutines.reactor.awaitSingle
-import kotlinx.coroutines.reactor.mono
+import money.tegro.dex.contract.OpTransfer
 import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.model.SwapModel
 import money.tegro.dex.repository.PairRepository
@@ -13,9 +12,13 @@ import money.tegro.dex.repository.SwapRepository
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.kv
 import org.ton.bigint.BigInt
-import org.ton.block.*
+import org.ton.block.AddrStd
+import org.ton.block.IntMsgInfo
+import org.ton.block.Transaction
 import org.ton.tlb.loadTlb
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 
 @Singleton
 open class SwapService(
@@ -26,94 +29,107 @@ open class SwapService(
     @Async
     @EventListener
     open fun setup(event: StartupEvent) {
+        // Classic T?.toMono() -> Mono<T> skip is used extensively here to deal with ?????-hell
+        // Simply put, it allows to simply finish processing the entire sequence if some value is null
+
+
+        // We only care for an inbound message from exchange pairs to:
+        // a) The user directly, when swapping XXX->TON
+        // b) Their respective jetton wallet in order to transfer jettons to the user
         liveTransactions
-            // We only care for an inbound message from exchange pairs to:
-            // a) Their respective jetton wallet in order to transfer jettons to the user
-            // b) The user directly, when swapping XXX->TON
-            .concatMap { mono { it.in_msg.value } }
-            .filterWhen {
-                mono {
-                    // If null, this mono emits nothing and we just filter this transaction out
-                    (it.info as? IntMsgInfo)?.src as? AddrStd
-                }
-                    .flatMap { pairRepository.existsById(it) }
-            }
-            .concatMap {
-                mono {
-                    val info = it.info as IntMsgInfo
-
-                    val pair = pairRepository.findById(info.src as AddrStd).awaitSingle()
-
-                    (it.body.x ?: it.body.y)?.beginParse()?.let { body ->
-                        when (val op = body.loadUInt(32)) {
-                            OP_TRANSFER -> { // Jetton transfer, need to further parse the payload
-                                val wallet = info.dest
-                                require(wallet == pair.baseWallet || wallet == pair.quoteWallet) // sanity
-
-                                body.skipBits(64) // Query id
-                                val amount = body.loadTlb(Coins).amount.value
-                                val destination = body.loadTlb(MsgAddress) as AddrStd // Just die if not addrstd
-                                body.loadTlb(MsgAddress) // Skip the second one, it's equal to destination
-
-                                // These are appended straight to the payload
-                                body.skipBits(1)
-                                body.loadTlb(Coins) // ton_amount
-                                body.skipBits(1)
-
-                                when (val innerOp = body.loadUInt(32)) {
-                                    OP_SUCCESSFUL_SWAP -> {
-                                        logger.debug(
-                                            "{}: successful jetton swap of {} {} -> {}",
-                                            kv("op", innerOp.toString(16)),
-                                            kv("value", amount),
-                                            kv("wallet", (wallet as? AddrStd)?.toSafeBounceable() ?: wallet),
-                                            kv("address", destination.toSafeBounceable())
-                                        )
-
-                                        SwapModel(
-                                            address = destination,
-                                            pair = pair.address,
-                                            // To reduce number of cross-referenced values, we actually record what token was transferred,
-                                            // not from which wallet. This way even if wallet address changes for some reason, we still have
-                                            // solid information about the exact pair (assumed to never change) and exact token
-                                            token = if (wallet == pair.quoteWallet) pair.quote else pair.base,
-                                            amount = amount,
-                                        )
-                                    }
-                                    else -> {
-                                        logger.warn("unsupported inner {}", kv("op", op.toString(16)))
-                                        null
-                                    }
-                                }
+            .concatMap { transaction ->
+                transaction.in_msg.value.toMono()
+                    .filterWhen {
+                        (it.body.x ?: it.body.y).toMono()
+                            .map {
+                                val bs = it.beginParse()
+                                bs.bitsPosition + 32 <= bs.bits.size// We can read 32 bits
+                                        && bs.loadUInt(32) == OP_SUCCESSFUL_SWAP // It's a simple XXX->TON swap
                             }
-                            OP_SUCCESSFUL_SWAP -> { // TON transfer, easy one
-                                logger.debug(
-                                    "{} - successful ton swap of {} to {}",
-                                    kv("op", op.toString(16)),
-                                    kv("value", info.value.coins.amount.value),
-                                    kv("address", (info.dest as AddrStd).toSafeBounceable())
-                                )
-
-                                SwapModel(
-                                    address = info.dest as AddrStd,
-                                    pair = pair.address,
-                                    token = pair.base, // TON is assumed to always be the base currency
-                                    amount = info.value.coins.amount.value,
-                                )
-                            }
-                            else -> {
-                                logger.warn(
-                                    "unknown {}, cannot determine if it is a swap or not",
-                                    kv("op", op.toString(16))
-                                )
-                                null
-                            }
-                        }
                     }
-                }
+                    .flatMap { (it.info as? IntMsgInfo).toMono() }
+                    .flatMap { info ->
+                        Mono.zip(
+                            (info.dest as? AddrStd).toMono(), // Destination is addrstd, otherwise just empty
+                            info.value.coins.amount.value.toMono(),
+                            (info.src as? AddrStd).toMono() // If not addrstd, just skips everything
+                                .flatMap { pairRepository.findById(it) } // Transaction from the main pair contract
+                        )
+                    }
             }
             .subscribe {
-                swapRepository.save(it).subscribe()
+                logger.debug(
+                    "successful ton swap by {} of {} on {}",
+                    kv("address", it.t1.toSafeBounceable()),
+                    kv("value", it.t2),
+                    kv("pair", it.t3.address.toSafeBounceable()),
+                )
+
+                swapRepository.save(
+                    SwapModel(
+                        address = it.t1,
+                        amount = it.t2,
+                        pair = it.t3.address,
+                        token = it.t3.base, // TON is assumed to always be the base currency
+                    )
+                ).subscribe()
+            }
+
+        // Same but for XXX->Jetton swaps. A bit more complex
+        liveTransactions
+            .concatMap { transaction ->
+                transaction.in_msg.value.toMono()
+                    .filterWhen {
+                        (it.body.x ?: it.body.y).toMono()
+                            .map {
+                                val bs = it.beginParse()
+                                bs.bitsPosition + 32 <= bs.bits.size// We can read 32 bits
+                                        && bs.loadUInt(32) == OP_TRANSFER // Token transfer
+                            }
+                    }
+                    .flatMap {
+                        val info = it.info as? IntMsgInfo
+                        Mono.zip(
+                            info.toMono(),
+                            (it.body.x ?: it.body.y)?.parse { loadTlb(OpTransfer) }.toMono()
+                                .filterWhen {
+                                    (it.forward_payload.x ?: it.forward_payload.y).toMono()
+                                        .map {
+                                            val bs = it.beginParse()
+                                            bs.bitsPosition + 32 <= bs.bits.size// We can read 32 bits
+                                                    && bs.loadUInt(32) == OP_SUCCESSFUL_SWAP // Success!
+                                        }
+                                },
+                            (info?.src as? AddrStd).toMono() // If not addrstd, just skips everything
+                                .flatMap { pairRepository.findById(it) } // Transaction from the main pair contract
+                        )
+                    }
+            }
+            .subscribe {
+                val info = it.t1
+                val transfer = it.t2
+                val pair = it.t3
+
+                (transfer.destination as? AddrStd)?.let { destination ->
+                    logger.debug(
+                        "successful jetton swap of {} by {} -> {}",
+                        kv("value", transfer.amount.value),
+                        kv("wallet", (info.dest as? AddrStd)?.toSafeBounceable() ?: info.dest),
+                        kv("address", destination.toSafeBounceable())
+                    )
+
+                    swapRepository.save(
+                        SwapModel(
+                            address = destination,
+                            amount = transfer.amount.value,
+                            pair = pair.address,
+                            // To reduce number of cross-referenced values, we actually record what token was transferred,
+                            // not from which wallet. This way even if wallet address changes for some reason, we still have
+                            // solid information about the exact pair (assumed to never change) and exact token
+                            token = if (info.dest == pair.quoteWallet) pair.quote else pair.base,
+                        )
+                    ).subscribe()
+                }
             }
     }
 
