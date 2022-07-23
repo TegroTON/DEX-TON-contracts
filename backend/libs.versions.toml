@@ -11,6 +11,7 @@ logging = { prefer = "2.1.23" }
 logback = { prefer = "1.2.11" }
 logstash-logback-encoder = { prefer = "7.2" }
 jakarta = { prefer = "2.1.1" }
+picocli = { prefer = "4.6.3" }
 r2dbc = { prefer = "1.0.0.RELEASE" }
 r2dbc-postgresql = { prefer = "0.8.12.RELEASE" }
 micronaut = { prefer = "3.5.1" }
@@ -19,6 +20,7 @@ micronaut-flyway = { prefer = "5.3.0" }
 micronaut-kotlin = { prefer = "3.2.2" }
 micronaut-reactor = { prefer = "2.2.2" }
 micronaut-openapi = { prefer = "4.3.0" }
+micronaut-picocli = { prefer = "4.2.1" }
 micronaut-micrometer = { prefer = "4.3.0" }
 swagger = { prefer = "2.2.1" }
 postgresql = { prefer = "42.4.0" }
@@ -31,6 +33,7 @@ jib = "3.2.1"
 # Core
 reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "reflect" }
 ton = { group = "com.github.andreypfau.ton-kotlin", name = "ton-kotlin", version.ref = "ton" }
+picocli = { group = "info.picocli", name = "picocli", version.ref = "picocli" }
 
 # Coroutines
 coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "coroutines" }
@@ -68,6 +71,7 @@ micronaut-jackson-databind = { group = "io.micronaut", name = "micronaut-jackson
 micronaut-kotlin-runtime = { group = "io.micronaut.kotlin", name = "micronaut-kotlin-runtime", version.ref = "micronaut-kotlin" }
 micronaut-kotlin-extensions = { group = "io.micronaut.kotlin", name = "micronaut-kotlin-extension-functions", version.ref = "micronaut-kotlin" }
 micronaut-validation = { group = "io.micronaut", name = "micronaut-validation", version.ref = "micronaut" }
+micronaut-picocli = { group = "io.micronaut.picocli", name = "micronaut-picocli", version.ref = "micronaut-picocli" }
 
 # Reactive
 micronaut-reactor = { group = "io.micronaut.reactor", name = "micronaut-reactor", version.ref = "micronaut-reactor" }

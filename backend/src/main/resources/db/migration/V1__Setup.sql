@@ -40,10 +40,10 @@ CREATE UNIQUE INDEX ON tokens (UPPER(symbol));
 
 -- Make sure that table at the very least contains native toncoin
 INSERT INTO tokens
-VALUES ('\x00',
+VALUES ('\xB5EE9C720101010100240000437F9999999999999999999999999999999999999999999999999999999999999999C0', -- Elector address as AddrStd
         5000000000000000000, -- Five billion toncoins in nanotons
         TRUE, -- There's inflation, new coins are being put into circulation
-        '\x00',
+        '\xB5EE9C720101010100240000439FE66666666666666666666666666666666666666666666666666666666666666670', -- Same elector address but as MsgAddressInt
         'Toncoin',
         'Native currency of The Open Network',
         'TON',

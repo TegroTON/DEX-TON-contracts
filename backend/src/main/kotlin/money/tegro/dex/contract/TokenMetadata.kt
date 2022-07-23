@@ -12,7 +12,7 @@ import org.ton.crypto.sha256
 import org.ton.smartcontract.*
 import org.ton.tlb.loadTlb
 
-data class JettonMetadata(
+data class TokenMetadata(
     val uri: String?,
     val name: String?,
     val description: String?,
@@ -36,14 +36,14 @@ data class JettonMetadata(
         suspend fun of(
             content: Cell,
             httpClient: HttpClient
-        ): JettonMetadata {
+        ): TokenMetadata {
             val full = content.parse { loadTlb(FullContent) }
             return when (full) {
                 is FullContent.OnChain -> {
                     logger.debug { "on-chain content layout, frick" }
                     val entries = full.data.toMap()
 
-                    JettonMetadata(
+                    TokenMetadata(
                         uri = entries.get(ONCHAIN_URI_KEY)?.flatten()?.decodeToString(), // TODO: Semi-on-chain content
                         name = entries.get(ONCHAIN_NAME_KEY)?.flatten()?.decodeToString(),
                         description = entries.get(ONCHAIN_DESCRIPTION_KEY)?.flatten()?.decodeToString(),
@@ -61,7 +61,7 @@ data class JettonMetadata(
                     logger.debug("content url is {}", v("url", url))
 
                     val body = httpClient.get(url).bodyAsText()
-                    mapper.readValue(body, JettonMetadata::class.java)
+                    mapper.readValue(body, TokenMetadata::class.java)
                 }
             }
         }

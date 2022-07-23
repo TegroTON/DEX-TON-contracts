@@ -12,29 +12,29 @@ data class PairDTO(
     @field:Schema(description = "Address of the exchange pair, base64, bounceable")
     val address: String,
 
-    @field:Schema(description = "Full name of the first currency")
+    @field:Schema(description = "Full name of the first token")
     val leftName: String,
 
-    @field:Schema(description = "Symbol, ticker, of the first currency")
+    @field:Schema(description = "Symbol, ticker, of the first token")
     val leftSymbol: String,
 
-    @field:Schema(description = "Address of the left currency, null in case of TON; base64url, bounceable")
-    val leftAddress: String?,
+    @field:Schema(description = "Address of the left token; base64url, bounceable")
+    val leftAddress: String,
 
-    @field:Schema(description = "Reserved amount in the liquidity pool for the left currency", type = "integer")
+    @field:Schema(description = "Reserved amount in the liquidity pool for the left token", type = "integer")
     @field:JsonFormat(shape = JsonFormat.Shape.STRING)
     val leftReserved: BigInt,
 
-    @field:Schema(description = "Full name of the second currency")
+    @field:Schema(description = "Full name of the second token")
     val rightName: String,
 
-    @field:Schema(description = "Symbol, ticker, of the second currency")
+    @field:Schema(description = "Symbol, ticker, of the second token")
     val rightSymbol: String,
 
-    @field:Schema(description = "Address of the right currency, null in case of TON; base64url, bounceable")
-    val rightAddress: String?,
+    @field:Schema(description = "Address of the right token; base64url, bounceable")
+    val rightAddress: String,
 
-    @field:Schema(description = "Reserved amount in the liquidity pool for the right jetton", type = "integer")
+    @field:Schema(description = "Reserved amount in the liquidity pool for the right token", type = "integer")
     @field:JsonFormat(shape = JsonFormat.Shape.STRING)
     val rightReserved: BigInt,
 )
