@@ -5,6 +5,8 @@ import net.logstash.logback.argument.StructuredArguments.value
 import net.logstash.logback.marker.Markers.append
 import org.ton.bigint.BigInt
 import org.ton.block.AddrStd
+import org.ton.block.VmStackNumber
+import org.ton.block.VmStackTinyInt
 import org.ton.block.VmStackValue
 import org.ton.lite.api.LiteApi
 import org.ton.lite.api.liteserver.LiteServerAccountId
@@ -20,7 +22,7 @@ interface PairContract {
                 logger.debug(append("result", it), "smc method exit code {}", value("exitCode", it.exitCode))
                 require(it.exitCode == 0) { "failed to run method, exit code is ${it.exitCode}" }
 
-                (it[0] as VmStackValue.TinyInt).value != 0L
+                (it[0] as VmStackTinyInt).value != 0L
             }
         }
 
@@ -33,7 +35,8 @@ interface PairContract {
                 logger.debug(append("result", it), "smc method exit code {}", value("exitCode", it.exitCode))
                 require(it.exitCode == 0) { "failed to run method, exit code is ${it.exitCode}" }
 
-                it[0]!!.asBigInt() to it[1]!!.asBigInt()
+
+                (it[0] as VmStackNumber).toBigInt() to (it[1] as VmStackNumber).toBigInt()
             }
         }
 
@@ -52,7 +55,7 @@ interface PairContract {
                 logger.debug(append("result", it), "smc method exit code {}", value("exitCode", it.exitCode))
                 require(it.exitCode == 0) { "failed to run method, exit code is ${it.exitCode}" }
 
-                it[0]!!.asBigInt() to it[1]!!.asBigInt()
+                (it[0] as VmStackNumber).toBigInt() to (it[1] as VmStackNumber).toBigInt()
             }
         }
     }
