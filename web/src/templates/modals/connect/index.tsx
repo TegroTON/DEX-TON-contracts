@@ -2,13 +2,14 @@ import {useState} from "react";
 import {MainPart} from "./Main";
 import {TonkeeperPart} from "./Tonkeeper";
 import {TonhubPart} from "./Tonhub";
+import {TonWalletPart} from "./TonWallet";
 
-export type WalletChoice = ("Tonkeeper" | "Tonhub" | "Main")
+export type WalletChoice = ("Tonkeeper" | "Tonhub" | "Main" | "TonWallet")
 export type SetWalletChoiceFunc = (walletChoice: WalletChoice) => void
 
 export function ConnectModal() {
     const [walletChoice, setWalletChoice] = useState<WalletChoice>("Main")
-    const parts = {"Main": <MainPart setter={setWalletChoice}/>, "Tonkeeper": <TonkeeperPart/>, "Tonhub": <TonhubPart/>}
+    const parts = {"Main": <MainPart setter={setWalletChoice}/>, "Tonkeeper": <TonkeeperPart/>, "Tonhub": <TonhubPart/>, "TonWallet": <TonWalletPart/>}
 
     return (
         <div className="modal fade" id="ConnectModal" tabIndex={-1} aria-hidden="true">

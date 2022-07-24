@@ -2,8 +2,9 @@ import { JettonOperation } from '../enums/JettonOperation';
 import { parseInternalTransferTransaction } from './parsers/parseInternalTransferTransaction';
 import { parseTransferTransaction } from './parsers/parseTransferTransaction';
 import type { JettonTransaction } from '../types/JettonTransaction';
-import {Coins, Providers, Address, Cell, Builder} from "ton3";
+import {Coins, Address, Cell, Builder} from "ton3-core";
 import {runGetMethod} from "../../utils";
+import {TonClient} from "../../client/TonClient";
 
 export class JettonWalletContract {
     constructor(
@@ -12,11 +13,11 @@ export class JettonWalletContract {
         this.address = address;
     }
 
-    isDeployed(client: Providers.ClientRESTV2) {
+    isDeployed(client: TonClient) {
         // return this.client.isContractDeployed(this.address);
     }
 
-    async getData(client: Providers.ClientRESTV2): Promise<{ balance: Coins }> {
+    async getData(client: TonClient): Promise<{ balance: Coins }> {
         const { exitCode, parsedResult } = await runGetMethod(client, this.address, "get_wallet_data", [])
 
         if (exitCode === -13) return { balance: new Coins(0) }; // not deployed

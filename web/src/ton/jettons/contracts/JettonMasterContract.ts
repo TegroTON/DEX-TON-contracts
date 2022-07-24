@@ -1,6 +1,7 @@
-import {Address, BOC, Builder, Cell, Providers, Slice} from 'ton3';
+import {Address, BOC, Builder, Cell, Slice} from 'ton3-core';
 import {JettonWalletContract} from './JettonWalletContract';
 import {runGetMethod} from "../../utils";
+import {TonClient} from "../../client/TonClient";
 
 export class JettonMasterContract {
     constructor(
@@ -17,7 +18,7 @@ export class JettonMasterContract {
             .cell();
     }
 
-    async getJettonData(client: Providers.ClientRESTV2) {
+    async getJettonData(client: TonClient) {
         const { parsedResult } = await runGetMethod(client, this.address, "get_jetton_data", [])
 
         const totalSupply = parsedResult[0]
@@ -35,7 +36,7 @@ export class JettonMasterContract {
         };
     }
 
-    private async resolveWalletAddress(client: Providers.ClientRESTV2, owner: Address): Promise<Address> {
+    private async resolveWalletAddress(client: TonClient, owner: Address): Promise<Address> {
         const ownerAddressCell = new Builder()
             .storeAddress(owner)
             .cell()
@@ -50,7 +51,7 @@ export class JettonMasterContract {
             .preloadAddress();
     }
 
-    async getJettonWallet(client: Providers.ClientRESTV2, ownerAddress: Address): Promise<JettonWalletContract> {
+    async getJettonWallet(client: TonClient, ownerAddress: Address): Promise<JettonWalletContract> {
         return new JettonWalletContract(await this.resolveWalletAddress(client, ownerAddress));
     }
 }

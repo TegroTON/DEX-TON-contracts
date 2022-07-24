@@ -39,11 +39,11 @@ export const Jettons: JettonsData = {
             image: "/images/ton.png",
             description: ""
         },
-    "kQDf-x3_O9p-HlY_uQbOl3CekmdgN_WDJxWrhlwWyqrpjtaV":
+    "EQCKt2WPGX-fh0cIAz38Ljd_OKQjoZE_cqk7QrYGsNP6wUh-":
         {
-            name: "Testcoin",
-            symbol: "TEST",
-            image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48ZmlsdGVyIGhlaWdodD0iMjAwJSIgaWQ9InN2Z18xX2JsdXIiIHdpZHRoPSIyMDAlIiB4PSItNTAlIiB5PSItNTAlIj48ZmVHYXVzc2lhbkJsdXIgaW49IlNvdXJjZUdyYXBoaWMiIHN0ZERldmlhdGlvbj0iMC41Ii8+PC9maWx0ZXI+PGZpbHRlciBpZD0ic3ZnXzJfYmx1ciI+PGZlR2F1c3NpYW5CbHVyIGluPSJTb3VyY2VHcmFwaGljIiBzdGREZXZpYXRpb249IjAuMiIvPjwvZmlsdGVyPjwvZGVmcz48ZyBjbGFzcz0ibGF5ZXIiPjx0aXRsZT5MYXllciAxPC90aXRsZT48dGV4dCBmaWxsPSIjYmZiZmJmIiBmaWx0ZXI9InVybCgjc3ZnXzFfYmx1cikiIGZvbnQtZmFtaWx5PSJDdXJzaXZlIiBmb250LXNpemU9IjI0IiBpZD0ic3ZnXzEiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLXdpZHRoPSIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB0cmFuc2Zvcm09Im1hdHJpeCgxLjUzMjkyIDAgMCA0Ljc0NzE0IDIyLjU4ODcgLTY3LjA4MDUpIiB4PSIxNi41Njk1MjUiIHhtbDpzcGFjZT0icHJlc2VydmUiIHk9IjMzLjE0NjY2MSI+VEVTVDwvdGV4dD48dGV4dCBmaWxsPSIjMDAwMDAwIiBmaWx0ZXI9InVybCgjc3ZnXzJfYmx1cikiIGZvbnQtZmFtaWx5PSJDdXJzaXZlIiBmb250LXNpemU9IjI0IiBpZD0ic3ZnXzIiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLXdpZHRoPSIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB0cmFuc2Zvcm09Im1hdHJpeCgxLjUzMjkyIDAgMCA0Ljc0NzE0IDIyLjU4ODcgLTY3LjA4MDUpIiB4PSIxNi43NjExNjEiIHhtbDpzcGFjZT0icHJlc2VydmUiIHk9IjMzLjQ2MTczNyI+VEVTVDwvdGV4dD48L2c+PC9zdmc+",
-            description: ""
+            name: "Tegro",
+            symbol: "TGR",
+            image: "https://tegro.io/tgr.png",
+            description: "Cross-platform payment token on the TON blockchain."
         },
 }

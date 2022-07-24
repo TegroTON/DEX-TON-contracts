@@ -8,15 +8,19 @@ export function DefaultHeader() {
     const location = useLocation();
     const {dexInfo} = useContext(DexContext) as DexContextType;
 
-
+    const disconnect = async () => {
+        localStorage.clear()
+        window.location.reload()
+    }
     const go_back = () => navigate(-1);
 
     return (
         <header className="header">
             <nav className="navbar navbar-expand-lg">
                 <div className="container">
-                    <a href="/" className="header__logo"><img src="/images/logo.png" alt=""
-                                                              className="header__logo-img"/></a>
+                    <Link to="/" className="header__logo">
+                        <img src="/images/logo.png" alt="" className="header__logo-img"/>
+                    </Link>
                     <button className="navbar-toggler" type="button" data-bs-toggle="collapse"
                             data-bs-target="#navbarDexContent" aria-controls="navbarDexContent"
                             aria-expanded="false" aria-label="Toggle navigation">
@@ -46,20 +50,32 @@ export function DefaultHeader() {
                                 </a>
                                 <ul className="dropdown-menu border-0"
                                     aria-labelledby="navbarDropdown">
-                                    <li><a className="dropdown-item" href="#" onClick={() => {localStorage.clear(); window.location.reload()}}>Link</a></li>
+                                    <li><a className="dropdown-item" href="#" onClick={() => window.location.reload()}>Link</a></li>
                                     <li><a className="dropdown-item" href="#">Link</a></li>
                                     <li><a className="dropdown-item" href="#">Link</a></li>
                                 </ul>
                             </li>
                         </ul>
                         {dexInfo.walletInfo ? (
-                            <a href={`https://tonmoon.org/explorer/${dexInfo.walletInfo.meta.address}`} target="_blank"
-                               className="btn btn-sm btn-secondary d-flex align-items-center ps-3 pe-2 py-2">
+                            <div className="dropdown">
+                                <a className="btn btn-sm btn-secondary d-flex align-items-center ps-3 pe-2 py-2 dropdown-toggle"
+                                   href="#" role="button" id="dropdownMenuLink"
+                                   data-bs-toggle="dropdown" aria-expanded="false">
                                 {`${dexInfo.walletInfo.balance ? dexInfo.walletInfo.balance.toString() : "Load..."} TON`}
-                                <span className="wallet-address">
-                                    {`${dexInfo.walletInfo.meta.address.slice(0, 6)}...${dexInfo.walletInfo.meta.address.slice(-6)}`}
-                                </span>
-                            </a>
+                                    <span className="wallet-address">
+                                        {`${dexInfo.walletInfo.meta.address.slice(0, 4)}...${dexInfo.walletInfo.meta.address.slice(-4)}`}
+                                    </span>
+                                </a>
+                                <ul className="dropdown-menu shadow border-0 mt-3"
+                                    aria-labelledby="dropdownMenuLink" style={{minWidth: "252px"}}>
+                                    <li>
+                                        <a className="dropdown-item" href="#" onClick={() => disconnect()}>
+                                            <i className="fa-regular fa-link-simple-slash me-3"/>
+                                            Disconnect wallet
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         ) : (
                             <a href="#!" className="btn btn-sm btn-secondary" data-bs-toggle="modal"
                                data-bs-target="#ConnectModal">

@@ -8,9 +8,9 @@ export function NavComponent() {
             <Link className={`cat__link flex-fill ${location.pathname === "/" ? "active" : ""}`}
                to="/"><span>Swap</span></Link>
             <Link className={`cat__link flex-fill ${location.pathname.slice(0,10) === "/liquidity" ? "active" : ""}`}
-               to="/liquidity" style={{pointerEvents: "none"}}><span>Liquidity</span></Link>
+               to="/"><span>Liquidity</span></Link>
             <Link className={`cat__link flex-fill ${location.pathname === "/referral" ? "active" : ""}`}
-               to="/referral" style={{pointerEvents: "none"}}><span>Referral</span></Link>
+               to="/"><span>Referral</span></Link>
         </div>
     )
 }

@@ -1,40 +1,30 @@
 import {useContext} from "react";
 import {DexContext, DexContextType} from "../../context";
-import {Address, BOC, Coins} from "ton3";
+import {Address, BOC, Coins} from "ton3-core";
 import {walletService} from "../../ton/wallets/WalletService";
 import {DexBetaPairContract} from "../../ton/dex/contracts/DexBetaPairContract";
 import {JettonWalletContract} from "../../ton/jettons/contracts/JettonWalletContract";
-import {getTonBalance} from "../../ton/utils";
+import {tonClient} from "../../ton";
 
 export function ConfirmOfferModal() {
     const {dexInfo, updateDexInfo} = useContext(DexContext) as DexContextType;
     const {walletInfo, swapInfo} = dexInfo;
     const {swapParams, pair} = swapInfo;
     const {slippage: slippage, inAmount: inAmount, outAmount: outAmount} = swapParams
-    const {left: left, right: right, direction: direction, address: address} = pair;
+    const {left: left, right: right, address: address} = pair;
     const tonBalance = walletInfo ? walletInfo.balance : new Coins(0);
     const leftBalance = left ? left.balance ?? new Coins(0) : tonBalance;
     const rightBalance = right ? right.balance ?? new Coins(0) : tonBalance;
     const minReceived = new Coins(outAmount).mul(1-slippage/100)
 
-    const from = direction === "normal" ? {
+    const from = {
         symbol: left ? left.jetton.meta.symbol : "TON",
         balance: leftBalance,
         images: left ? left.jetton.meta.image : "/images/ton.png",
         name: left ? left.jetton.meta.name : "Toncoin",
-    } : {
-        symbol: right ? right.jetton.meta.symbol : "TON",
-        balance: rightBalance,
-        images: right ? right.jetton.meta.image : "/images/ton.png",
-        name: right ? right.jetton.meta.name : "Toncoin",
     }
 
-    const to = direction === "reverse" ? {
-        symbol: left ? left.jetton.meta.symbol : "TON",
-        balance: leftBalance,
-        images: left ? left.jetton.meta.image : "/images/ton.png",
-        name: left ? left.jetton.meta.name : "Toncoin",
-    } : {
+    const to = {
         symbol: right ? right.jetton.meta.symbol : "TON",
         balance: rightBalance,
         images: right ? right.jetton.meta.image : "/images/ton.png",
@@ -44,28 +34,34 @@ export function ConfirmOfferModal() {
     const handleConfirm = async () => {
         const adapter = walletService.getWalletAdapter(walletInfo?.adapterId as string)
         const dexPair = new DexBetaPairContract(new Address(address))
-        const [l, r] = direction === "normal" ? [left, right] : [right, left]
-        if (l) {
-            const jettonWallet = new JettonWalletContract(new Address(l.wallet.address as string))
+        if (left) {
+            const jettonWallet = new JettonWalletContract(new Address(left.wallet.address as string))
             const payload = dexPair.createJettonSwapRequest(inAmount, minReceived, new Address(walletInfo?.meta.address as string), jettonWallet)
             await adapter.requestTransfer(walletInfo?.session, jettonWallet.address.toString(), new Coins(0.15).toNano(), BOC.toBase64Standard(payload), 300000)
         } else {
             const payload = dexPair.createTonSwapRequest(minReceived)
             await adapter.requestTransfer(walletInfo?.session, dexPair.address.toString(), new Coins(inAmount).add(0.15).toNano(), BOC.toBase64Standard(payload), 300000)
         }
-        const sleep = (m: any) => new Promise(r => setTimeout(r, m))
-
-        for (let x = 0; x < 100; x++) {
-            const balance = await getTonBalance(walletInfo?.meta.address as string)
+        // const sleep = (m: any) => new Promise(r => setTimeout(r, m))
+        //
+        // for (let x = 0; x < 100; x++) {
+        //     const balance = await tonClient.getBalance(new Address(walletInfo?.meta.address as string))
+        //     if (! tonBalance.eq(balance)) {
+        //         await sleep(10000)
+        //         await updateDexInfo()
+        //         window.location.reload()
+        //     }
+        //     await sleep(1000)
+        // }
+        const interval = setInterval(async () => {
+            const balance = await tonClient.getBalance(new Address(walletInfo?.meta.address as string))
             if (! tonBalance.eq(balance)) {
-                await sleep(10000)
                 await updateDexInfo()
                 window.location.reload()
             }
-            await sleep(1000)
-        }
-        window.location.reload()
-        throw Error('Payment Channel not open')
+        }, 1000)
+        // window.location.reload()
+        // throw Error('Payment Channel not open')
     }
 
     return (

@@ -1,18 +1,13 @@
-import {Address, Cell, TonClient} from "ton";
-import {fromCode} from "tvm-disassembler";
+import {BOC, Cell, Slice} from "ton3-core";
 
-const main = async () => {
-    let client = new TonClient({
-    endpoint: 'https://scalable-api.tonwhales.com/jsonRPC'
-    });
-    let address = Address.parseFriendly('EQBRrTk63wHpvreMs7_cDKWh6zrYmQcSBOjKz1i6GcbRTLZX').address;
-    let { code } = await client.getContractState(address);
-    console.log(code)
-    let codeCell = Cell.fromBoc(code ?? "")[0];
+const dc = BOC.from("te6cckEBAQEAQAAAfHNi0JwAAAHemAeQR0O5rKAIAclGd+pMG1Sl7aYVF/fNJ2tEqI5itAPUBTcoOl4wECV2AAABwgAAFdKg+Z7/8t9aFg==")[0]
 
-    // @ts-ignore
-    let source = fromCode(codeCell);
-    return source
-}
+const ds = Slice.parse(dc)
 
-console.log(main())
+ds.skip(32+64)
+ds.loadCoins()
+ds.loadAddress()
+ds.skip(1)
+const x = ds.loadUint(32)
+
+console.log(x) // error code

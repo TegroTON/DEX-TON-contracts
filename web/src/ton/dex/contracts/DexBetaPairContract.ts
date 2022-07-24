@@ -1,7 +1,8 @@
-import {Address, Builder, Cell, Coins, Providers} from "ton3";
+import {Address, Builder, Cell, Coins} from "ton3-core";
 import {JettonWalletContract} from "../../jettons/contracts/JettonWalletContract";
 import {JettonMasterContract} from "../../jettons/contracts/JettonMasterContract";
 import {runGetMethod} from "../../utils";
+import {TonClient} from "../../client/TonClient";
 
 export class DexBetaPairContract extends JettonMasterContract {
     createAddLiquidityRequest(tonAmount: Coins, jettonAmount: Coins, myAddress: Address, jettonWallet: JettonWalletContract): Cell {
@@ -21,7 +22,7 @@ export class DexBetaPairContract extends JettonMasterContract {
         })
     }
 
-    async createInstallRequest(client: Providers.ClientRESTV2, jettonAddress: string): Promise<Cell> {
+    async createInstallRequest(client: TonClient, jettonAddress: string): Promise<Cell> {
         const jettonMaster = new JettonMasterContract(new Address(jettonAddress))
         const jettonWallet = await jettonMaster.getJettonWallet(client, new Address(this.address))
         const queryId = Math.round(Date.now() / Math.PI / Math.random());
@@ -32,7 +33,7 @@ export class DexBetaPairContract extends JettonMasterContract {
             .cell()
     }
 
-    async getReserves(client: Providers.ClientRESTV2): Promise<[Coins, Coins]> {
+    async getReserves(client: TonClient): Promise<[Coins, Coins]> {
         const {parsedResult} = await runGetMethod(client, this.address, "get_reserves", [])
         return parsedResult.map((item: bigint) => new Coins(item, true))
     }

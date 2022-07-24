@@ -1,4 +1,4 @@
-import {BOC} from "ton3";
+import {BOC} from "ton3-core";
 
 export default class GetMethodParser {
     static parseObject(x: any): any {

@@ -1,38 +1,28 @@
 import {NavComponent} from "./components/Nav";
 import {useContext, useEffect, useState} from "react";
 import {DexContext, DexContextType} from "../../context";
-import {Coins} from "ton3";
+import {Coins} from "ton3-core";
 import {useForm} from "react-hook-form";
 import axios from "axios";
 
 export function SwapPage() {
-    const {dexInfo, updateSwapParams} = useContext(DexContext) as DexContextType;
+    const {dexInfo, updateSwapParams, updateDexInfo} = useContext(DexContext) as DexContextType;
     const {walletInfo, swapInfo} = dexInfo;
     const {swapParams, pair} = swapInfo;
     let {slippage: slippage, inAmount: inAmount, outAmount: outAmount} = swapParams
-    const {left: left, right: right, leftReserve: leftReserve, rightReserve: rightReserve, direction: direction} = pair;
+    const {left: left, right: right, leftReserve: leftReserve, rightReserve: rightReserve} = pair;
     const tonBalance = walletInfo ? walletInfo.balance : new Coins(0);
     const leftBalance = left ? left.balance ?? new Coins(0) : tonBalance;
     const rightBalance = right ? right.balance ?? new Coins(0) : tonBalance;
 
-    const from = direction === "normal" ? {
+    const from = {
         symbol: left ? left.jetton.meta.symbol : "TON",
         balance: leftBalance,
         images: left ? left.jetton.meta.image : "/images/ton.png",
         name: left ? left.jetton.meta.name : "Toncoin",
-    } : {
-        symbol: right ? right.jetton.meta.symbol : "TON",
-        balance: rightBalance,
-        images: right ? right.jetton.meta.image : "/images/ton.png",
-        name: right ? right.jetton.meta.name : "Toncoin",
     }
 
-    const to = direction === "reverse" ? {
-        symbol: left ? left.jetton.meta.symbol : "TON",
-        balance: leftBalance,
-        images: left ? left.jetton.meta.image : "/images/ton.png",
-        name: left ? left.jetton.meta.name : "Toncoin",
-    } : {
+    const to = {
         symbol: right ? right.jetton.meta.symbol : "TON",
         balance: rightBalance,
         images: right ? right.jetton.meta.image : "/images/ton.png",
@@ -41,8 +31,7 @@ export function SwapPage() {
 
 
     const [priceImpact, setPriceImpact] = useState<Coins>(new Coins(0));
-    let price = leftReserve.isZero() ? new Coins(0) : new Coins(rightReserve).div(leftReserve);
-    price = direction === "normal" ? new Coins(1).div(price) : new Coins(price);
+    const price = leftReserve.isZero() ? new Coins(0) : new Coins(rightReserve).div(leftReserve);
 
     const [realPrice, setRealPrice] = useState<Coins>(new Coins(0));
     const [minReceived, setMinReceived] = useState<Coins>(new Coins(0))
@@ -65,7 +54,7 @@ export function SwapPage() {
     }
 
     const updateAmount = (side: ("left" | "right")) => {
-        const [lReserve, rReserve] = direction === "normal" ? [rightReserve, leftReserve] : [leftReserve, rightReserve]
+        const [lReserve, rReserve] = [leftReserve, rightReserve]
         if (side === "left") {
             const leftValue = getValues(side)
             if (leftValue) {
@@ -107,13 +96,14 @@ export function SwapPage() {
         setValue(fieldName, normValue)
     }
 
-    const testFunc = async () => {
-        // const res = await axios.get('http://localhost:8081/pairs')
-        // console.log('а что тут у нас?', res.data);
+    const updater = async () => {
+        await updateDexInfo()
     }
 
     useEffect(() => {
-        testFunc().then()
+        // const interval = setTimeout(() => updater(), 5000);
+        //
+        // return () => clearInterval(interval)
     }, [])
 
     return (

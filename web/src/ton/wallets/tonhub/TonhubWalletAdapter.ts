@@ -1,4 +1,3 @@
-import BN from 'bn.js';
 import { Address, Cell, ConfigStore, toNano } from 'ton'; // TODO migrate to ton3
 import { TonhubConnector } from 'ton-x';
 import { TonhubCreatedSession, TonhubTransactionRequest } from 'ton-x/dist/connector/TonhubConnector';

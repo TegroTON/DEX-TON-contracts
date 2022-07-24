@@ -1,6 +1,6 @@
 import {SwapInfo, WalletInfo} from "./types";
 import {restoreSession} from "./ton/wallets/WalletService";
-import {Coins} from "ton3";
+import {Coins} from "ton3-core";
 import {getDefaultPair} from "./ton/dex/utils";
 
 export function loadSwapInfo(): SwapInfo {

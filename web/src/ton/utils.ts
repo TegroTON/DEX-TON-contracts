@@ -1,30 +1,22 @@
-import {Address, Coins, Providers} from "ton3";
+import {Address, Coins} from "ton3-core";
 import {tonClient} from "./index";
 import GetMethodParser from "./getMethodParser";
-import {RawGetMethodResult} from "./types";
 import {JettonMasterContract} from "./jettons/contracts/JettonMasterContract";
 import {JettonInfo, Pair} from "../types";
 import {Jettons} from "../static/jettons";
+import {TonClient} from "./client/TonClient";
+
 
 export async function runGetMethod(
-    client: Providers.ClientRESTV2, address: Address, method: string, stack: any[] | []
+    client: TonClient, address: Address, method: string, stack: any[] | []
 ):
     Promise<{ exitCode: number, parsedResult: any }>
 {
-    const {data: {result: result}} = await client.runGetMethod(null, {address: address.toString(), method: method, stack: stack})
-    // @ts-ignore
-    const rawResult: RawGetMethodResult = result;
-    const exitCode = rawResult.exit_code;
-    const parsedResult = exitCode === 0 ? GetMethodParser.parseRawResult(rawResult) : null
+    const {stack: resultStack, exitCode} = await client.callGetMethodWithError(address, method, stack)
+    const parsedResult = exitCode === 0 ? GetMethodParser.parseStack(resultStack) : null
     return {exitCode, parsedResult}
 }
 
-
-export async function getTonBalance(address: string): Promise<Coins> {
-    const client = await tonClient
-    const {data: {result: rawBalance}} = await client.getAddressBalance({address})
-    return new Coins(rawBalance as string, true)
-}
 
 export function getDefaultJetton(): JettonInfo {
     const jettonsAddresses = Object.keys(Jettons || {})
@@ -37,15 +29,16 @@ export function getDefaultJetton(): JettonInfo {
 export async function updateJettonWallet(jettonInfo: JettonInfo, address: string | null): Promise<JettonInfo> {
     if (address === null) return jettonInfo;
     const jettonMaster = new JettonMasterContract(new Address(jettonInfo.jetton.address));
-    const jettonWallet = await jettonMaster.getJettonWallet(await tonClient, new Address(address));
+    const jettonWallet = await jettonMaster.getJettonWallet(tonClient, new Address(address));
     const jettonWalletAddress = jettonWallet.address.toString(undefined, {bounceable: true})
-    const {balance} = await jettonWallet.getData(await tonClient);
+    const {balance} = await jettonWallet.getData(tonClient);
     return {...jettonInfo, wallet: {address: jettonWalletAddress}, balance: balance}
 }
 
+
 export async function getJettonBalance(address: string, jettonAddress: string): Promise<Coins> {
     const jettonMaster = new JettonMasterContract(new Address(jettonAddress));
-    const jettonWallet = await jettonMaster.getJettonWallet(await tonClient, new Address(address));
-    const {balance} = await jettonWallet.getData(await tonClient);
+    const jettonWallet = await jettonMaster.getJettonWallet(tonClient, new Address(address));
+    const {balance} = await jettonWallet.getData(tonClient);
     return balance;
 }

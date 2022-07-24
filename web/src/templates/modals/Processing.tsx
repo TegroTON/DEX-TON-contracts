@@ -1,4 +1,12 @@
+import {useContext} from "react";
+import {DexContext, DexContextType} from "../../context";
+
 export function ProcessingModal() {
+    const {dexInfo} = useContext(DexContext) as DexContextType;
+    const {swapInfo: {pair: {right: right}}} = dexInfo;
+    const symbol = right ? right.jetton.meta.symbol : "TON"
+
+
     return (
         <div className="modal fade" id="ProcessingModal" tabIndex={-1} aria-hidden="true">
             <div className="modal-dialog modal-dialog-centered mobile-modal-bottom">
@@ -13,8 +21,8 @@ export function ProcessingModal() {
                                 <span className="dot-three">.</span>
                             </span>
                         </h2>
-                        <p className="text-muted mb-0">Your USTD will be credited to your
-                            account <br/> after this transaction has been processed.</p>
+                        <p className="text-muted mb-0">{`Your ${symbol} will be credited to your
+                            account `}<br/> after this transaction has been processed.</p>
                     </div>
                 </div>
             </div>

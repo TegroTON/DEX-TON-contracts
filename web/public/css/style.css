@@ -469,6 +469,24 @@ label {
     transform: rotate(90deg)
 }
 
+.accordion-item__images {
+    position: relative;
+}
+
+.accordion-item__images img {
+    border-radius: 100%;
+    border: 2px solid #fff;
+    position: relative;
+}
+
+.accordion-item__images-small {
+    width: 40px;
+    height: 40px;
+    position: relative;
+    margin-left: -20px;
+    top: 1px;
+}
+
 .modal-dialog {
     max-width: 526px;
     width: 100%;
@@ -547,6 +565,64 @@ a.tooltips:hover span {
     padding: 12px;
 }
 
+.dots, .main-desc.dots {
+    position: absolute;
+    bottom: 4px;
+    font-size: 16px
+}
+
+.dot-one, .main-desc .dot-one {
+    opacity: 0;
+    -webkit-animation: dot 1.3s infinite;
+    -webkit-animation-delay: 0;
+    animation: dot 1.3s infinite;
+    animation-delay: 0
+}
+
+.dot-two, .main-desc .dot-two {
+    opacity: 0;
+    -webkit-animation: dot 1.3s infinite;
+    -webkit-animation-delay: .2s;
+    animation: dot 1.3s infinite;
+    animation-delay: .2s
+}
+
+.dot-three, .main-desc .dot-three {
+    opacity: 0;
+    -webkit-animation: dot 1.3s infinite;
+    -webkit-animation-delay: .3s;
+    animation: dot 1.3s infinite;
+    animation-delay: .3s
+}
+
+@-webkit-keyframes dot {
+    0% {
+        opacity: 0
+    }
+
+    50% {
+        opacity: 0
+    }
+
+    100% {
+        opacity: 1
+    }
+}
+
+@keyframes dot {
+    0% {
+        opacity: 0
+    }
+
+    50% {
+        opacity: 0
+    }
+
+    100% {
+        opacity: 1
+    }
+}
+
 @media (prefers-color-scheme: dark) {
     body {
         background-color: #1b1f24;
@@ -615,8 +691,8 @@ a.tooltips:hover span {
         background: #1b1f24 url(/images/bg-circle-dark.svg) no-repeat center center / contain;
     }
 
-    .navbar-expand-lg .navbar-nav .dropdown-menu {
-        background: #121418;
+    .dropdown-menu {
+        background: var(--text-color);
     }
 
     .dropdown-item {
@@ -672,5 +748,9 @@ a.tooltips:hover span {
 
     .border {
         border-color: var(--blue-100) !important
+    }
+
+    .accordion-item__images img {
+        border: 2px solid #121418;
     }
 }

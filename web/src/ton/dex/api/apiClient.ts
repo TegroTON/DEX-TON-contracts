@@ -1,8 +1,8 @@
 import axios from "axios";
 import {Pair, Pairs} from "./types";
 
-const endpoint = "http://localhost:8081"
-
+const endpoint = "https://api-testnet.tegro.finance"
+// const endpoint = "http://5.188.119.227:8081"
 
 const getPairs = async (): Promise<Pairs> => {
     const res = await axios.get(`${endpoint}/pairs`)
@@ -19,7 +19,6 @@ const getPair = async (leftSymbol: string, rightSymbol: string): Promise<Pair> =
     }
     return res.data as Pair
 }
-
 
 
 export {

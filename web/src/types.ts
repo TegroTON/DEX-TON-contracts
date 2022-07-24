@@ -1,5 +1,5 @@
 import {Wallet, WalletSession} from "./ton/wallets/types";
-import {Coins} from "ton3";
+import {Coins} from "ton3-core";
 import {JettonWalletContract} from "./ton/jettons/contracts/JettonWalletContract";
 
 export interface LocationParams {
@@ -40,7 +40,6 @@ export type Pair = {
     right: (JettonInfo | null);
     leftReserve: Coins;
     rightReserve: Coins;
-    direction: ("normal" | "reverse")
 }
 
 export type JettonsData = {

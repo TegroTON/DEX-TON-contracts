@@ -1,4 +1,4 @@
-import {Address, Coins} from "ton3";
+import {Address, Coins} from "ton3-core";
 import {JettonInfo, Pair} from "../../types";
 import {getPair} from "./api/apiClient";
 import {getDefaultJetton} from "../utils";
@@ -11,40 +11,35 @@ export function getDefaultPair(): Pair {
         left: null,
         right,
         leftReserve: new Coins(0),
-        rightReserve: new Coins(0),
-        direction: "normal"
+        rightReserve: new Coins(0)
     }
 }
 
-export const getPairAddress = async (
+export const getPairInfo = async (
     leftSymbol: string, rightSymbol: string
-): Promise<{address: string | null, direction: ("normal" | "reverse")}> => {
+): Promise<{address: string | null, leftReserve: Coins, rightReserve: Coins}> => {
     let address
-    let direction: ("normal" | "reverse") = "normal"
+    let leftReserve
+    let rightReserve
     try {
         const pairMeta = await getPair(leftSymbol, rightSymbol);
         address = pairMeta.address
+        leftReserve = new Coins(pairMeta.leftReserved, true)
+        rightReserve = new Coins(pairMeta.rightReserved, true)
     } catch {
-        try {
-            const pairMeta = await getPair(rightSymbol, leftSymbol);
-            address = pairMeta.address
-            direction = "reverse"
-        } catch {
-            // pass
-        }
+        // pass
     }
-    return {address: address ?? null, direction}
+    return {address: address ?? null, leftReserve: leftReserve ?? new Coins(0), rightReserve: rightReserve ?? new Coins(0)}
 }
 
 export const getValidPair = async (left: JettonInfo | null, right: JettonInfo | null): Promise<Pair> => {
-    const {address, direction} = await getPairAddress(left ? left.jetton.meta.symbol : "TON", right ? right.jetton.meta.symbol : "TON")
+    const {address, leftReserve, rightReserve} = await getPairInfo(left ? left.jetton.meta.symbol : "TON", right ? right.jetton.meta.symbol : "TON")
     if (!address) throw Error("PAIR NOT VALID") // TODO запилить функцию выбора другой пары
     return {
         address,
-        left: direction === "normal" ? left : right,
-        right: direction === "normal" ? right : left,
-        leftReserve: new Coins(0),
-        rightReserve: new Coins(0),
-        direction
+        left,
+        right,
+        leftReserve,
+        rightReserve,
     }
 };

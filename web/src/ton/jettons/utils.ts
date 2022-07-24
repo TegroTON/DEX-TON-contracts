@@ -1,5 +1,5 @@
 import {JettonMasterContract} from "./contracts/JettonMasterContract";
-import {Address} from "ton3";
+import {Address} from "ton3-core";
 import {JettonMeta} from "../../types";
 import {tonClient} from "../index";
 import {IPFS_GATEWAY_PREFIX} from "./utils/ipfs";

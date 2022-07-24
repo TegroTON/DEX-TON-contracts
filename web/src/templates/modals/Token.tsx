@@ -3,7 +3,7 @@ import {Jettons} from "../../static/jettons";
 import {useForm} from "react-hook-form";
 import {JettonsData} from "../../types";
 import {DexContext, DexContextType} from "../../context";
-import {Coins} from "ton3";
+import {Coins} from "ton3-core";
 import {getValidPair} from "../../ton/dex/utils";
 
 export function TokenModal(props: {side: "Left" | "Right"}) {
@@ -78,12 +78,7 @@ export function TokenModal(props: {side: "Left" | "Right"}) {
                                                 type="checkbox"
                                                 style={{ display: 'none' }}
                                                 {...register(key, {
-                                                    onChange: (event) => {
-                                                        if (event.target.name === "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N") {
-
-                                                        }
-                                                        console.log(event.target.name)
-                                                    },
+                                                    onChange: (event) => changeSelected(event.target.name)
                                                 })}
                                             />
                                             <img className="token-form__img"
