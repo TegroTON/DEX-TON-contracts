@@ -16,6 +16,7 @@ import net.logstash.logback.argument.StructuredArguments.kv
 import org.ton.block.AddrStd
 import org.ton.lite.api.LiteApi
 import reactor.core.publisher.Flux
+import reactor.core.scheduler.Schedulers
 import java.time.Duration
 
 @Singleton
@@ -31,17 +32,20 @@ open class TokenService(
     @Async
     @EventListener
     open fun setup(event: StartupEvent) {
-        liveAccounts
-            .concatMap { tokenRepository.findById(it) }
-            .doOnNext {
-                registry.counter("service.token.hits").increment()
-                logger.info("{} matched database entity", kv("address", it.address.toSafeBounceable()))
-            }
-            .mergeWith {
-                // Apart from watching live interactions, update them periodically
-                Flux.interval(Duration.ZERO, config.tokenPeriod)
-                    .concatMap { tokenRepository.findAll(Sort.of(Sort.Order.asc("updated"))) }
-            }
+        Flux.merge(
+            // Watch live
+            liveAccounts
+                .concatMap { tokenRepository.findById(it) }
+                .doOnNext {
+                    registry.counter("service.token.hits").increment()
+                    logger.info("{} matched database entity", kv("address", it.address.toSafeBounceable()))
+                },
+            // Apart from watching live interactions, update them periodically
+            Flux.interval(Duration.ZERO, config.tokenPeriod)
+                .subscribeOn(Schedulers.boundedElastic())
+                .doOnNext { logger.debug("running scheduled update of all database entities") }
+                .concatMap { tokenRepository.findAll(Sort.of(Sort.Order.asc("updated"))) }
+        )
             .filter { it.symbol.uppercase() != "TON" }
             .concatMap {
                 mono { it.address to TokenContract.of(it.address, liteApi) }

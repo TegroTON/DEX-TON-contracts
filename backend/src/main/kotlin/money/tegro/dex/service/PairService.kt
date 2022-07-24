@@ -16,6 +16,7 @@ import net.logstash.logback.argument.StructuredArguments.kv
 import org.ton.block.AddrStd
 import org.ton.lite.api.LiteApi
 import reactor.core.publisher.Flux
+import reactor.core.scheduler.Schedulers
 import java.time.Duration
 
 @Singleton
@@ -31,17 +32,20 @@ open class PairService(
     @Async
     @EventListener
     open fun setup(event: StartupEvent) {
-        liveAccounts
-            .concatMap { pairRepository.findById(it) }
-            .doOnNext {
-                registry.counter("service.pair.hits").increment()
-                logger.info("{} matched database entity", kv("address", it.address.toSafeBounceable()))
-            }
-            .mergeWith {
-                // Apart from watching live interactions, update them periodically
-                Flux.interval(Duration.ZERO, config.pairPeriod)
-                    .concatMap { pairRepository.findAll(Sort.of(Sort.Order.asc("updated"))) }
-            }
+        Flux.merge(
+            // Watch live
+            liveAccounts
+                .concatMap { pairRepository.findById(it) }
+                .doOnNext {
+                    registry.counter("service.pair.hits").increment()
+                    logger.info("{} matched database entity", kv("address", it.address.toSafeBounceable()))
+                },
+            // Apart from watching live interactions, update them periodically
+            Flux.interval(Duration.ZERO, config.pairPeriod)
+                .subscribeOn(Schedulers.boundedElastic())
+                .doOnNext { logger.debug("running scheduled update of all database entities") }
+                .concatMap { pairRepository.findAll(Sort.of(Sort.Order.asc("updated"))) },
+        )
             .concatMap {
                 mono { it.address to PairContract.getReserves(it.address, liteApi) }
                     .timed()
