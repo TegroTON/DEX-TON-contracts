@@ -11,12 +11,16 @@ services:
       - "8081:8080"
     environment:
       <<: *common-variables
+      # Specify memory target for JVM GC. Both -XmsXX and -XmxXX should have same value
+      JAVA_TOOL_OPTIONS: "-Xms6G -Xmx6G"
       POSTGRES_URL: postgres:5432/dex
-      #      DEX_LITEAPI_IPV4: 1097649206
-      #      DEX_LITEAPI_PORT: 29296
-      #      DEX_LITEAPI_KEY: "p2tSiaeSqX978BxE5zLxuTQM06WVDErf5/15QToxMYA="
+      # Micronaut framework settings
       MICRONAUT_SERVER_PORT: 8080
       MICRONAUT_SERVER_CORS_ENABLED: true
+      # Dex' liteapi settings
+      DEX_LITEAPI_IPV4: 1097649206
+      DEX_LITEAPI_PORT: 29296
+      DEX_LITEAPI_KEY: "p2tSiaeSqX978BxE5zLxuTQM06WVDErf5/15QToxMYA="
   postgres:
     image: "postgres"
     ports:

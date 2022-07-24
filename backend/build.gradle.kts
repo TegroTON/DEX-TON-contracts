@@ -42,8 +42,6 @@ jib {
             "-XX:SurvivorRatio=32",
             "-XX:+PerfDisableSharedMem",
             "-XX:MaxTenuringThreshold=1",
-            "-Xms6G",
-            "-Xmx6G"
         )
     }
 }
