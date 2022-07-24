@@ -3,9 +3,9 @@
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>debug</level>
         </filter>
-        <file>${java.io.tmpdir}/dex.log</file>
+        <file>${java.io.tmpdir}/dex_tool.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${java.io.tmpdir}/dex.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${java.io.tmpdir}/dex_tool.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>

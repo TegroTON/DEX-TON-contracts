@@ -4,7 +4,7 @@ import io.micronaut.context.annotation.ConfigurationProperties
 import io.micronaut.core.bind.annotation.Bindable
 import java.time.Duration
 
-@ConfigurationProperties("money.tegro.dex.service")
+@ConfigurationProperties("dex.service")
 interface ServiceConfig {
     @get:Bindable(defaultValue = "PT10M")
     val pairPeriod: Duration

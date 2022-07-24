@@ -4,7 +4,7 @@ import io.micrometer.core.instrument.step.StepRegistryConfig
 import io.micronaut.context.annotation.ConfigurationProperties
 import java.time.Duration
 
-@ConfigurationProperties("money.tegro.dex.measurement")
+@ConfigurationProperties("dex.metric")
 class MetricConfig : StepRegistryConfig {
     var enabled: Boolean = true
 

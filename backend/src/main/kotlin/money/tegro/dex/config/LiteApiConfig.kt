@@ -3,7 +3,7 @@ package money.tegro.dex.config
 import io.micronaut.context.annotation.ConfigurationProperties
 import io.micronaut.core.bind.annotation.Bindable
 
-@ConfigurationProperties("money.tegro.dex.liteapi")
+@ConfigurationProperties("dex.liteapi")
 interface LiteApiConfig {
     @get:Bindable(defaultValue = "\${LITEAPI_IPV4:1097622104}")
     val ipv4: Int
