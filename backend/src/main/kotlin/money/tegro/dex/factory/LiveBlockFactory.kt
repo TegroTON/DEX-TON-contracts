@@ -29,8 +29,8 @@ open class LiveBlockFactory(
 ) {
     private val startedOn: Long = Instant.now().epochSecond // TODO: Logic Time instead? Doesn't seem to matter much
 
-    private val blocksToProcess = Sinks.many().replay().limit<TonNodeBlockId>(Duration.ofMinutes(10))
-    private val completeBlocks = Sinks.many().replay().limit<Block>(Duration.ofMinutes(10))
+    private val blocksToProcess = Sinks.many().replay().limit<TonNodeBlockId>(config.liteBlockQueue)
+    private val completeBlocks = Sinks.many().replay().limit<Block>(config.liteBlockHistoryKeep)
 
     @Async
     @EventListener
@@ -40,14 +40,13 @@ open class LiveBlockFactory(
             .asFlux()
             .filterWhen { new ->
                 completeBlocks.asFlux()
-                    .timeout(Duration.ofSeconds(1), Mono.empty()) // Give it a sec or two before abandoning
+                    .timeout(config.liteBlockHistoryTimeout, Mono.empty())
                     .filter { // Find it
-                        it.info.shard.workchain_id == new.workchain
-                                && it.info.shard.shard_prefix == new.shard
-                                && it.info.seq_no == new.seqno
+                        it.info.shard.workchain_id == new.workchain && it.info.seq_no == new.seqno
                     }
                     .hasElements()
                     .not() // Continue if not found
+                    .defaultIfEmpty(true) // If timed out, also continue
             }
             .concatMap {
                 mono {
@@ -69,8 +68,7 @@ open class LiveBlockFactory(
                     .map {
                         registry.timer(
                             "live.block.elapsed",
-                            "workchain", it.get().info.shard.workchain_id.toString(),
-                            "shard", it.get().info.shard.shard_prefix.toString()
+                            "workchain", it.get().info.shard.workchain_id.toString()
                         )
                             .record(it.elapsed())
                         it.get()
@@ -104,7 +102,7 @@ open class LiveBlockFactory(
             }
 
         // Query for the last masterchain blocks
-        Flux.interval(Duration.ZERO, Duration.ofSeconds(30))
+        Flux.interval(Duration.ZERO, config.liteBlockPeriod)
             .concatMap { mono { liteApi.getMasterchainInfo().last } }
             .distinctUntilChanged()
             .subscribe {
@@ -114,26 +112,26 @@ open class LiveBlockFactory(
                 )
             }
 
-        // Make sure we didn't skip any masterchain blocks
+        // Make sure we didn't skip any blocks on master- or any of the shardchains
         completeBlocks
             .asFlux()
-            .filter { it.info.shard.workchain_id == -1 }
-            .doOnNext { println(it.info.end_lt) }
-            .takeUntil { it.info.gen_utime >= startedOn }
+            .filter { it.info.gen_utime >= startedOn } // Don't go too far into the past
             .filterWhen { new ->
                 completeBlocks.asFlux()
-                    .timeout(Duration.ofSeconds(1), Mono.empty()) // Give it a sec or two before abandoning
+                    .timeout(config.liteBlockHistoryTimeout, Mono.empty())
                     .filter { // Find previous block
                         it.info.shard.workchain_id == new.info.shard.workchain_id
-                                && it.info.shard.shard_prefix == new.info.shard.shard_prefix
-                                && it.info.seq_no == new.info.seq_no - 1
+                                && it.info.seq_no == new.info.prev_seq_no
+
                     }
                     .hasElements()
                     .not() // Continue if not found
             }
             .subscribe {
+                // TODO: Kinda important: it.info.shard.shard_prefix is bollocks and does not contain actual shard id
+                // Not sure how to get it quite honestly
                 blocksToProcess.emitNext(
-                    TonNodeBlockId(it.info.shard.workchain_id, it.info.shard.shard_prefix, it.info.seq_no - 1),
+                    TonNodeBlockId(it.info.shard.workchain_id, 0, it.info.prev_seq_no),
                     Sinks.EmitFailureHandler.FAIL_FAST // TODO: more robust
                 )
             }
