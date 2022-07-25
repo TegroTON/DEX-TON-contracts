@@ -73,6 +73,7 @@ open class SwapService(
                         amount = it.t2,
                         pair = it.t3.address,
                         token = it.t3.base, // TON is assumed to always be the base currency
+                        lt = it.t4,
                     )
                 ).subscribe()
             }
@@ -132,6 +133,7 @@ open class SwapService(
                             // not from which wallet. This way even if wallet address changes for some reason, we still have
                             // solid information about the exact pair (assumed to never change) and exact token
                             token = if (info.dest == pair.quoteWallet) pair.quote else pair.base,
+                            lt = it.t4,
                         )
                     ).subscribe()
                 }

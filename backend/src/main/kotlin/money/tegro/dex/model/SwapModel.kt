@@ -22,6 +22,8 @@ data class SwapModel(
 
     val amount: BigInt,
 
+    val lt: Long,
+
     @field:Id
     val timestamp: Instant = Instant.now(),
 )
