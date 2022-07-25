@@ -7,6 +7,7 @@ import kotlinx.coroutines.reactor.mono
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.kv
 import net.logstash.logback.argument.StructuredArguments.v
+import org.ton.api.tonnode.TonNodeBlockId
 import org.ton.api.tonnode.TonNodeBlockIdExt
 import org.ton.bigint.BigInt
 import org.ton.block.Block
@@ -17,32 +18,44 @@ import reactor.kotlin.core.publisher.toFlux
 import java.time.Duration
 
 @Factory
-class LiveBlockFactory {
-    @Singleton
-    fun liveBlocks(registry: MeterRegistry, liteApi: LiteApi): Flux<Block> =
+class LiveBlockFactory(private val registry: MeterRegistry, private val liteApi: LiteApi) {
+    private val liveMasterchainBlocks: Flux<Block> =
         Flux.interval(Duration.ofSeconds(1))
-            .concatMap { mono { liteApi.getMasterchainInfo().last } }
+            .concatMap { mono { listOf(liteApi.getMasterchainInfo().last.seqno) } }
             .distinctUntilChanged()
+            .scan { previous, current ->
+                (previous.max() + 1 until current.min()) // All missing seqnos
+                    .toList()
+                    .plus(current)
+            }
+            .flatMapIterable { it }
             .concatMap {
                 mono {
                     try {
-                        logger.debug("getting masterchain block no. {}", v("seqno", it.seqno))
-                        liteApi.getBlock(it).toBlock()
+                        logger.debug("getting masterchain block no. {}", v("seqno", it))
+                        liteApi.lookupBlock(TonNodeBlockId(-1, BigInt("8000000000000000").toLong(), it))
+                            .let { liteApi.getBlock(it.id) }
+                            .toBlock()
                     } catch (e: Exception) {
                         registry.counter("live.block.masterchain.failed").increment()
 
-                        logger.warn("failed to get masterchain block no. {}", v("seqno", it.seqno), e)
+                        logger.warn("failed to get masterchain block no. {}", v("seqno", it), e)
                         null
                     }
                 }
             }
-            .timed()
-            .doOnNext {
-                registry.timer("live.block.masterchain")
-                    .record(it.elapsed())
+            .scan { p, c -> // Assume they're always in sequence (they are)
+                registry.timer("live.block.masterchain.elapsed")
+                    .record(Duration.ofSeconds(c.info.gen_utime) - Duration.ofSeconds(p.info.gen_utime))
+                c
             }
+            .publish()
+            .autoConnect()
+
+    private val liveShardchainBlocks: Flux<Block> =
+        liveMasterchainBlocks
             .concatMap {
-                it.get().extra.custom.value?.shard_hashes
+                it.extra.custom.value?.shard_hashes
                     ?.nodes()
                     .orEmpty()
                     .flatMap {
@@ -59,12 +72,24 @@ class LiveBlockFactory {
                             liteApi.getBlock(getBlockId(workchain, descr)).toBlock()
                         }
                     }
-                    .mergeWith(mono { it.get() }) // Don't forget the original masterchain block
+                    .concatWithValues(it) // Don't forget the original masterchain block
             }
             .publish()
             .autoConnect()
 
+    @Singleton
+    fun liveBlocks(): Flux<Block> =
+        Flux.merge(
+            liveMasterchainBlocks,
+            liveShardchainBlocks
+        )
+            .publish()
+            .autoConnect()
+
     companion object : KLogging() {
+        const val MASTERCHAIN_WORKCHAIN = -1
+        val MASTERCHAIN_SHARD = BigInt("8000000000000000").toLong()
+
         @JvmStatic
         fun getBlockId(workchain: Int, descr: ShardDescr) = TonNodeBlockIdExt(
             workchain = workchain,
