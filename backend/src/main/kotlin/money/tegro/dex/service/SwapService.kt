@@ -53,16 +53,18 @@ open class SwapService(
                             (info.dest as? AddrStd).toMono(), // Destination is addrstd, otherwise just empty
                             info.value.coins.amount.value.toMono(),
                             (info.src as? AddrStd).toMono() // If not addrstd, just skips everything
-                                .flatMap { pairRepository.findById(it) } // Transaction from the main pair contract
+                                .flatMap { pairRepository.findById(it) }, // Transaction from the main pair contract
+                            (info.created_lt).toMono(),
                         )
                     }
             }
             .subscribe {
                 logger.debug(
-                    "successful ton swap by {} of {} on {}",
+                    "successful ton swap by {} of {} on {} at {}",
                     kv("address", it.t1.toSafeBounceable()),
                     kv("value", it.t2),
                     kv("pair", it.t3.address.toSafeBounceable()),
+                    kv("lt", it.t4)
                 )
 
                 swapRepository.save(
@@ -101,7 +103,8 @@ open class SwapService(
                                         }
                                 },
                             (info?.src as? AddrStd).toMono() // If not addrstd, just skips everything
-                                .flatMap { pairRepository.findById(it) } // Transaction from the main pair contract
+                                .flatMap { pairRepository.findById(it) }, // Transaction from the main pair contract
+                            (info?.created_lt).toMono(),
                         )
                     }
             }
@@ -109,13 +112,15 @@ open class SwapService(
                 val info = it.t1
                 val transfer = it.t2
                 val pair = it.t3
+                val lt = it.t4
 
                 (transfer.destination as? AddrStd)?.let { destination ->
                     logger.debug(
-                        "successful jetton swap of {} by {} -> {}",
+                        "successful jetton swap of {} by {} -> {} at {}",
                         kv("value", transfer.amount.value),
                         kv("wallet", (info.dest as? AddrStd)?.toSafeBounceable() ?: info.dest),
-                        kv("address", destination.toSafeBounceable())
+                        kv("address", destination.toSafeBounceable()),
+                        kv("lt", lt)
                     )
 
                     swapRepository.save(

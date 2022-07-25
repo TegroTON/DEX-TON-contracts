@@ -19,6 +19,6 @@ interface FactoryConfig {
     val liteBlockHistoryKeep: Duration
 
     /** Internal timeout for queries to block history. Less - more duplicates, more - slower processing */
-    @get:Bindable(defaultValue = "PT0.1S")
+    @get:Bindable(defaultValue = "PT0.2S")
     val liteBlockHistoryTimeout: Duration
 }
