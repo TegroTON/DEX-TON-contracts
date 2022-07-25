@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micronaut.context.annotation.Factory
 import jakarta.inject.Singleton
 import kotlinx.coroutines.reactor.mono
+import money.tegro.dex.config.FactoryConfig
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.kv
 import net.logstash.logback.argument.StructuredArguments.v
@@ -18,9 +19,13 @@ import reactor.kotlin.core.publisher.toFlux
 import java.time.Duration
 
 @Factory
-class LiveBlockFactory(private val registry: MeterRegistry, private val liteApi: LiteApi) {
+class LiveBlockFactory(
+    private val config: FactoryConfig,
+    private val registry: MeterRegistry,
+    private val liteApi: LiteApi
+) {
     private val liveMasterchainBlocks: Flux<Block> =
-        Flux.interval(Duration.ofSeconds(1))
+        Flux.interval(Duration.ZERO, config.liveBlockPeriod)
             .concatMap { mono { listOf(liteApi.getMasterchainInfo().last.seqno) } }
             .distinctUntilChanged()
             .scan { previous, current ->
@@ -43,11 +48,12 @@ class LiveBlockFactory(private val registry: MeterRegistry, private val liteApi:
                         null
                     }
                 }
-            }
-            .scan { p, c -> // Assume they're always in sequence (they are)
-                registry.timer("live.block.masterchain.elapsed")
-                    .record(Duration.ofSeconds(c.info.gen_utime) - Duration.ofSeconds(p.info.gen_utime))
-                c
+                    .timed()
+                    .map {
+                        registry.timer("live.block.masterchain.elapsed")
+                            .record(it.elapsed())
+                        it.get()
+                    }
             }
             .publish()
             .autoConnect()
