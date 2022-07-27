@@ -21,10 +21,11 @@ export function DefaultHeader() {
                     <Link to="/" className="header__logo">
                         <img src="/images/logo.png" alt="" className="header__logo-img"/>
                     </Link>
-                    <button className="navbar-toggler" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#navbarDexContent" aria-controls="navbarDexContent"
-                            aria-expanded="false" aria-label="Toggle navigation">
-                        <span className="navbar-toggler-icon"></span>
+                    <button className="navbar-toggler btn p-2" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#navbarDexContent"
+                            aria-controls="navbarDexContent" aria-expanded="false"
+                            aria-label="Toggle navigation">
+                        <i className="fa-solid fa-bars fs-24"/>
                     </button>
                     <div className="collapse navbar-collapse" id="navbarDexContent">
                         <ul className="navbar-nav me-auto mb-2 mb-lg-0">
@@ -50,9 +51,9 @@ export function DefaultHeader() {
                                 </a>
                                 <ul className="dropdown-menu border-0"
                                     aria-labelledby="navbarDropdown">
-                                    <li><a className="dropdown-item" href="#" onClick={() => window.location.reload()}>Link</a></li>
-                                    <li><a className="dropdown-item" href="#">Link</a></li>
-                                    <li><a className="dropdown-item" href="#">Link</a></li>
+                                    <li><a className="dropdown-item" href="https://tegro.io" target="_blank">Token TGR</a></li>
+                                    <li><a className="dropdown-item" href="https://tonhold.com" target="_blank">TON Wallet</a></li>
+                                    <li><a className="dropdown-item" href="https://tegro.money" target="_blank">Payments</a></li>
                                 </ul>
                             </li>
                         </ul>

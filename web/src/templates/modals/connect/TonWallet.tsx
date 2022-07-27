@@ -9,7 +9,6 @@ export function TonWalletPart() {
     const createSession = async () => {
         const session = await walletService.createSession('ton-wallet')
         const wallet = await saveWalletSession('ton-wallet', session)
-        await updateDexInfo()
         location.reload()
     }
     useEffect(() => {

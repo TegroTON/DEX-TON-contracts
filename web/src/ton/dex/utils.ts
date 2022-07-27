@@ -7,7 +7,7 @@ import {getDefaultJetton} from "../utils";
 export function getDefaultPair(): Pair {
     const right = getDefaultJetton()
     return {
-        address: "kQDkozv1Jg2qUvbTCov75pO1olRHMVoB6gKblB0vGAgSu_Jg",
+        address: "kQBpLTnl0mciLdS52V6-Eh7h5TX4ivz-jOzVQoXI9ibHy2Ro",
         left: null,
         right,
         leftReserve: new Coins(0),
@@ -43,3 +43,10 @@ export const getValidPair = async (left: JettonInfo | null, right: JettonInfo | 
         rightReserve,
     }
 };
+
+export const getOutAmount = (inAmount: Coins, inReserve: Coins, outReserve: Coins): Coins => {
+    const inAmountWithFee = new Coins(inAmount).mul(9965)
+    const numerator = new Coins(inAmountWithFee).mul(outReserve);
+    const denominator = new Coins(inReserve).mul(10000).add(inAmountWithFee);
+    return numerator.div(denominator);
+}

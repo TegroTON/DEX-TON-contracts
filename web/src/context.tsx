@@ -6,7 +6,7 @@ import {getDefaultJetton, updateJettonWallet} from "./ton/utils";
 import {DexBetaPairContract} from "./ton/dex/contracts/DexBetaPairContract";
 import {Address} from "ton3-core";
 import {tonClient} from "./ton";
-import {getPairInfo, getValidPair} from "./ton/dex/utils";
+import {getOutAmount, getPairInfo, getValidPair} from "./ton/dex/utils";
 
 
 
@@ -29,7 +29,13 @@ export const DexContextProvider: React.FC<Props> = ({ children }) => {
     const updateDexInfo = async (newPair?: Pair) => {
         let walletInfo = dexInfo.walletInfo
         let swapInfo = dexInfo.swapInfo
-        if (newPair) swapInfo = {...swapInfo, pair: {...swapInfo.pair, left: newPair.left, right: newPair.right, address: newPair.address}}
+
+        if (newPair) {
+            swapInfo = {...swapInfo,
+                pair: {...swapInfo.pair, left: newPair.left, right: newPair.right, address: newPair.address},
+                swapParams: {...swapInfo.swapParams, outAmount: getOutAmount(swapInfo.swapParams.inAmount, newPair.leftReserve, newPair.rightReserve)}}
+        }
+
         let {pair: {left: left, right: right, address: pairAddress}} = swapInfo
         try {
             const [adapterId, session, wallet] = await restoreSession();

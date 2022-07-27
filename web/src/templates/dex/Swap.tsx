@@ -4,6 +4,7 @@ import {DexContext, DexContextType} from "../../context";
 import {Coins} from "ton3-core";
 import {useForm} from "react-hook-form";
 import axios from "axios";
+import {getOutAmount} from "../../ton/dex/utils";
 
 export function SwapPage() {
     const {dexInfo, updateSwapParams, updateDexInfo} = useContext(DexContext) as DexContextType;
@@ -29,29 +30,11 @@ export function SwapPage() {
         name: right ? right.jetton.meta.name : "Toncoin",
     }
 
-
-    const [priceImpact, setPriceImpact] = useState<Coins>(new Coins(0));
     const price = leftReserve.isZero() ? new Coins(0) : new Coins(rightReserve).div(leftReserve);
+    const priceImpact = inAmount.isZero() ? new Coins(0) : new Coins(0).sub(new Coins(outAmount).div(new Coins(inAmount).mul(price))).add(1).mul(100).mul(0.9965)
 
-    const [realPrice, setRealPrice] = useState<Coins>(new Coins(0));
-    const [minReceived, setMinReceived] = useState<Coins>(new Coins(0))
-
-    /*
-    int get_out_amount(int in_amount, int in_reserve, int out_reserve) inline {
-      int in_amount_with_fee = in_amount * 9965;
-      int numerator = in_amount_with_fee * out_reserve;
-      int denominator = (in_reserve * 10000) + in_amount_with_fee;
-      int out_amount = numerator / denominator;
-      return out_amount;
-    }
-    */
-
-    const getOutAmount = (inAmount: Coins, inReserve: Coins, outReserve: Coins): Coins => {
-        const inAmountWithFee = new Coins(inAmount).mul(9965)
-        const numerator = new Coins(inAmountWithFee).mul(outReserve);
-        const denominator = new Coins(inReserve).mul(10000).add(inAmountWithFee);
-        return numerator.div(denominator);
-    }
+    const realPrice = inAmount.isZero() ? new Coins(1).div(price) : new Coins(inAmount).div(outAmount)
+    const minReceived = new Coins(outAmount).mul(1-slippage/100)
 
     const updateAmount = (side: ("left" | "right")) => {
         const [lReserve, rReserve] = [leftReserve, rightReserve]
@@ -59,19 +42,11 @@ export function SwapPage() {
             const leftValue = getValues(side)
             if (leftValue) {
                 inAmount = new Coins(leftValue)
-                outAmount = getOutAmount(inAmount, lReserve, rReserve).mul(0.9965)
-                const priceImpact = new Coins(0).sub(new Coins(outAmount).div(new Coins(inAmount).mul(price))).add(1).mul(100).mul(0.9965)
-                const minReceived = new Coins(outAmount).mul(1-slippage/100)
-                setMinReceived(minReceived)
-                setPriceImpact(priceImpact)
-                setRealPrice(new Coins(inAmount).div(outAmount))
+                outAmount = getOutAmount(inAmount, lReserve, rReserve)
                 updateSwapParams({...swapParams, inAmount, outAmount})
-                setValue("right", outAmount.toString())
+                // setValue("right", outAmount.toString())
             } else {
-                setValue("right", leftValue)
-                setPriceImpact(new Coins(0))
-                setMinReceived(new Coins(0))
-                setRealPrice(new Coins(0))
+                // setValue("right", leftValue)
                 updateSwapParams({...swapParams, inAmount: new Coins(0), outAmount: new Coins(0)})
             }
         } else {
@@ -97,14 +72,17 @@ export function SwapPage() {
     }
 
     const updater = async () => {
-        await updateDexInfo()
+        // await updateDexInfo()
+        // await updateAmount('left')
     }
 
     useEffect(() => {
-        // const interval = setTimeout(() => updater(), 5000);
+        // const interval = setInterval(() => updater(), 5000);
         //
         // return () => clearInterval(interval)
     }, [])
+
+    setValue("right", outAmount.toString())
 
     return (
         <div className="container">
@@ -159,6 +137,7 @@ export function SwapPage() {
                             <div className="input-group mb-4">
                                 <input className="form-control fw-500 fs-18 px-3"
                                        placeholder="0"
+                                       defaultValue={outAmount.toString()}
                                        disabled
                                        {...register('right', {
                                            onChange: (event) => fieldHandler('right', event.target.value),
@@ -201,13 +180,19 @@ export function SwapPage() {
                             <div className="text-center mt-40">
                                 {walletInfo ? (
                                     isValid ? (
-                                            <button type="button" className="btn btn-primary"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#ConfirmOffer">
-                                                Swap
-                                            </button>
+                                        leftBalance.gte(inAmount) ? (
+                                                <button type="button" className="btn btn-primary"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#ConfirmOffer">
+                                                    Swap
+                                                </button>
+                                            ) : (
+                                                <button type="button" className="btn btn-outline-primary" style={{cursor: "not-allowed"}}>
+                                                    {`Insufficient ${from.symbol} balance`}
+                                                </button>
+                                        )
                                         ) : (
-                                            <button type="button" className="btn btn-outline-success">
+                                            <button type="button" className="btn btn-outline-primary" style={{cursor: "not-allowed"}}>
                                                 Enter an amount
                                             </button>
                                         )

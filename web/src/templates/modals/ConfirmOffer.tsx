@@ -34,6 +34,7 @@ export function ConfirmOfferModal() {
     const handleConfirm = async () => {
         const adapter = walletService.getWalletAdapter(walletInfo?.adapterId as string)
         const dexPair = new DexBetaPairContract(new Address(address))
+        console.log(left, address.toString())
         if (left) {
             const jettonWallet = new JettonWalletContract(new Address(left.wallet.address as string))
             const payload = dexPair.createJettonSwapRequest(inAmount, minReceived, new Address(walletInfo?.meta.address as string), jettonWallet)
