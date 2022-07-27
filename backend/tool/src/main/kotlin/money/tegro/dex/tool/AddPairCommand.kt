@@ -83,7 +83,7 @@ class AddPairCommand : Runnable {
                         symbol = requireNotNull(metadata.symbol?.uppercase()) { "Tokens does not specify symbol" },
                         decimals = metadata.decimals,
                         image = metadata.image
-                            ?: metadata.imageData?.let { "data:image;base64," + base64(it) }
+                            ?: metadata.imageData?.let { "data:image/png;base64," + base64(it) }
                             ?: "".apply { logger.info { "Token does not have an icon specified" } }
                     )
 
