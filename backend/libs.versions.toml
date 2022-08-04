@@ -1,28 +1,21 @@
 [versions]
 coroutines = { strictly = "1.6.1-native-mt" }
 jackson = { prefer = "2.13.2" }
-reactor = { prefer = "3.4.18" }
-reactor-extra = { prefer = "3.4.8" }
-reactor-pool = { prefer = "0.2.9" }
-reactor-kotlin = { prefer = "1.1.6" }
 reflect = { prefer = "1.7.0" }
-ton = { strictly = "512d3278ca" }
+ton = { strictly = "e279451600" }
 logging = { prefer = "2.1.23" }
 logback = { prefer = "1.2.11" }
 logstash-logback-encoder = { prefer = "7.2" }
 jakarta = { prefer = "2.1.1" }
-picocli = { prefer = "4.6.3" }
-r2dbc = { prefer = "1.0.0.RELEASE" }
-r2dbc-postgresql = { prefer = "0.8.12.RELEASE" }
 micronaut = { prefer = "3.5.1" }
 micronaut-data = { prefer = "3.4.2" }
 micronaut-flyway = { prefer = "5.3.0" }
 micronaut-kotlin = { prefer = "3.2.2" }
-micronaut-reactor = { prefer = "2.2.2" }
 micronaut-openapi = { prefer = "4.3.0" }
-micronaut-picocli = { prefer = "4.2.1" }
+micronaut-sql = { prefer = "4.6.1" }
 micronaut-micrometer = { prefer = "4.3.0" }
 swagger = { prefer = "2.2.1" }
+spotbugs = { prefer = "4.7.1" }
 postgresql = { prefer = "42.4.0" }
 kotlin = "1.7.0"
 shadow = "7.1.2"
@@ -33,23 +26,13 @@ jib = "3.2.1"
 # Core
 reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "reflect" }
 ton = { group = "com.github.andreypfau.ton-kotlin", name = "ton-kotlin", version.ref = "ton" }
-picocli = { group = "info.picocli", name = "picocli", version.ref = "picocli" }
 
 # Coroutines
 coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "coroutines" }
 coroutines-reactive = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-reactive", version.ref = "coroutines" }
-coroutines-reactor = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-reactor", version.ref = "coroutines" }
-
-# Reactive
-reactor-core = { group = "io.projectreactor", name = "reactor-core", version.ref = "reactor" }
-reactor-extra = { group = "io.projectreactor.addons", name = "reactor-extra", version.ref = "reactor-extra" }
-reactor-pool = { group = "io.projectreactor.addons", name = "reactor-pool", version.ref = "reactor-pool" }
-reactor-kotlin = { group = "io.projectreactor.kotlin", name = "reactor-kotlin-extensions", version.ref = "reactor-kotlin" }
 
 # Data
 jackson = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
-r2dbc-pool = { group = "io.r2dbc", name = "r2dbc-pool", version.ref = "r2dbc" }
-r2dbc-postgresql = { group = "io.r2dbc", name = "r2dbc-postgresql", version.ref = "r2dbc-postgresql" }
 postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "postgresql" }
 
 # Logging
@@ -61,6 +44,7 @@ logstash-logback-encoder = { group = "net.logstash.logback", name = "logstash-lo
 # Annotations
 jakarta-annotations = { group = "jakarta.annotation", name = "jakarta.annotation-api", version.ref = "jakarta" }
 swagger-annotations = { group = "io.swagger.core.v3", name = "swagger-annotations", version.ref = "swagger" }
+spotbugs-annotations = { group = "com.github.spotbugs", name = "spotbugs-annotations", version.ref = "spotbugs" }
 
 ###
 # Micronaut
@@ -71,11 +55,6 @@ micronaut-jackson-databind = { group = "io.micronaut", name = "micronaut-jackson
 micronaut-kotlin-runtime = { group = "io.micronaut.kotlin", name = "micronaut-kotlin-runtime", version.ref = "micronaut-kotlin" }
 micronaut-kotlin-extensions = { group = "io.micronaut.kotlin", name = "micronaut-kotlin-extension-functions", version.ref = "micronaut-kotlin" }
 micronaut-validation = { group = "io.micronaut", name = "micronaut-validation", version.ref = "micronaut" }
-micronaut-picocli = { group = "io.micronaut.picocli", name = "micronaut-picocli", version.ref = "micronaut-picocli" }
-
-# Reactive
-micronaut-reactor = { group = "io.micronaut.reactor", name = "micronaut-reactor", version.ref = "micronaut-reactor" }
-micronaut-reactor-http-client = { group = "io.micronaut.reactor", name = "micronaut-reactor-http-client", version.ref = "micronaut-reactor" }
 
 # Micronaut kapt-related
 micronaut-data-processor = { group = "io.micronaut.data", name = "micronaut-data-processor", version.ref = "micronaut-data" }
@@ -87,24 +66,23 @@ micronaut-http-client = { group = "io.micronaut", name = "micronaut-http-client"
 micronaut-http-server-netty = { group = "io.micronaut", name = "micronaut-http-server-netty", version.ref = "micronaut" }
 
 # Data
-micronaut-data-r2dbc = { group = "io.micronaut.data", name = "micronaut-data-r2dbc", version.ref = "micronaut-data" }
-micronaut-flyway = { group = "io.micronaut.flyway", name = "micronaut-flyway", version.ref = "micronaut.flyway" }
+micronaut-data-jdbc = { group = "io.micronaut.data", name = "micronaut-data-jdbc", version.ref = "micronaut-data" }
+micronaut-flyway = { group = "io.micronaut.flyway", name = "micronaut-flyway", version.ref = "micronaut-flyway" }
+micronaut-jdbc-hikari = { group = "io.micronaut.sql", name = "micronaut-jdbc-hikari", version.ref = "micronaut-sql" }
 
 # Extra
 micronaut-micrometer-core = { group = "io.micronaut.micrometer", name = "micronaut-micrometer-core", version.ref = "micronaut-micrometer" }
 micronaut-micrometer-annotations = { group = "io.micronaut.micrometer", name = "micronaut-micrometer-annotation", version.ref = "micronaut-micrometer" }
 
 [bundles]
-annotations = ["jakarta-annotations", "swagger-annotations"]
-coroutines = ["coroutines-core", "coroutines-reactive", "coroutines-reactor"]
-data-runtime = ["r2dbc-pool", "r2dbc-postgresql", "postgresql"]
+annotations = ["jakarta-annotations", "swagger-annotations", "spotbugs-annotations"]
+coroutines = ["coroutines-core", "coroutines-reactive"]
+data-runtime = ["postgresql"]
 logging = ["logging", "logstash-logback-encoder"]
 logging-runtime = ["logback-core", "logback-classic"]
-reactor = ["reactor-core", "reactor-extra", "reactor-pool", "reactor-kotlin"]
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
 micronaut-application = { id = "io.micronaut.application", version.ref = "micronaut-plugins" }
-jib = { id = "com.google.cloud.tools.jib", version.ref = "jib" }

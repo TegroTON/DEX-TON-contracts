@@ -4,60 +4,65 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micronaut.context.event.StartupEvent
 import io.micronaut.data.model.Sort
 import io.micronaut.runtime.event.annotation.EventListener
-import io.micronaut.scheduling.annotation.Async
 import jakarta.inject.Singleton
-import kotlinx.coroutines.reactor.mono
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.time.delay
 import money.tegro.dex.config.ServiceConfig
 import money.tegro.dex.contract.PairContract
-import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.repository.PairRepository
 import mu.KLogging
-import net.logstash.logback.argument.StructuredArguments.kv
+import net.logstash.logback.argument.StructuredArguments
 import org.ton.block.AddrStd
-import org.ton.lite.api.LiteApi
-import reactor.core.publisher.Flux
-import reactor.core.scheduler.Schedulers
-import java.time.Duration
+import org.ton.lite.client.LiteClient
 
 @Singleton
 open class PairService(
     private val config: ServiceConfig,
     private val registry: MeterRegistry,
 
-    private val liteApi: LiteApi,
-    private val liveAccounts: Flux<AddrStd>,
+    private val liteClient: LiteClient,
+    private val liveAccounts: Flow<AddrStd>,
 
     private val pairRepository: PairRepository,
 ) {
-    @Async
     @EventListener
     open fun setup(event: StartupEvent) {
-        Flux.merge(
-            // Watch live
-            liveAccounts
-                .concatMap { pairRepository.findById(it) }
-                .doOnNext {
-                    registry.counter("service.pair.hits").increment()
-                    logger.info("{} matched database entity", kv("address", it.address.toSafeBounceable()))
-                },
-            // Apart from watching live interactions, update them periodically
-            Flux.interval(Duration.ZERO, config.pairPeriod)
-                .subscribeOn(Schedulers.boundedElastic())
-                .doOnNext { logger.debug("running scheduled update of all database entities") }
-                .concatMap { pairRepository.findAll(Sort.of(Sort.Order.asc("updated"))) },
-        )
-            .concatMap {
-                mono { it.address to PairContract.getReserves(it.address, liteApi) }
-                    .timed()
-                    .doOnNext {
-                        registry.timer("service.watch.pair")
-                            .record(it.elapsed())
+        runBlocking(Dispatchers.Default) {
+            launch { run() }
+        }
+    }
+
+    suspend fun run() {
+        runBlocking {
+            merge(
+                // Watch live
+                liveAccounts
+                    .mapNotNull { pairRepository.findById(it) }
+                    .onEach {
+                        registry.counter("service.pair.hits").increment()
+                        logger.info("{} matched database entity", StructuredArguments.kv("address", it.address))
+                    },
+                // Apart from watching live interactions, update them periodically
+                flow {
+                    while (currentCoroutineContext().isActive) {
+                        logger.debug("running scheduled update of all database entities")
+                        pairRepository.findAll(Sort.of(Sort.Order.asc("updated")))
+                            .collect {
+                                emit(it)
+                            }
+                        delay(config.pairPeriod)
                     }
-            }
-            .subscribe {
-                val (address, reserves) = it.get()
-                pairRepository.update(address, reserves.first, reserves.second)
-            }
+                }
+            )
+                .map {
+                    it.address to PairContract.getReserves(it.address as AddrStd, liteClient)
+                }
+                .collect {
+                    val (address, reserves) = it
+                    pairRepository.update(address, reserves.first, reserves.second)
+                }
+        }
     }
 
     companion object : KLogging()

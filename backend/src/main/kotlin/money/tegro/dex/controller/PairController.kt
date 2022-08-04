@@ -2,9 +2,8 @@ package money.tegro.dex.controller
 
 import io.micrometer.core.annotation.Timed
 import io.micronaut.http.annotation.Controller
-import kotlinx.coroutines.reactor.awaitSingle
-import kotlinx.coroutines.reactor.awaitSingleOrNull
-import kotlinx.coroutines.reactor.mono
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.dto.PairDTO
 import money.tegro.dex.model.PairModel
@@ -12,9 +11,7 @@ import money.tegro.dex.model.TokenModel
 import money.tegro.dex.operations.PairOperations
 import money.tegro.dex.repository.PairRepository
 import money.tegro.dex.repository.TokenRepository
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
+import org.ton.block.AddrStd
 
 @Controller
 open class PairController(
@@ -22,44 +19,41 @@ open class PairController(
     private val tokenRepository: TokenRepository,
 ) : PairOperations {
     @Timed("controller.pair.all")
-    override fun all(): Flux<PairDTO> =
+    override suspend fun all(): Flow<PairDTO> =
         pairRepository.findAll()
-            .flatMap(::mapPair)
+            .map(::mapPair)
 
     @Timed("controller.pair.find")
-    override fun find(left: String, right: String): Mono<PairDTO> = mono {
-        val leftModel =
-            tokenRepository.findBySymbol(left.uppercase()).awaitSingle()
+    override suspend fun find(left: String, right: String): PairDTO {
+        val leftModel = requireNotNull(tokenRepository.findBySymbol(left.uppercase())) { "Token `$left` is unknown" }
+        val rightModel = requireNotNull(tokenRepository.findBySymbol(right.uppercase())) { "Token `$right` is unknown" }
 
-        val rightModel =
-            tokenRepository.findBySymbol(right.uppercase()).awaitSingle()
-
-        pairRepository.findByBaseAndQuote(leftModel.address, rightModel.address)
-            .switchIfEmpty { pairRepository.findByBaseAndQuote(rightModel.address, leftModel.address) }
-            .flatMap { mapPair(it, leftModel, rightModel) }
-            .awaitSingleOrNull()
+        return requireNotNull(
+            pairRepository.findByBaseAndQuote(leftModel.address, rightModel.address)
+                ?.let { mapPair(it, leftModel, rightModel) }
+                ?: pairRepository.findByBaseAndQuote(rightModel.address, leftModel.address)
+                    ?.let { mapPair(it, rightModel, leftModel) })
+        { "Unknown pair `$left -> $right`" }
     }
 
-    private fun mapPair(model: PairModel) = mono {
+    private suspend fun mapPair(model: PairModel) =
         mapPair(
             model,
-            tokenRepository.findById(model.base).awaitSingle(),
-            tokenRepository.findById(model.quote).awaitSingle()
-        ).awaitSingleOrNull()
-    }
+            requireNotNull(tokenRepository.findById(model.base)),
+            requireNotNull(tokenRepository.findById(model.quote))
+        )
 
-    private fun mapPair(model: PairModel, leftModel: TokenModel, rightModel: TokenModel) = mono {
+    private fun mapPair(model: PairModel, leftModel: TokenModel, rightModel: TokenModel) =
         PairDTO(
             updated = model.updated.epochSecond,
-            address = model.address.toSafeBounceable(),
+            address = (model.address as AddrStd).toSafeBounceable(),
             leftName = leftModel.name,
             leftSymbol = leftModel.symbol,
-            leftAddress = leftModel.address.toSafeBounceable(),
+            leftAddress = (leftModel.address as AddrStd).toSafeBounceable(),
             leftReserved = if (model.base == leftModel.address) model.baseReserve else model.quoteReserve,
             rightName = rightModel.name,
             rightSymbol = rightModel.symbol,
-            rightAddress = rightModel.address.toSafeBounceable(),
+            rightAddress = (rightModel.address as AddrStd).toSafeBounceable(),
             rightReserved = if (model.base == rightModel.address) model.baseReserve else model.quoteReserve,
         )
-    }
 }

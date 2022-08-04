@@ -1,21 +1,20 @@
 package money.tegro.dex.repository
 
 import io.micronaut.data.annotation.Id
+import io.micronaut.data.jdbc.annotation.JdbcRepository
 import io.micronaut.data.model.query.builder.sql.Dialect
-import io.micronaut.data.r2dbc.annotation.R2dbcRepository
-import io.micronaut.data.repository.reactive.ReactorPageableRepository
+import io.micronaut.data.repository.kotlin.CoroutinePageableCrudRepository
 import money.tegro.dex.model.PairModel
 import org.ton.bigint.BigInt
-import org.ton.block.AddrStd
-import reactor.core.publisher.Mono
+import org.ton.block.MsgAddressInt
 import java.time.Instant
 
-@R2dbcRepository(dialect = Dialect.POSTGRES)
-interface PairRepository : ReactorPageableRepository<PairModel, AddrStd> {
-    fun findByBaseAndQuote(base: AddrStd, quote: AddrStd): Mono<PairModel>
+@JdbcRepository(dialect = Dialect.POSTGRES)
+interface PairRepository : CoroutinePageableCrudRepository<PairModel, MsgAddressInt> {
+    suspend fun findByBaseAndQuote(base: MsgAddressInt, quote: MsgAddressInt): PairModel?
 
-    fun update(
-        @Id address: AddrStd,
+    suspend fun update(
+        @Id address: MsgAddressInt,
         baseReserve: BigInt,
         quoteReserve: BigInt,
         updated: Instant = Instant.now()

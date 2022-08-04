@@ -2,6 +2,9 @@ package money.tegro.dex.factory
 
 import io.micronaut.context.annotation.Factory
 import jakarta.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
 import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.factory.LiveAccountFactory.Companion.SYSTEM_ADDRESSES
 import mu.KLogging
@@ -10,24 +13,22 @@ import org.ton.block.AddrStd
 import org.ton.block.Block
 import org.ton.block.IntMsgInfo
 import org.ton.block.Transaction
-import reactor.core.publisher.Flux
-import reactor.kotlin.core.publisher.toFlux
 
 @Factory
 class LiveTransactionFactory {
     @Singleton
-    fun liveTransactions(blocks: Flux<Block>): Flux<Transaction> =
+    fun liveTransactions(blocks: Flow<Block>): Flow<Transaction> =
         blocks
-            .concatMap { block ->
+            .flatMapConcat { block ->
                 block.extra.account_blocks.nodes()
                     .flatMap { it.first.transactions.nodes().map { it.first } }
-                    .toFlux()
+                    .asFlow()
             }
             .filter {
                 // Only transactions to regular non-system addresses
                 ((it.in_msg.value?.info as? IntMsgInfo)?.dest as? AddrStd)?.let { it !in SYSTEM_ADDRESSES } ?: false
             }
-            .doOnNext {
+            .onEach {
                 (it.in_msg.value?.info as? IntMsgInfo)?.let { info ->
                     logger.debug(
                         "{} --(in)-> {}",
@@ -48,8 +49,7 @@ class LiveTransactionFactory {
                         }
                     }
             }
-            .publish()
-            .autoConnect()
+            .shareIn(CoroutineScope(Dispatchers.Default), SharingStarted.Lazily, 100)
 
     companion object : KLogging()
 }

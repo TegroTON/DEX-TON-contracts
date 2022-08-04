@@ -3,21 +3,24 @@ package money.tegro.dex.factory
 import io.micrometer.core.instrument.MeterRegistry
 import io.micronaut.context.annotation.Factory
 import jakarta.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
 import money.tegro.dex.contract.toSafeBounceable
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.v
 import org.ton.bitstring.BitString
 import org.ton.block.AddrStd
 import org.ton.block.Block
-import reactor.core.publisher.Flux
-import reactor.kotlin.core.publisher.toFlux
 
 @Factory
 class LiveAccountFactory {
+    @OptIn(FlowPreview::class)
     @Singleton
-    fun liveAccounts(blocks: Flux<Block>, registry: MeterRegistry): Flux<AddrStd> =
+    fun liveAccounts(blocks: Flow<Block>, registry: MeterRegistry): Flow<AddrStd> =
         blocks
-            .concatMap { block ->
+            .flatMapConcat { block ->
                 block.extra.account_blocks.nodes()
                     .flatMap {
                         sequenceOf(AddrStd(block.info.shard.workchain_id, it.first.account_addr))
@@ -26,16 +29,15 @@ class LiveAccountFactory {
                             })
                             .distinct()
                     }
-                    .toFlux()
+                    .asFlow()
             }
             .filter { it !in SYSTEM_ADDRESSES }
-            .doOnNext {
+            .onEach {
                 registry.counter("live.account.affected").increment()
 
                 logger.debug("affected account {}", v("address", it.toSafeBounceable()))
             }
-            .publish()
-            .autoConnect()
+            .shareIn(CoroutineScope(Dispatchers.Default), SharingStarted.Lazily, 100)
 
     companion object : KLogging() {
         val SYSTEM_ADDRESSES = listOf(

@@ -2,61 +2,62 @@ package money.tegro.dex.service
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micronaut.context.event.StartupEvent
-import io.micronaut.data.model.Sort
 import io.micronaut.runtime.event.annotation.EventListener
-import io.micronaut.scheduling.annotation.Async
+import io.micronaut.scheduling.TaskScheduler
 import jakarta.inject.Singleton
-import kotlinx.coroutines.reactor.mono
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.time.delay
 import money.tegro.dex.config.ServiceConfig
 import money.tegro.dex.contract.TokenContract
-import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.repository.TokenRepository
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.kv
 import org.ton.block.AddrStd
-import org.ton.lite.api.LiteApi
-import reactor.core.publisher.Flux
-import reactor.core.scheduler.Schedulers
-import java.time.Duration
+import org.ton.lite.client.LiteClient
 
 @Singleton
 open class TokenService(
+    private val taskScheduler: TaskScheduler,
     private val config: ServiceConfig,
     private val registry: MeterRegistry,
 
-    private val liteApi: LiteApi,
-    private val liveAccounts: Flux<AddrStd>,
+    private val liteClient: LiteClient,
+    private val liveAccounts: Flow<AddrStd>,
 
     private val tokenRepository: TokenRepository,
 ) {
-    @Async
     @EventListener
     open fun setup(event: StartupEvent) {
-        Flux.merge(
+        runBlocking(Dispatchers.Default) {
+            launch { run() }
+        }
+    }
+
+    suspend fun run() {
+        merge(
             // Watch live
             liveAccounts
-                .concatMap { tokenRepository.findById(it) }
-                .doOnNext {
+                .mapNotNull { tokenRepository.findById(it) }
+                .onEach {
                     registry.counter("service.token.hits").increment()
-                    logger.info("{} matched database entity", kv("address", it.address.toSafeBounceable()))
+                    logger.info("{} matched database entity", kv("address", it.address))
                 },
             // Apart from watching live interactions, update them periodically
-            Flux.interval(Duration.ZERO, config.tokenPeriod)
-                .subscribeOn(Schedulers.boundedElastic())
-                .doOnNext { logger.debug("running scheduled update of all database entities") }
-                .concatMap { tokenRepository.findAll(Sort.of(Sort.Order.asc("updated"))) }
+            flow {
+                while (currentCoroutineContext().isActive) {
+                    logger.debug("running scheduled update of all database entities")
+                    emitAll(tokenRepository.findAll())
+                    delay(config.tokenPeriod)
+                }
+            }
         )
             .filter { it.symbol.uppercase() != "TON" }
-            .concatMap {
-                mono { it.address to TokenContract.of(it.address, liteApi) }
-                    .timed()
-                    .doOnNext {
-                        registry.timer("service.watch.token")
-                            .record(it.elapsed())
-                    }
+            .map {
+                it.address to TokenContract.of(it.address as AddrStd, liteClient)
             }
-            .subscribe {
-                val (address, token) = it.get()
+            .collect {
+                val (address, token) = it
                 tokenRepository.update(
                     address = address,
                     supply = token.totalSupply,
