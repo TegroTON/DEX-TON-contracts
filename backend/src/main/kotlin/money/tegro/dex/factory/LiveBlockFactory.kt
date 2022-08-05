@@ -39,7 +39,7 @@ open class LiveBlockFactory(
                     .orEmpty()
                     .associate { BigInt(it.first.toByteArray()).toInt() to it.second.nodes().maxBy { it.seq_no } }
                     .flatMap { curr ->
-                        (lastMcShards.getOrDefault(curr.key, curr.value).seq_no until curr.value.seq_no)
+                        (lastMcShards.getOrDefault(curr.key, curr.value).seq_no..curr.value.seq_no)
                             .map { TonNodeBlockId(curr.key, Shard.ID_ALL, it.toInt()) }
                     }
                     .mapNotNull { liteClient.lookupBlock(it)?.let { liteClient.getBlock(it) } }
