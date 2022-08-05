@@ -18,5 +18,5 @@ interface PairRepository : CoroutinePageableCrudRepository<PairModel, MsgAddress
         baseReserve: BigInt,
         quoteReserve: BigInt,
         updated: Instant = Instant.now()
-    )
+    ): Long
 }

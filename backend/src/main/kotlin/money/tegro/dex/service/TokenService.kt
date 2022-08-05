@@ -3,7 +3,7 @@ package money.tegro.dex.service
 import io.micrometer.core.instrument.MeterRegistry
 import io.micronaut.context.event.StartupEvent
 import io.micronaut.runtime.event.annotation.EventListener
-import io.micronaut.scheduling.TaskScheduler
+import io.micronaut.scheduling.annotation.Async
 import jakarta.inject.Singleton
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -18,7 +18,6 @@ import org.ton.lite.client.LiteClient
 
 @Singleton
 open class TokenService(
-    private val taskScheduler: TaskScheduler,
     private val config: ServiceConfig,
     private val registry: MeterRegistry,
 
@@ -27,6 +26,7 @@ open class TokenService(
 
     private val tokenRepository: TokenRepository,
 ) {
+    @Async
     @EventListener
     open fun setup(event: StartupEvent) {
         runBlocking(Dispatchers.Default) {
@@ -44,10 +44,10 @@ open class TokenService(
                     logger.info("{} matched database entity", kv("address", it.address))
                 },
             // Apart from watching live interactions, update them periodically
-            flow {
+            channelFlow {
                 while (currentCoroutineContext().isActive) {
                     logger.debug("running scheduled update of all database entities")
-                    emitAll(tokenRepository.findAll())
+                    tokenRepository.findAll().collect { send(it) }
                     delay(config.tokenPeriod)
                 }
             }

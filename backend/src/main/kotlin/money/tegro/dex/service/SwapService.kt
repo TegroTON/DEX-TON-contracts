@@ -2,6 +2,7 @@ package money.tegro.dex.service
 
 import io.micronaut.context.event.StartupEvent
 import io.micronaut.runtime.event.annotation.EventListener
+import io.micronaut.scheduling.annotation.Async
 import jakarta.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,7 @@ open class SwapService(
     private val pairRepository: PairRepository,
     private val swapRepository: SwapRepository,
 ) {
+    @Async
     @EventListener
     open fun setup(event: StartupEvent) {
         runBlocking(Dispatchers.Default) {

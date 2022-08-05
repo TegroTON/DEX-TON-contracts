@@ -35,7 +35,7 @@ data class TokenMetadata(
         @JvmStatic
         suspend fun of(
             content: Cell,
-            httpClient: HttpClient
+            httpClient: HttpClient = HttpClient {}
         ): TokenMetadata {
             val full = content.parse { loadTlb(FullContent) }
             return when (full) {

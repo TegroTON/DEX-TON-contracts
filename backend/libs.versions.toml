@@ -2,7 +2,7 @@
 coroutines = { strictly = "1.6.1-native-mt" }
 jackson = { prefer = "2.13.2" }
 reflect = { prefer = "1.7.0" }
-ton = { strictly = "a2dc476f0e" }
+ton = { strictly = "fixtestaddresses-SNAPSHOT" }
 logging = { prefer = "2.1.23" }
 logback = { prefer = "1.2.11" }
 logstash-logback-encoder = { prefer = "7.2" }
@@ -25,7 +25,7 @@ jib = "3.2.1"
 [libraries]
 # Core
 reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "reflect" }
-ton = { group = "com.github.andreypfau.ton-kotlin", name = "ton-kotlin", version.ref = "ton" }
+ton = { group = "com.github.antonmeep.ton-kotlin", name = "ton-kotlin", version.ref = "ton" }
 
 # Coroutines
 coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "coroutines" }

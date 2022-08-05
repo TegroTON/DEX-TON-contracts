@@ -20,5 +20,5 @@ interface TokenRepository : CoroutinePageableCrudRepository<TokenModel, MsgAddre
         mintable: Boolean,
         admin: MsgAddressInt,
         updated: Instant = Instant.now()
-    )
+    ): Long
 }
