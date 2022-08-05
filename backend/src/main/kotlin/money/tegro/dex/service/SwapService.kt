@@ -1,8 +1,6 @@
 package money.tegro.dex.service
 
-import io.micronaut.context.event.StartupEvent
-import io.micronaut.runtime.event.annotation.EventListener
-import io.micronaut.scheduling.annotation.Async
+import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -26,20 +24,19 @@ import org.ton.block.Transaction
 import org.ton.tlb.parse
 
 @Singleton
-open class SwapService(
+class SwapService(
     private val liveTransactions: Flow<Transaction>,
     private val pairRepository: PairRepository,
     private val swapRepository: SwapRepository,
 ) {
-    @Async
-    @EventListener
-    open fun setup(event: StartupEvent) {
+    @Scheduled(initialDelay = "0s")
+    fun setup() {
         runBlocking(Dispatchers.Default) {
             launch { run() }
         }
     }
 
-    suspend fun run() {
+    private suspend fun run() {
         liveTransactions
             .filter { ((it.in_msg.value?.info as? IntMsgInfo)?.src as? AddrStd)?.let { pairRepository.existsById(it) } == true }
             .mapNotNull { transaction ->
@@ -67,7 +64,7 @@ open class SwapService(
                                                         src = info.dest, // Fucky-wucky semantics here, simply put:
                                                         // Pair (info.src) -> It's jetton wallet (info.dest) -> User's address (body.destination)
                                                         dest = dest, // Users address
-                                                        amount = info.value.coins.amount.value,
+                                                        amount = body.amount.value,
                                                     )
                                                 }
                                             }

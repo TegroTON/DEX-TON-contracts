@@ -1,9 +1,7 @@
 package money.tegro.dex.service
 
 import io.micrometer.core.instrument.MeterRegistry
-import io.micronaut.context.event.StartupEvent
-import io.micronaut.runtime.event.annotation.EventListener
-import io.micronaut.scheduling.annotation.Async
+import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.inject.Singleton
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -16,7 +14,7 @@ import org.ton.block.AddrStd
 import org.ton.lite.client.LiteClient
 
 @Singleton
-open class PairService(
+class PairService(
     private val config: ServiceConfig,
     private val registry: MeterRegistry,
 
@@ -25,9 +23,8 @@ open class PairService(
 
     private val pairRepository: PairRepository,
 ) {
-    @Async
-    @EventListener
-    open fun setup(event: StartupEvent) {
+    @Scheduled(initialDelay = "0s")
+    fun setup() {
         runBlocking(Dispatchers.Default) {
             launch { run() }
         }

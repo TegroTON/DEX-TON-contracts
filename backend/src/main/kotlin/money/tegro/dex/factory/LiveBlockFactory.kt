@@ -29,17 +29,17 @@ open class LiveBlockFactory(
             .distinctUntilChanged()
             .mapNotNull { liteClient.getBlock(it)?.let(::listOf) }
             .runningReduce { accumulator, value ->
-                val lastMcShards = accumulator.first().extra.custom.value?.shard_hashes
+                val lastMcShards = accumulator.last().extra.custom.value?.shard_hashes
                     ?.nodes()
                     .orEmpty()
                     .associate { BigInt(it.first.toByteArray()).toInt() to it.second.nodes().maxBy { it.seq_no } }
 
-                value.first().extra.custom.value?.shard_hashes
+                value.last().extra.custom.value?.shard_hashes
                     ?.nodes()
                     .orEmpty()
                     .associate { BigInt(it.first.toByteArray()).toInt() to it.second.nodes().maxBy { it.seq_no } }
                     .flatMap { curr ->
-                        (lastMcShards.getOrDefault(curr.key, curr.value).seq_no..curr.value.seq_no)
+                        (lastMcShards.getOrDefault(curr.key, curr.value).seq_no + 1..curr.value.seq_no)
                             .map { TonNodeBlockId(curr.key, Shard.ID_ALL, it.toInt()) }
                     }
                     .mapNotNull { liteClient.lookupBlock(it)?.let { liteClient.getBlock(it) } }

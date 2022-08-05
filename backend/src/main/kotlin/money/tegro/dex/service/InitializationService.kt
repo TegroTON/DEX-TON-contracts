@@ -1,10 +1,8 @@
 package money.tegro.dex.service
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.micronaut.context.event.StartupEvent
 import io.micronaut.core.io.scan.ClassPathResourceLoader
-import io.micronaut.runtime.event.annotation.EventListener
-import io.micronaut.scheduling.annotation.Async
+import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.asFlow
@@ -28,16 +26,15 @@ import java.io.ByteArrayInputStream
 import java.net.URLConnection
 
 @Singleton
-open class InitializationService(
+class InitializationService(
     private val liteClient: LiteClient,
     private val resourceLoader: ClassPathResourceLoader,
 
     private val pairRepository: PairRepository,
     private val tokenRepository: TokenRepository,
 ) {
-    @Async
-    @EventListener
-    open fun setup(event: StartupEvent) {
+    @Scheduled(initialDelay = "0s")
+    fun setup() {
         runBlocking(Dispatchers.Default) {
             launch { run() }
         }
