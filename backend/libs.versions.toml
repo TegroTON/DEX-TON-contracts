@@ -2,7 +2,7 @@
 coroutines = { strictly = "1.6.1-native-mt" }
 jackson = { prefer = "2.13.2" }
 reflect = { prefer = "1.7.0" }
-ton = { strictly = "e279451600" }
+ton = { strictly = "a2dc476f0e" }
 logging = { prefer = "2.1.23" }
 logback = { prefer = "1.2.11" }
 logstash-logback-encoder = { prefer = "7.2" }

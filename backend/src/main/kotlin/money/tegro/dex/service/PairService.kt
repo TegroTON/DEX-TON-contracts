@@ -2,7 +2,6 @@ package money.tegro.dex.service
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micronaut.context.event.StartupEvent
-import io.micronaut.data.model.Sort
 import io.micronaut.runtime.event.annotation.EventListener
 import jakarta.inject.Singleton
 import kotlinx.coroutines.*
@@ -47,10 +46,7 @@ open class PairService(
                 flow {
                     while (currentCoroutineContext().isActive) {
                         logger.debug("running scheduled update of all database entities")
-                        pairRepository.findAll(Sort.of(Sort.Order.asc("updated")))
-                            .collect {
-                                emit(it)
-                            }
+                        emitAll(pairRepository.findAll())
                         delay(config.pairPeriod)
                     }
                 }
