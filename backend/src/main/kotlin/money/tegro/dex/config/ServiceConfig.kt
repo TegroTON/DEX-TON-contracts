@@ -11,4 +11,7 @@ interface ServiceConfig {
 
     @get:Bindable(defaultValue = "PT1H")
     val tokenPeriod: Duration
+
+    @get:Bindable(defaultValue = "PT1H")
+    val walletPeriod: Duration
 }

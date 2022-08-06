@@ -12,6 +12,7 @@ import money.tegro.dex.operations.PairOperations
 import money.tegro.dex.repository.PairRepository
 import money.tegro.dex.repository.TokenRepository
 import org.ton.block.AddrStd
+import org.ton.block.MsgAddressInt
 
 @Controller
 open class PairController(
@@ -29,10 +30,14 @@ open class PairController(
         val rightModel = requireNotNull(tokenRepository.findBySymbol(right.uppercase())) { "Token `$right` is unknown" }
 
         return requireNotNull(
-            pairRepository.findByBaseAndQuote(leftModel.address, rightModel.address)
-                ?.let { mapPair(it, leftModel, rightModel) }
-                ?: pairRepository.findByBaseAndQuote(rightModel.address, leftModel.address)
-                    ?.let { mapPair(it, rightModel, leftModel) })
+            (rightModel.address as? MsgAddressInt)?.let {
+                pairRepository.findByBaseAndQuote(leftModel.address, it)
+                    ?.let { mapPair(it, leftModel, rightModel) }
+            }
+                ?: (leftModel.address as? MsgAddressInt)?.let {
+                    pairRepository.findByBaseAndQuote(rightModel.address, it)
+                        ?.let { mapPair(it, rightModel, leftModel) }
+                })
         { "Unknown pair `$left -> $right`" }
     }
 

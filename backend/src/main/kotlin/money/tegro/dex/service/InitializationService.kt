@@ -22,6 +22,7 @@ import money.tegro.dex.repository.PairRepository
 import money.tegro.dex.repository.TokenRepository
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.kv
+import org.ton.block.AddrNone
 import org.ton.block.AddrStd
 import org.ton.crypto.base64
 import org.ton.lite.client.LiteClient
@@ -63,7 +64,7 @@ open class InitializationService(
                 require(it.isObject)
                 Triple(
                     AddrStd(it["pair"].asText()),
-                    AddrStd(it["base"].asText()),
+                    if (it.has("base") && !it["base"].isNull) AddrStd(it["base"].asText()) else AddrNone,
                     AddrStd(it["quote"].asText()),
                 )
             }
@@ -72,7 +73,7 @@ open class InitializationService(
             .collect {
                 val (address, base, quote) = it
 
-                for (token in listOf(base, quote)) {
+                for (token in listOfNotNull(base as? AddrStd, quote)) {
                     logger.debug("ensuring token {}", kv("address", token.toSafeBounceable()))
                     if (!tokenRepository.existsById(token)) {
                         val data = TokenContract.of(token, liteClient)
@@ -101,7 +102,7 @@ open class InitializationService(
                 logger.debug(
                     "loading pair {} of {} and {}",
                     kv("address", address.toSafeBounceable()),
-                    kv("base", base.toSafeBounceable()),
+                    kv("base", (base as? AddrStd)?.toSafeBounceable() ?: "TON"),
                     kv("quote", quote.toSafeBounceable())
                 )
                 val reserves = PairContract.getReserves(address, liteClient)
@@ -111,12 +112,12 @@ open class InitializationService(
                         base = base,
                         quote = quote,
                         // For ton, just pair address, otherwise query jetton wallet
-                        baseWallet = if (tokenRepository.findById(base)?.symbol?.uppercase() == "TON") address
-                        else TokenContract.getWalletAddress(
-                            base,
-                            address,
-                            liteClient
-                        ),
+                        baseWallet = if (base is AddrStd)
+                            TokenContract.getWalletAddress(
+                                base,
+                                address,
+                                liteClient
+                            ) else AddrNone,
                         quoteWallet = TokenContract.getWalletAddress(quote, address, liteClient),
                         baseReserve = reserves.first,
                         quoteReserve = reserves.second,

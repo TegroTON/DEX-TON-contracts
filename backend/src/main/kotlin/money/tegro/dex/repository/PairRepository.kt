@@ -6,12 +6,13 @@ import io.micronaut.data.r2dbc.annotation.R2dbcRepository
 import io.micronaut.data.repository.kotlin.CoroutinePageableCrudRepository
 import money.tegro.dex.model.PairModel
 import org.ton.bigint.BigInt
+import org.ton.block.MsgAddress
 import org.ton.block.MsgAddressInt
 import java.time.Instant
 
 @R2dbcRepository(dialect = Dialect.POSTGRES)
 interface PairRepository : CoroutinePageableCrudRepository<PairModel, MsgAddressInt> {
-    suspend fun findByBaseAndQuote(base: MsgAddressInt, quote: MsgAddressInt): PairModel?
+    suspend fun findByBaseAndQuote(base: MsgAddress, quote: MsgAddressInt): PairModel?
 
     suspend fun update(
         @Id address: MsgAddressInt,
