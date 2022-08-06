@@ -21,21 +21,23 @@ open class PairController(
 ) : PairOperations {
     @Timed("controller.pair.all")
     override suspend fun all(): Flow<PairDTO> =
-        pairRepository.findAll()
+        pairRepository.findByEnabledTrue()
             .map(::mapPair)
 
     @Timed("controller.pair.find")
     override suspend fun find(left: String, right: String): PairDTO {
-        val leftModel = requireNotNull(tokenRepository.findBySymbol(left.uppercase())) { "Token `$left` is unknown" }
-        val rightModel = requireNotNull(tokenRepository.findBySymbol(right.uppercase())) { "Token `$right` is unknown" }
+        val leftModel =
+            requireNotNull(tokenRepository.findBySymbolAndEnabledTrue(left.uppercase())) { "Token `$left` is unknown" }
+        val rightModel =
+            requireNotNull(tokenRepository.findBySymbolAndEnabledTrue(right.uppercase())) { "Token `$right` is unknown" }
 
         return requireNotNull(
             (rightModel.address as? MsgAddressInt)?.let {
-                pairRepository.findByBaseAndQuote(leftModel.address, it)
+                pairRepository.findByBaseAndQuoteAndEnabledTrue(leftModel.address, it)
                     ?.let { mapPair(it, leftModel, rightModel) }
             }
                 ?: (leftModel.address as? MsgAddressInt)?.let {
-                    pairRepository.findByBaseAndQuote(rightModel.address, it)
+                    pairRepository.findByBaseAndQuoteAndEnabledTrue(rightModel.address, it)
                         ?.let { mapPair(it, rightModel, leftModel) }
                 })
         { "Unknown pair `$left -> $right`" }
@@ -54,11 +56,11 @@ open class PairController(
             address = (model.address as AddrStd).toSafeBounceable(),
             leftName = leftModel.name,
             leftSymbol = leftModel.symbol,
-            leftAddress = (leftModel.address as AddrStd).toSafeBounceable(),
+            leftAddress = (leftModel.address as? AddrStd)?.toSafeBounceable(),
             leftReserved = if (model.base == leftModel.address) model.baseReserve else model.quoteReserve,
             rightName = rightModel.name,
             rightSymbol = rightModel.symbol,
-            rightAddress = (rightModel.address as AddrStd).toSafeBounceable(),
+            rightAddress = (rightModel.address as? AddrStd)?.toSafeBounceable(),
             rightReserved = if (model.base == rightModel.address) model.baseReserve else model.quoteReserve,
         )
 }

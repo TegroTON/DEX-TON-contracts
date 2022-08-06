@@ -15,11 +15,11 @@ data class PairDTO(
     @field:Schema(description = "Full name of the first token")
     val leftName: String,
 
-    @field:Schema(description = "Symbol, ticker, of the first token")
+    @field:Schema(description = "Symbol, ticker, of the first token. Uniquely identifies it")
     val leftSymbol: String,
 
-    @field:Schema(description = "Address of the left token; base64url, bounceable")
-    val leftAddress: String,
+    @field:Schema(description = "Address of the left token, `null` for TON; base64url, bounceable")
+    val leftAddress: String?,
 
     @field:Schema(description = "Reserved amount in the liquidity pool for the left token", type = "integer")
     @field:JsonFormat(shape = JsonFormat.Shape.STRING)
@@ -28,11 +28,11 @@ data class PairDTO(
     @field:Schema(description = "Full name of the second token")
     val rightName: String,
 
-    @field:Schema(description = "Symbol, ticker, of the second token")
+    @field:Schema(description = "Symbol, ticker, of the second token. Uniquely identifies it")
     val rightSymbol: String,
 
-    @field:Schema(description = "Address of the right token; base64url, bounceable")
-    val rightAddress: String,
+    @field:Schema(description = "Address of the right token, `null` for TON; base64url, bounceable")
+    val rightAddress: String?,
 
     @field:Schema(description = "Reserved amount in the liquidity pool for the right token", type = "integer")
     @field:JsonFormat(shape = JsonFormat.Shape.STRING)

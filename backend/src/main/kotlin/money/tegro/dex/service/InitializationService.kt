@@ -73,7 +73,8 @@ open class InitializationService(
             .collect {
                 val (address, base, quote) = it
 
-                for (token in listOfNotNull(base as? AddrStd, quote)) {
+                // Pair contract is also a master contract for liquidity-pool tokens
+                for (token in listOfNotNull(address, base as? AddrStd, quote)) {
                     logger.debug("ensuring token {}", kv("address", token.toSafeBounceable()))
                     if (!tokenRepository.existsById(token)) {
                         val data = TokenContract.of(token, liteClient)

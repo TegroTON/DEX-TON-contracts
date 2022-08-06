@@ -30,13 +30,13 @@ open class TokenController(
     @Timed("controller.token.find")
     override suspend fun find(symbol: String): TokenDTO =
         requireNotNull(
-            tokenRepository.findBySymbol(symbol)
+            tokenRepository.findBySymbolAndEnabledTrue(symbol)
                 ?.let(::mapToken)
         ) { "Unknown token `$symbol`" }
 
     @Timed("controller.token.icon")
     override suspend fun image(symbol: String): HttpResponse<StreamedFile> =
-        requireNotNull(tokenRepository.findBySymbol(symbol)) { "Unknown token `$symbol`" }
+        requireNotNull(tokenRepository.findBySymbolAndEnabledTrue(symbol)) { "Unknown token `$symbol`" }
             .let {
                 if (it.image.startsWith("http")) { // probably IPFS or something, cache that
                     HttpResponse.ok(StreamedFile(URL(it.image)))

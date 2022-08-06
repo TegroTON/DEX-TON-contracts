@@ -33,5 +33,6 @@ data class PairModel(
 
     val quoteReserve: BigInt,
 
+    val enabled: Boolean = true,
     val updated: Instant = Instant.now(),
 )

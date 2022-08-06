@@ -10,12 +10,16 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.time.delay
 import money.tegro.dex.config.ServiceConfig
+import money.tegro.dex.contract.TokenContract
 import money.tegro.dex.contract.TokenWalletContract
+import money.tegro.dex.model.WalletModel
 import money.tegro.dex.repository.WalletRepository
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.kv
 import org.ton.block.AddrNone
 import org.ton.block.AddrStd
+import org.ton.block.MsgAddress
+import org.ton.block.MsgAddressInt
 import org.ton.lite.api.liteserver.LiteServerAccountId
 import org.ton.lite.client.LiteClient
 import kotlin.coroutines.CoroutineContext
@@ -46,6 +50,33 @@ open class WalletService(
         job.cancel()
     }
 
+    suspend fun getWallet(owner: MsgAddressInt, master: MsgAddress = AddrNone) =
+        // Just get from the db
+        walletRepository.findByOwnerAndMaster(owner, master)
+        // Fetch jetton info
+            ?: (master as? MsgAddressInt)?.let {
+                val address = TokenContract.getWalletAddress(master as AddrStd, owner, liteClient)
+                val data = TokenWalletContract.of(address as AddrStd, liteClient)
+                require(data.owner == owner) // Sanity check
+                walletRepository.save(
+                    WalletModel(
+                        address = address,
+                        balance = data.balance,
+                        owner = data.owner,
+                        master = data.jetton,
+                    )
+                )
+            }
+            // Just plain ton wallet
+            ?: walletRepository.save(
+                WalletModel(
+                    address = owner,
+                    balance = liteClient.getAccount(LiteServerAccountId(owner as AddrStd))!!.storage.balance.coins.amount.value,
+                    owner = owner,
+                    master = AddrNone,
+                )
+            )
+
     private val job = launch {
         merge(
             // Watch live
@@ -65,7 +96,7 @@ open class WalletService(
             }
         )
             .collect {
-                if (it.owner == AddrNone && it.master == AddrNone) { // TON balance
+                if (it.owner == it.address && it.master == AddrNone) { // TON balance
                     walletRepository.update(
                         it.address,
                         // TODO: Remove !!

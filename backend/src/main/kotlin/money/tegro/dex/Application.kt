@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.info.Info
 @OpenAPIDefinition(
     info = Info(
         title = "DEX API",
-        version = "0.0.1"
+        version = "0.1.0"
     )
 )
 object Application {

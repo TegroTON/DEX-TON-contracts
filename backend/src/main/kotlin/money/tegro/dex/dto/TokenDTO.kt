@@ -9,8 +9,8 @@ data class TokenDTO(
     @field:Schema(description = "Unix timestamp of the last time data was updated")
     val updated: Long,
 
-    @field:Schema(description = "Contract address, uniquely identifies this specific token; Always base64url, bounceable")
-    val address: String,
+    @field:Schema(description = "Contract address, uniquely identifies this specific token. `null` for TON; Always base64url, bounceable")
+    val address: String?,
 
     @field:Schema(description = "Total token supply", type = "integer")
     @field:JsonFormat(shape = JsonFormat.Shape.STRING)

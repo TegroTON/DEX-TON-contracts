@@ -34,5 +34,6 @@ data class TokenModel(
 
     val image: String,
 
+    val enabled: Boolean = true,
     val updated: Instant = Instant.now(),
 )

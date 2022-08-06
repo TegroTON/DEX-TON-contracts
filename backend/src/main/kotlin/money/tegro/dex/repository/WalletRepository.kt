@@ -25,4 +25,6 @@ interface WalletRepository : CoroutinePageableCrudRepository<WalletModel, MsgAdd
         balance: BigInt,
         updated: Instant = Instant.now()
     ): Long
+
+    suspend fun findByOwnerAndMaster(owner: MsgAddress, master: MsgAddress): WalletModel?
 }
