@@ -1,8 +1,11 @@
 package money.tegro.dex.service
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.micronaut.context.event.StartupEvent
 import io.micronaut.core.io.scan.ClassPathResourceLoader
-import io.micronaut.scheduling.annotation.Scheduled
+import io.micronaut.runtime.event.annotation.EventListener
+import jakarta.annotation.PostConstruct
+import jakarta.annotation.PreDestroy
 import jakarta.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +30,7 @@ import java.net.URLConnection
 import kotlin.coroutines.CoroutineContext
 
 @Singleton
-class InitializationService(
+open class InitializationService(
     private val liteClient: LiteClient,
     private val resourceLoader: ClassPathResourceLoader,
 
@@ -36,8 +39,18 @@ class InitializationService(
 ) : CoroutineScope {
     override val coroutineContext: CoroutineContext = Dispatchers.Default
 
-    @Scheduled(initialDelay = "0s")
-    fun setup() {
+    @EventListener
+    open fun onStartup(event: StartupEvent) {
+    }
+
+    @PostConstruct
+    open fun onInit() {
+        job.start()
+    }
+
+    @PreDestroy
+    open fun onShutdown() {
+        job.cancel()
     }
 
     private val job = launch {

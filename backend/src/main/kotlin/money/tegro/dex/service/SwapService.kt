@@ -1,6 +1,10 @@
 package money.tegro.dex.service
 
+import io.micronaut.context.event.StartupEvent
+import io.micronaut.runtime.event.annotation.EventListener
 import io.micronaut.scheduling.annotation.Scheduled
+import jakarta.annotation.PostConstruct
+import jakarta.annotation.PreDestroy
 import jakarta.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,15 +29,29 @@ import org.ton.tlb.parse
 import kotlin.coroutines.CoroutineContext
 
 @Singleton
-class SwapService(
+open class SwapService(
     private val liveTransactions: Flow<Transaction>,
     private val pairRepository: PairRepository,
     private val swapRepository: SwapRepository,
 ) : CoroutineScope {
     override val coroutineContext: CoroutineContext = Dispatchers.Default
 
+    @EventListener
+    open fun onStartup(event: StartupEvent) {
+    }
+
     @Scheduled(initialDelay = "0s")
     fun setup() {
+    }
+
+    @PostConstruct
+    open fun onInit() {
+        job.start()
+    }
+
+    @PreDestroy
+    open fun onShutdown() {
+        job.cancel()
     }
 
     private val job = launch {

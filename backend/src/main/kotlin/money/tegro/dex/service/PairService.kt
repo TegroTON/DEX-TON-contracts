@@ -1,7 +1,10 @@
 package money.tegro.dex.service
 
 import io.micrometer.core.instrument.MeterRegistry
-import io.micronaut.scheduling.annotation.Scheduled
+import io.micronaut.context.event.StartupEvent
+import io.micronaut.runtime.event.annotation.EventListener
+import jakarta.annotation.PostConstruct
+import jakarta.annotation.PreDestroy
 import jakarta.inject.Singleton
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -15,7 +18,7 @@ import org.ton.lite.client.LiteClient
 import kotlin.coroutines.CoroutineContext
 
 @Singleton
-class PairService(
+open class PairService(
     private val config: ServiceConfig,
     private val registry: MeterRegistry,
 
@@ -26,8 +29,18 @@ class PairService(
 ) : CoroutineScope {
     override val coroutineContext: CoroutineContext = Dispatchers.Default
 
-    @Scheduled(initialDelay = "0s")
-    fun setup() {
+    @EventListener
+    open fun onStartup(event: StartupEvent) {
+    }
+
+    @PostConstruct
+    open fun onInit() {
+        job.start()
+    }
+
+    @PreDestroy
+    open fun onShutdown() {
+        job.cancel()
     }
 
     private val job = launch {
