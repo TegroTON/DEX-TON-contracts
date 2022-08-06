@@ -12,7 +12,7 @@ import money.tegro.dex.dto.PairDTO
 interface PairOperations {
     @Operation(summary = "Get information about all pairs")
     @Get("/")
-    suspend fun all(): Flow<PairDTO>
+    fun all(): Flow<PairDTO>
 
     @Operation(summary = "Get information about specific exchange pair")
     @Get("/{left}/{right}")

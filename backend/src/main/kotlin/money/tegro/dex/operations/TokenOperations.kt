@@ -14,7 +14,7 @@ import money.tegro.dex.dto.TokenDTO
 interface TokenOperations {
     @Operation(summary = "Get information about all available tokens, includes LP-tokens")
     @Get("/")
-    suspend fun all(): Flow<TokenDTO>
+    fun all(): Flow<TokenDTO>
 
     @Operation(summary = "Get information about specific token")
     @Get("/{symbol}")

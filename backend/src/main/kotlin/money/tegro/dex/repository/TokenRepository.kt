@@ -16,7 +16,7 @@ interface TokenRepository : CoroutinePageableCrudRepository<TokenModel, MsgAddre
     // Addresses and symbols are both unique since they are used to look up for specific entries
     suspend fun findBySymbolAndEnabledTrue(symbol: String): TokenModel?
 
-    suspend fun findByEnabledTrue(): Flow<TokenModel>
+    fun findByEnabledTrue(): Flow<TokenModel>
 
     suspend fun update(
         @Id address: MsgAddress,

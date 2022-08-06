@@ -20,7 +20,7 @@ open class PairController(
     private val tokenRepository: TokenRepository,
 ) : PairOperations {
     @Timed("controller.pair.all")
-    override suspend fun all(): Flow<PairDTO> =
+    override fun all(): Flow<PairDTO> =
         pairRepository.findByEnabledTrue()
             .map(::mapPair)
 
@@ -32,15 +32,14 @@ open class PairController(
             requireNotNull(tokenRepository.findBySymbolAndEnabledTrue(right.uppercase())) { "Token `$right` is unknown" }
 
         return requireNotNull(
-            (rightModel.address as? MsgAddressInt)?.let {
+            // In the DB it could be stored either way for XXX/XXX, find the right combination
+            ((rightModel.address as? MsgAddressInt)?.let {
                 pairRepository.findByBaseAndQuoteAndEnabledTrue(leftModel.address, it)
-                    ?.let { mapPair(it, leftModel, rightModel) }
-            }
-                ?: (leftModel.address as? MsgAddressInt)?.let {
-                    pairRepository.findByBaseAndQuoteAndEnabledTrue(rightModel.address, it)
-                        ?.let { mapPair(it, rightModel, leftModel) }
-                })
-        { "Unknown pair `$left -> $right`" }
+            } ?: (leftModel.address as? MsgAddressInt)?.let {
+                pairRepository.findByBaseAndQuoteAndEnabledTrue(rightModel.address, it)
+            })
+                ?.let { mapPair(it, leftModel, rightModel) }
+        ) { "Unknown pair `$left -> $right`" }
     }
 
     private suspend fun mapPair(model: PairModel) =

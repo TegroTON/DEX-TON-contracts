@@ -15,7 +15,7 @@ import java.time.Instant
 interface PairRepository : CoroutinePageableCrudRepository<PairModel, MsgAddressInt> {
     suspend fun findByBaseAndQuoteAndEnabledTrue(base: MsgAddress, quote: MsgAddressInt): PairModel?
 
-    suspend fun findByEnabledTrue(): Flow<PairModel>
+    fun findByEnabledTrue(): Flow<PairModel>
 
     suspend fun update(
         @Id address: MsgAddressInt,

@@ -23,8 +23,8 @@ open class TokenController(
     private val tokenRepository: TokenRepository,
 ) : TokenOperations {
     @Timed("controller.token.all")
-    override suspend fun all(): Flow<TokenDTO> =
-        tokenRepository.findAll()
+    override fun all(): Flow<TokenDTO> =
+        tokenRepository.findByEnabledTrue()
             .map(::mapToken)
 
     @Timed("controller.token.find")
@@ -57,7 +57,7 @@ open class TokenController(
     private fun mapToken(model: TokenModel) =
         TokenDTO(
             updated = model.updated.epochSecond,
-            address = (model.address as AddrStd).toSafeBounceable(),
+            address = (model.address as? AddrStd)?.toSafeBounceable(),
             supply = model.supply,
             name = model.name,
             description = model.description,
