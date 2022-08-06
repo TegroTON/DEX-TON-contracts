@@ -32,7 +32,7 @@ jobs:
         with:
           context: ./backend
           tags: |
-            ghcr.io/tegroton/dex_backend:$GITHUB_REF_NAME
+            ghcr.io/tegroton/dex_backend:${{ github.ref_name }}
           push: true
 
       - name: Image digest
