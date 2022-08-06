@@ -16,5 +16,5 @@ interface WalletOperations {
 
     @Operation(summary = "Get information about balance of specific token associated with the address")
     @Get("/{address}/{symbol}")
-    suspend fun get(address: String, symbol: String): WalletDTO?
+    suspend fun get(address: String, symbol: String): WalletDTO
 }

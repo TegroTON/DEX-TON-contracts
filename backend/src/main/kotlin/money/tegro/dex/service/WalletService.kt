@@ -16,13 +16,15 @@ import money.tegro.dex.model.WalletModel
 import money.tegro.dex.repository.WalletRepository
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.kv
-import org.ton.api.exception.TonException
+import org.ton.api.exception.TvmException
+import org.ton.bigint.BigInt
 import org.ton.block.AddrNone
 import org.ton.block.AddrStd
 import org.ton.block.MsgAddress
 import org.ton.block.MsgAddressInt
 import org.ton.lite.api.liteserver.LiteServerAccountId
 import org.ton.lite.client.LiteClient
+import java.math.BigInteger
 import kotlin.coroutines.CoroutineContext
 
 @Singleton
@@ -51,7 +53,7 @@ open class WalletService(
         job.cancel()
     }
 
-    suspend fun getWallet(owner: MsgAddressInt, master: MsgAddress = AddrNone): WalletModel? {
+    suspend fun getWallet(owner: MsgAddressInt, master: MsgAddress = AddrNone): WalletModel {
         walletRepository.findByOwnerAndMaster(owner, master)?.let {
             // Shortcuts, baby
             return it
@@ -59,25 +61,27 @@ open class WalletService(
 
         if (master == AddrNone) {
             // Simple toncoins, will just return null if account is not active
-            return liteClient.getAccount(LiteServerAccountId(owner as AddrStd))?.let {
-                walletRepository.save(
-                    WalletModel(
-                        address = owner,
-                        balance = it.storage.balance.coins.amount.value,
-                        owner = owner,
-                        master = master,
-                    )
+            return walletRepository.save(
+                WalletModel(
+                    address = owner,
+                    balance = liteClient.getAccount(LiteServerAccountId(owner as AddrStd))?.storage?.balance?.coins?.amount?.value
+                        ?: BigInteger.ZERO, // If not found, just assume zero
+                    owner = owner,
+                    master = master,
                 )
-            }
+            )
         }
 
         if (master is MsgAddressInt) {
             // Token wallet
+            // this call fails only when something is fishy, as internally it just computes state init
+            // cannot do it on the server because it might have some extra logic implemented by the contract
+            val address = TokenContract.getWalletAddress(master as AddrStd, owner, liteClient)
             return try {
-                // If this or the next call fails (uninitialized wallet, or something else, return null)
-                val address = TokenContract.getWalletAddress(master as AddrStd, owner, liteClient)
+                // If this call fails (uninitialized wallet, or something else), assume zero balance
                 val data = TokenWalletContract.of(address as AddrStd, liteClient)
                 require(data.owner == owner) // Sanity check
+                require(data.jetton == master)
                 walletRepository.save(
                     WalletModel(
                         address = address,
@@ -86,8 +90,15 @@ open class WalletService(
                         master = data.jetton,
                     )
                 )
-            } catch (e: TonException) {
-                null
+            } catch (e: TvmException) {
+                walletRepository.save(
+                    WalletModel(
+                        address = address,
+                        balance = BigInteger.ZERO,
+                        owner = owner,
+                        master = master,
+                    )
+                )
             }
         }
 
@@ -116,17 +127,22 @@ open class WalletService(
                 if (it.owner == it.address && it.master == AddrNone) { // TON balance
                     walletRepository.update(
                         it.address,
-                        // TODO: Remove !!
-                        liteClient.getAccount(LiteServerAccountId(it.address as AddrStd))!!.storage.balance.coins.amount.value
+                        liteClient.getAccount(LiteServerAccountId(it.address as AddrStd))?.storage?.balance?.coins?.amount?.value
+                            ?: BigInt.ZERO
                     )
                 } else {
-                    val data = TokenWalletContract.of(it.address as AddrStd, liteClient)
-                    walletRepository.update(
-                        it.address,
-                        data.balance,
-                        data.owner,
-                        data.jetton,
-                    )
+                    try {
+                        val data = TokenWalletContract.of(it.address as AddrStd, liteClient)
+                        walletRepository.update(
+                            it.address,
+                            data.balance,
+                            data.owner,
+                            data.jetton,
+                        )
+                    } catch (e: TvmException) {
+                        // Can't update properly, just set balance to zero
+                        walletRepository.update(it.address, BigInt.ZERO)
+                    }
                 }
             }
     }

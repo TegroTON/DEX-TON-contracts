@@ -10,22 +10,17 @@ import org.ton.bigint.BigInt
 import org.ton.block.MsgAddressInt
 import java.time.Instant
 
-@MappedEntity("swaps")
-data class SwapModel(
-    val hash: ByteArray,
-
-    val lt: Long,
-
+@MappedEntity("reserves")
+data class ReserveModel(
     @field:TypeDef(type = DataType.BYTE_ARRAY, converter = MsgAddressIntAttributeConverter::class)
-    val src: MsgAddressInt,
+    val address: MsgAddressInt,
 
-    @field:TypeDef(type = DataType.BYTE_ARRAY, converter = MsgAddressIntAttributeConverter::class)
-    val dest: MsgAddressInt,
+    val base: BigInt,
 
-    val amount: BigInt,
+    val quote: BigInt,
 
     val timestamp: Instant = Instant.now(),
-    
+
     @field:Id
     @field:GeneratedValue(GeneratedValue.Type.IDENTITY)
     var id: Long? = null,

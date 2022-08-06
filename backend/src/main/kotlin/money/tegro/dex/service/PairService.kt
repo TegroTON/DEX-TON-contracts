@@ -10,7 +10,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import money.tegro.dex.config.ServiceConfig
 import money.tegro.dex.contract.PairContract
+import money.tegro.dex.model.ReserveModel
 import money.tegro.dex.repository.PairRepository
+import money.tegro.dex.repository.ReserveRepository
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments
 import org.ton.block.AddrStd
@@ -26,6 +28,7 @@ open class PairService(
     private val liveAccounts: Flow<AddrStd>,
 
     private val pairRepository: PairRepository,
+    private val reserveRepository: ReserveRepository,
 ) : CoroutineScope {
     override val coroutineContext: CoroutineContext = Dispatchers.Default
 
@@ -61,12 +64,12 @@ open class PairService(
                 }
             }
         )
-            .map {
-                it.address to PairContract.getReserves(it.address as AddrStd, liteClient)
-            }
             .collect {
-                val (address, reserves) = it
-                pairRepository.update(address, reserves.first, reserves.second)
+                val reserves = PairContract.getReserves(it.address as AddrStd, liteClient)
+                pairRepository.update(it.address, reserves.first, reserves.second)
+
+                // Store old values in the logging table
+                reserveRepository.save(ReserveModel(it.address, it.baseReserve, it.quoteReserve, it.updated))
             }
     }
 

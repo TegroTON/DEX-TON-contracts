@@ -3,7 +3,7 @@ package money.tegro.dex.controller
 import io.micrometer.core.annotation.Timed
 import io.micronaut.http.annotation.Controller
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.map
 import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.dto.WalletDTO
 import money.tegro.dex.model.TokenModel
@@ -21,14 +21,14 @@ open class WalletController(
     @Timed("controller.wallet.all")
     override fun getAll(address: String): Flow<WalletDTO> =
         tokenRepository.findAll()
-            .mapNotNull { token ->
-                walletService.getWallet(AddrStd(address), token.address)?.let { mapWallet(it, token) }
+            .map { token ->
+                mapWallet(walletService.getWallet(AddrStd(address), token.address), token)
             }
 
     @Timed("controller.wallet.get")
-    override suspend fun get(address: String, symbol: String): WalletDTO? {
+    override suspend fun get(address: String, symbol: String): WalletDTO {
         val token = requireNotNull(tokenRepository.findBySymbolAndEnabledTrue(symbol))
-        return walletService.getWallet(AddrStd(address), token.address)?.let { mapWallet(it, token) }
+        return mapWallet(walletService.getWallet(AddrStd(address), token.address), token)
     }
 
     private fun mapWallet(wallet: WalletModel, token: TokenModel) = WalletDTO(
