@@ -65,6 +65,16 @@ CREATE TABLE swaps
     timestamp TIMESTAMPTZ NOT NULL  -- When the swap was recorded
 );
 
+-- User's token wallets, including LP wallets
+CREATE TABLE wallets
+(
+    address BYTEA PRIMARY KEY,
+    balance NUMERIC(80) NOT NULL,
+    owner   BYTEA       NOT NULL, -- Owner address
+    master  BYTEA       NOT NULL, -- Jetton master contract address
+    updated TIMESTAMPTZ NOT NULL
+);
+
 /* Extra definitions to support collection of different metrics.
    Metrics are stored in the same database for convenience and ease of deployment,
    PostgreSQL is plenty adequate for project's needs.

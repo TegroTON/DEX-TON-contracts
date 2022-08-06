@@ -4,11 +4,11 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.micronaut.core.io.scan.ClassPathResourceLoader
 import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import money.tegro.dex.contract.PairContract
 import money.tegro.dex.contract.TokenContract
 import money.tegro.dex.contract.TokenMetadata
@@ -24,6 +24,7 @@ import org.ton.crypto.base64
 import org.ton.lite.client.LiteClient
 import java.io.ByteArrayInputStream
 import java.net.URLConnection
+import kotlin.coroutines.CoroutineContext
 
 @Singleton
 class InitializationService(
@@ -32,15 +33,14 @@ class InitializationService(
 
     private val pairRepository: PairRepository,
     private val tokenRepository: TokenRepository,
-) {
+) : CoroutineScope {
+    override val coroutineContext: CoroutineContext = Dispatchers.Default
+
     @Scheduled(initialDelay = "0s")
     fun setup() {
-        runBlocking(Dispatchers.Default) {
-            launch { run() }
-        }
     }
 
-    private suspend fun run() {
+    private val job = launch {
         // For initialization, load pairs from pairs.json in the classpath
         resourceLoader.classLoader.getResource("pairs.json")
             ?.apply { logger.info("loading initial pairs from {}", kv("pairs", this)) }

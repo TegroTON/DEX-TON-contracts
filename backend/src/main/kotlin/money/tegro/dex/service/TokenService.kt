@@ -13,6 +13,7 @@ import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.kv
 import org.ton.block.AddrStd
 import org.ton.lite.client.LiteClient
+import kotlin.coroutines.CoroutineContext
 
 @Singleton
 class TokenService(
@@ -23,15 +24,14 @@ class TokenService(
     private val liveAccounts: Flow<AddrStd>,
 
     private val tokenRepository: TokenRepository,
-) {
+) : CoroutineScope {
+    override val coroutineContext: CoroutineContext = Dispatchers.Default
+
     @Scheduled(initialDelay = "0s")
     fun setup() {
-        runBlocking(Dispatchers.Default) {
-            launch { run() }
-        }
     }
 
-    private suspend fun run() {
+    private val job = launch {
         merge(
             // Watch live
             liveAccounts

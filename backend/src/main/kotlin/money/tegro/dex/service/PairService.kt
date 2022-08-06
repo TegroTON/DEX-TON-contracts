@@ -12,6 +12,7 @@ import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments
 import org.ton.block.AddrStd
 import org.ton.lite.client.LiteClient
+import kotlin.coroutines.CoroutineContext
 
 @Singleton
 class PairService(
@@ -22,15 +23,14 @@ class PairService(
     private val liveAccounts: Flow<AddrStd>,
 
     private val pairRepository: PairRepository,
-) {
+) : CoroutineScope {
+    override val coroutineContext: CoroutineContext = Dispatchers.Default
+
     @Scheduled(initialDelay = "0s")
     fun setup() {
-        runBlocking(Dispatchers.Default) {
-            launch { run() }
-        }
     }
 
-    private suspend fun run() {
+    private val job = launch {
         merge(
             // Watch live
             liveAccounts

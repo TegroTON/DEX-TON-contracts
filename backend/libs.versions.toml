@@ -1,8 +1,10 @@
 [versions]
-coroutines = { strictly = "1.6.1-native-mt" }
+coroutines = { strictly = "1.6.3-native-mt" }
 jackson = { prefer = "2.13.2" }
+r2dbc = { prefer = "1.0.0.RELEASE" }
+r2dbc-postgresql = { prefer = "0.8.12.RELEASE" }
 reflect = { prefer = "1.7.0" }
-ton = { strictly = "fixtestaddresses-SNAPSHOT" }
+ton = { strictly = "caa92dbaa1" }
 logging = { prefer = "2.1.23" }
 logback = { prefer = "1.2.11" }
 logstash-logback-encoder = { prefer = "7.2" }
@@ -12,7 +14,6 @@ micronaut-data = { prefer = "3.4.2" }
 micronaut-flyway = { prefer = "5.3.0" }
 micronaut-kotlin = { prefer = "3.2.2" }
 micronaut-openapi = { prefer = "4.3.0" }
-micronaut-sql = { prefer = "4.6.1" }
 micronaut-micrometer = { prefer = "4.3.0" }
 swagger = { prefer = "2.2.1" }
 spotbugs = { prefer = "4.7.1" }
@@ -25,7 +26,7 @@ jib = "3.2.1"
 [libraries]
 # Core
 reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "reflect" }
-ton = { group = "com.github.antonmeep.ton-kotlin", name = "ton-kotlin", version.ref = "ton" }
+ton = { group = "com.github.andreypfau.ton-kotlin", name = "ton-kotlin", version.ref = "ton" }
 
 # Coroutines
 coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "coroutines" }
@@ -33,6 +34,8 @@ coroutines-reactive = { group = "org.jetbrains.kotlinx", name = "kotlinx-corouti
 
 # Data
 jackson = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
+r2dbc-pool = { group = "io.r2dbc", name = "r2dbc-pool", version.ref = "r2dbc" }
+r2dbc-postgresql = { group = "io.r2dbc", name = "r2dbc-postgresql", version.ref = "r2dbc-postgresql" }
 postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "postgresql" }
 
 # Logging
@@ -66,9 +69,8 @@ micronaut-http-client = { group = "io.micronaut", name = "micronaut-http-client"
 micronaut-http-server-netty = { group = "io.micronaut", name = "micronaut-http-server-netty", version.ref = "micronaut" }
 
 # Data
-micronaut-data-jdbc = { group = "io.micronaut.data", name = "micronaut-data-jdbc", version.ref = "micronaut-data" }
+micronaut-data-r2dbc = { group = "io.micronaut.data", name = "micronaut-data-r2dbc", version.ref = "micronaut-data" }
 micronaut-flyway = { group = "io.micronaut.flyway", name = "micronaut-flyway", version.ref = "micronaut-flyway" }
-micronaut-jdbc-hikari = { group = "io.micronaut.sql", name = "micronaut-jdbc-hikari", version.ref = "micronaut-sql" }
 
 # Extra
 micronaut-micrometer-core = { group = "io.micronaut.micrometer", name = "micronaut-micrometer-core", version.ref = "micronaut-micrometer" }
@@ -77,7 +79,7 @@ micronaut-micrometer-annotations = { group = "io.micronaut.micrometer", name = "
 [bundles]
 annotations = ["jakarta-annotations", "swagger-annotations", "spotbugs-annotations"]
 coroutines = ["coroutines-core", "coroutines-reactive"]
-data-runtime = ["postgresql"]
+data-runtime = ["r2dbc-pool", "r2dbc-postgresql", "postgresql"]
 logging = ["logging", "logstash-logback-encoder"]
 logging-runtime = ["logback-core", "logback-classic"]
 

@@ -2,12 +2,12 @@ package money.tegro.dex.service
 
 import io.micronaut.scheduling.annotation.Scheduled
 import jakarta.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import money.tegro.dex.contract.op.Op
 import money.tegro.dex.contract.op.OpSuccessfulSwap
 import money.tegro.dex.contract.op.OpTransfer
@@ -22,21 +22,21 @@ import org.ton.block.IntMsgInfo
 import org.ton.block.MsgAddressInt
 import org.ton.block.Transaction
 import org.ton.tlb.parse
+import kotlin.coroutines.CoroutineContext
 
 @Singleton
 class SwapService(
     private val liveTransactions: Flow<Transaction>,
     private val pairRepository: PairRepository,
     private val swapRepository: SwapRepository,
-) {
+) : CoroutineScope {
+    override val coroutineContext: CoroutineContext = Dispatchers.Default
+
     @Scheduled(initialDelay = "0s")
     fun setup() {
-        runBlocking(Dispatchers.Default) {
-            launch { run() }
-        }
     }
 
-    private suspend fun run() {
+    private val job = launch {
         liveTransactions
             .filter { ((it.in_msg.value?.info as? IntMsgInfo)?.src as? AddrStd)?.let { pairRepository.existsById(it) } == true }
             .mapNotNull { transaction ->
