@@ -12,9 +12,9 @@ import money.tegro.dex.dto.WalletDTO
 interface WalletOperations {
     @Operation(summary = "Get information about all balances associated with the address")
     @Get("/{address}")
-    suspend fun getAll(address: String): Flow<WalletDTO>
+    fun getAll(address: String): Flow<WalletDTO>
 
     @Operation(summary = "Get information about balance of specific token associated with the address")
     @Get("/{address}/{symbol}")
-    suspend fun get(address: String, symbol: String): WalletDTO
+    suspend fun get(address: String, symbol: String): WalletDTO?
 }

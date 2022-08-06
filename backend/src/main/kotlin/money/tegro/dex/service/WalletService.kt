@@ -16,6 +16,7 @@ import money.tegro.dex.model.WalletModel
 import money.tegro.dex.repository.WalletRepository
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.kv
+import org.ton.api.exception.TonException
 import org.ton.block.AddrNone
 import org.ton.block.AddrStd
 import org.ton.block.MsgAddress
@@ -50,11 +51,30 @@ open class WalletService(
         job.cancel()
     }
 
-    suspend fun getWallet(owner: MsgAddressInt, master: MsgAddress = AddrNone) =
-        // Just get from the db
-        walletRepository.findByOwnerAndMaster(owner, master)
-        // Fetch jetton info
-            ?: (master as? MsgAddressInt)?.let {
+    suspend fun getWallet(owner: MsgAddressInt, master: MsgAddress = AddrNone): WalletModel? {
+        walletRepository.findByOwnerAndMaster(owner, master)?.let {
+            // Shortcuts, baby
+            return it
+        }
+
+        if (master == AddrNone) {
+            // Simple toncoins, will just return null if account is not active
+            return liteClient.getAccount(LiteServerAccountId(owner as AddrStd))?.let {
+                walletRepository.save(
+                    WalletModel(
+                        address = owner,
+                        balance = it.storage.balance.coins.amount.value,
+                        owner = owner,
+                        master = master,
+                    )
+                )
+            }
+        }
+
+        if (master is MsgAddressInt) {
+            // Token wallet
+            return try {
+                // If this or the next call fails (uninitialized wallet, or something else, return null)
                 val address = TokenContract.getWalletAddress(master as AddrStd, owner, liteClient)
                 val data = TokenWalletContract.of(address as AddrStd, liteClient)
                 require(data.owner == owner) // Sanity check
@@ -66,16 +86,13 @@ open class WalletService(
                         master = data.jetton,
                     )
                 )
+            } catch (e: TonException) {
+                null
             }
-            // Just plain ton wallet
-            ?: walletRepository.save(
-                WalletModel(
-                    address = owner,
-                    balance = liteClient.getAccount(LiteServerAccountId(owner as AddrStd))!!.storage.balance.coins.amount.value,
-                    owner = owner,
-                    master = AddrNone,
-                )
-            )
+        }
+
+        throw IllegalStateException("shouldn't be here")
+    }
 
     private val job = launch {
         merge(
