@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.time.delay
 import money.tegro.dex.config.ServiceConfig
 import money.tegro.dex.contract.TokenContract
+import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.repository.TokenRepository
 import mu.KLogging
 import net.logstash.logback.argument.StructuredArguments.kv
@@ -51,7 +52,10 @@ open class TokenService(
                 .mapNotNull { tokenRepository.findById(it) }
                 .onEach {
                     registry.counter("service.token.hits").increment()
-                    logger.info("{} matched database entity", kv("address", it.address))
+                    logger.info(
+                        "{} matched database entity",
+                        kv("address", (it.address as? AddrStd)?.toSafeBounceable() ?: it.address)
+                    )
                 },
             // Apart from watching live interactions, update them periodically
             channelFlow {

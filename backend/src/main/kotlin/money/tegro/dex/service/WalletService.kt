@@ -12,6 +12,7 @@ import kotlinx.coroutines.time.delay
 import money.tegro.dex.config.ServiceConfig
 import money.tegro.dex.contract.TokenContract
 import money.tegro.dex.contract.TokenWalletContract
+import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.model.WalletModel
 import money.tegro.dex.repository.WalletRepository
 import mu.KLogging
@@ -112,7 +113,10 @@ open class WalletService(
                 .mapNotNull { walletRepository.findById(it) }
                 .onEach {
                     registry.counter("service.wallet.hits").increment()
-                    logger.info("{} matched database entity", kv("address", it.address))
+                    logger.info(
+                        "{} matched database entity",
+                        kv("address", (it.address as? AddrStd)?.toSafeBounceable() ?: it.address)
+                    )
                 },
             // Apart from watching live interactions, update them periodically
             channelFlow {

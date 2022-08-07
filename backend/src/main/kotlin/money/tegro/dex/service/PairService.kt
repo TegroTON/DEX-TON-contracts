@@ -10,11 +10,12 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import money.tegro.dex.config.ServiceConfig
 import money.tegro.dex.contract.PairContract
+import money.tegro.dex.contract.toSafeBounceable
 import money.tegro.dex.model.ReserveModel
 import money.tegro.dex.repository.PairRepository
 import money.tegro.dex.repository.ReserveRepository
 import mu.KLogging
-import net.logstash.logback.argument.StructuredArguments
+import net.logstash.logback.argument.StructuredArguments.kv
 import org.ton.block.AddrStd
 import org.ton.lite.client.LiteClient
 import kotlin.coroutines.CoroutineContext
@@ -53,7 +54,10 @@ open class PairService(
                 .mapNotNull { pairRepository.findById(it) }
                 .onEach {
                     registry.counter("service.pair.hits").increment()
-                    logger.info("{} matched database entity", StructuredArguments.kv("address", it.address))
+                    logger.info(
+                        "{} matched database entity",
+                        kv("address", (it.address as? AddrStd)?.toSafeBounceable() ?: it.address)
+                    )
                 },
             // Apart from watching live interactions, update them periodically
             channelFlow {
@@ -68,8 +72,8 @@ open class PairService(
                 val reserves = PairContract.getReserves(it.address as AddrStd, liteClient)
                 pairRepository.update(it.address, reserves.first, reserves.second)
 
-                // Store old values in the logging table
-                reserveRepository.save(ReserveModel(it.address, it.baseReserve, it.quoteReserve, it.updated))
+                // Store values in the logging table
+                reserveRepository.save(ReserveModel(it.address, reserves.first, reserves.second))
             }
     }
 
