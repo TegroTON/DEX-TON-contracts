@@ -27,7 +27,14 @@ open class LiveBlockFactory(
             }
         }
             .distinctUntilChanged()
-            .mapNotNull { liteClient.getBlock(it)?.let(::listOf) }
+            .mapNotNull {
+                try {
+                    liteClient.getBlock(it)?.let(::listOf)
+                } catch (e: Exception) {
+                    logger.warn("couldn't get masterchain block {}", kv("seqno", it), e)
+                    null
+                }
+            }
             .runningReduce { accumulator, value ->
                 val lastMcShards = accumulator.last().extra.custom.value?.shard_hashes
                     ?.nodes()
@@ -42,7 +49,14 @@ open class LiveBlockFactory(
                         (lastMcShards.getOrDefault(curr.key, curr.value).seq_no + 1..curr.value.seq_no)
                             .map { TonNodeBlockId(curr.key, Shard.ID_ALL, it.toInt()) }
                     }
-                    .mapNotNull { liteClient.lookupBlock(it)?.let { liteClient.getBlock(it) } }
+                    .mapNotNull {
+                        try {
+                            liteClient.lookupBlock(it)?.let { liteClient.getBlock(it) }
+                        } catch (e: Exception) {
+                            logger.warn("couldn't get block {} {}", kv("workchain", it.workchain), kv("seqno", it), e)
+                            null
+                        }
+                    }
                     .plus(value)
             }
             .flatMapConcat { it.asFlow() }
