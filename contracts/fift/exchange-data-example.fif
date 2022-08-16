@@ -2,10 +2,32 @@
 "GetOpt.fif" include
 // TONDEX V1 (только ТОН <-> ЖЕТОН)
 
+0x00 =: SNAKE_DATA_PREFIX
+0x01 =: CHUNK_DATA_PREFIX
+0x00 =: ONCHAIN_CONTENT_PREFIX
+0x01 =: OFFCHAIN_CONTENT_PREFIX
+0x82a3537ff0dbce7eec35d69edc3a189ee6f17d82f353a553f9aa96cb0be3ce89 =: name-sha256
+0xb76a7ca153c24671658335bbd08946350ffc621fa1c516e7123095d4ffd5c581 =: symbol-sha256
+0xc9046f7a37ad0ea7cee73355984fa5428982f8b37c8f7bcec91f7ac71a7cd104 =: description-sha256
+0x6105d6cc76af400325e94d588ce511be5bfdbb73b437dc51eca43917d7a43e3d =: image-sha256
+0xae2f402b5bb9a32b5306f9ceb578f30e46ad5719a27beea243ae1cf22652f634 =: addr1-sha256
+0xc0152f12bc5c339eaf36577e92516be86f21ada60004f84cea7b0b2e048f8678 =: addr2-sha256
+
+
+// x e e` --
+{ cond } : ifelse
 
 // parse addr from string to slice
 // S -- s
 { <b swap parse-smc-addr drop Addr, b> <s } : $>Addr>s
+
+// parse addr from string to snake-slice
+// S -- s
+{ <b SNAKE_DATA_PREFIX 8 u, swap parse-smc-addr drop Addr, b> <b swap ref, b> <s } : $>Addr>snake
+
+// store string to snake format
+// S -- s
+{ <b over $len { SNAKE_DATA_PREFIX 8 u, swap 36 append-long-string } { nip } ifelse b> <b swap ref, b> <s } : $>snake
 
 // create uint256 key from string
 // S -- x
@@ -14,26 +36,29 @@
 // -- s
 { <b 0 8 u, b> <s } : addr-none
 
+// -- s
+{ <b SNAKE_DATA_PREFIX 8 u, addr-none s, b> <b swap ref, b> <s } : addr-none-snake
+
 // LP metadata
-"TON-JETTON LP token" $>s =: name
-"TON-JETTON LP" $>s =: symbol
-addr-none =: addr1 // addr_none if TON
-"EQD-AA2qPWPYqvFZ8vjtHLG_9_WunfqpM9Of9xGOdPeHQo27" $>Addr>s =: addr2 // JETTON address
+"TON-TEST LP token" $>snake =: name
+"TON-TEST LP" $>snake =: symbol
+addr-none-snake =: addr1 // addr_none if TON
+"kQDf-x3_O9p-HlY_uQbOl3CekmdgN_WDJxWrhlwWyqrpjtaV" $>Addr>snake =: addr2 // JETTON address
 
 variable dict#    dictnew dict# !
 
-// s S --
-{ $>u256 dict# @ 256 udict!+ drop dict# ! } : write-to-dict
+// s x --
+{ dict# @ 256 udict!+ drop dict# ! } : write-to-dict
 
-name "name" write-to-dict
-symbol "symbol" write-to-dict
-addr1 "addr1" write-to-dict
-addr2 "addr2" write-to-dict
+name name-sha256 write-to-dict
+symbol symbol-sha256 write-to-dict
+addr1 addr1-sha256 write-to-dict
+addr2 addr2-sha256 write-to-dict
 
-<b 0x00 8 u, dict# @ dict, b> =: lp-metadata
+<b ONCHAIN_CONTENT_PREFIX 8 u, dict# @ dict, b> =: lp-metadata
 
 // MAIN CELL
-"EQBmO_7SDGd7WRZQ5UEx0f-pG1uheNRW8wKoOuxJf9bqW3OJ" $>Addr>s =: admin-address
+"kQA3F4O8Si_JMjX0CU55XOwKbhJXh0PDbYsCX38_y4zW92rK" $>Addr>s =: admin-address
 "build/lp-wallet.fif" include =: lp-wallet-code
 
 <b

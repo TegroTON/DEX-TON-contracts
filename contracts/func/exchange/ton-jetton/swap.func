@@ -1,4 +1,5 @@
 () swap_to_jetton(int ton_amount, slice to_address, slice payload, int query_id, int fwd_fee) impure {
+  int exact_tokens = payload~load_uint(1); ;; bool
   int jettons_min = payload~load_coins();
 
   ton_amount -= (fee::swap_to_jetton() + fwd_fee + fee::send_jetton());
@@ -11,22 +12,36 @@
     return ();
   }
 
-  int jetton_amount_out = get_out_amount(ton_amount, left_reserve, right_reserve);
+  int jetton_amount_out;
+  int change = 10000000; ;; 10k gas
+  if exact_tokens {
+    jetton_amount_out = jettons_min;
+    int ton_amount_in = get_in_amount(jetton_amount_out, left_reserve, right_reserve);
 
-  if (jetton_amount_out < jettons_min) {
-    send_tons_payload(to_address, ton_amount + fee::send_jetton(), error::insufficient_slippage(), query_id);
-    return ();
+    if (ton_amount_in > ton_amount) {
+      send_tons_payload(to_address, ton_amount + fee::send_jetton(), error::insufficient_left_amount(), query_id);
+      return ();
+    }
+    change += (ton_amount - ton_amount_in);
+  } else {
+    jetton_amount_out = get_out_amount(ton_amount, left_reserve, right_reserve);
+
+    if (jetton_amount_out < jettons_min) {
+      send_tons_payload(to_address, ton_amount + fee::send_jetton(), error::insufficient_slippage(), query_id);
+      return ();
+    }
   }
 
   accumulate_price();
   right_reserve -= jetton_amount_out;
 
-  send_jettons_payload(jetton_wallet, to_address, 10000000, jetton_amount_out, op::successful_swap(), query_id); ;; 0.01 TON in payload
+  send_jettons_payload(jetton_wallet, to_address, change, jetton_amount_out, op::successful_swap(), query_id); ;; 0.01 TON in payload
   save_data();
 }
 
 
 () swap_to_ton(int ton_amount, int jetton_amount, slice to_address, slice payload, int query_id, int fwd_fee) impure {
+  int exact_tokens = payload~load_uint(1); ;; bool
   int ton_min = payload~load_coins();
 
   ton_amount -= (fee::swap_to_ton() + fwd_fee + fee::send_jetton());
@@ -36,16 +51,34 @@
     return ();
   }
 
-  int ton_amount_out = get_out_amount(jetton_amount, right_reserve, left_reserve);
+  int ton_amount_out;
+  int change = 0;
+  if exact_tokens {
+    ton_amount_out = ton_min;
 
-  if (ton_amount_out < ton_min) {
-    send_jettons_payload(jetton_wallet, to_address, ton_amount, jetton_amount, error::insufficient_slippage(), query_id);
-    return ();
+    int jetton_amount_in = get_in_amount(ton_amount_out, right_reserve, left_reserve);
+
+    if (jetton_amount_in > jetton_amount) {
+      send_jettons_payload(jetton_wallet, to_address, ton_amount, jetton_amount, error::insufficient_right_amount(), query_id);
+      return ();
+    }
+    change = jetton_amount - jetton_amount_in;
+  } else {
+    ton_amount_out = get_out_amount(jetton_amount, right_reserve, left_reserve);
+
+    if (ton_amount_out < ton_min) {
+      send_jettons_payload(jetton_wallet, to_address, ton_amount, jetton_amount, error::insufficient_slippage(), query_id);
+      return ();
+    }
   }
 
   accumulate_price();
   right_reserve += jetton_amount;
 
-  send_tons_payload(to_address, ton_amount_out + fee::send_jetton(), op::successful_swap(), query_id);
+  if (change) {
+    send_jettons_payload(jetton_wallet, to_address, ton_amount_out, change, op::return_change(), query_id);
+  } else {
+    send_tons_payload(to_address, ton_amount_out + fee::send_jetton(), op::successful_swap(), query_id);
+  }
   save_data();
 }

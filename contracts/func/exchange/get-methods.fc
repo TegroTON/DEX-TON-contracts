@@ -1,0 +1,64 @@
+
+;; GET-METHODS
+
+int initialized() method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  return ~ equal_slices(jetton_wallet, const::addr_none());
+}
+
+
+(int, int, slice, cell, cell) get_jetton_data() method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  return (lp_supply, -1, admin_address, lp_meta_data, lp_wallet_code);
+}
+
+
+slice get_wallet_address(slice owner_address) method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  return calculate_user_jetton_wallet_address(owner_address, my_address(), lp_wallet_code);
+}
+
+
+(int, int) get_reserves() method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  return (left_reserve, right_reserve);
+}
+
+
+(int, int) get_lp_share(int lp_amount) method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  int left_share = (left_reserve * lp_amount) / lp_supply;
+  int right_share = (right_reserve * lp_amount) / lp_supply;
+
+  return (left_share, right_share);
+}
+
+slice get_admin_address() method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  return admin_address;
+}
+
+(slice, slice) get_pair_tokens() method_id {
+  [int balance, _] = get_balance();
+  initialize_globals(balance, 0);
+
+  cell meta_dict = lp_meta_data.begin_parse().load_dict();
+  (slice addr1, _) = meta_dict.udict_get?(256, 0xae2f402b5bb9a32b5306f9ceb578f30e46ad5719a27beea243ae1cf22652f634);
+  addr1~skip_bits(8);
+  (slice addr2, _) = meta_dict.udict_get?(256, 0xc0152f12bc5c339eaf36577e92516be86f21ada60004f84cea7b0b2e048f8678);
+  addr2~skip_bits(8);
+
+  return (addr1, addr2);
+}

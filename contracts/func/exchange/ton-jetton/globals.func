@@ -44,7 +44,7 @@ global cell lp_meta_data;
   slice ds2 = ds.preload_ref().begin_parse();
   fee_to = ds2~load_msg_addr();
   price0_cumulative_last = ds2~load_uint(256);
-  price0_cumulative_last = ds2~load_uint(256);
+  price1_cumulative_last = ds2~load_uint(256);
   block_timestamp_last = ds2~load_int(40);
   kLast = ds2.preload_uint(122);
 }
@@ -62,7 +62,7 @@ global cell lp_meta_data;
     .store_ref(begin_cell()
       .store_slice(fee_to)
       .store_uint(price0_cumulative_last, 256)
-      .store_uint(price0_cumulative_last, 256)
+      .store_uint(price1_cumulative_last, 256)
       .store_uint(block_timestamp_last, 40)
       .store_uint(kLast, 122)
       .end_cell())

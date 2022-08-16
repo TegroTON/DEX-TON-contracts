@@ -19,7 +19,7 @@ int op::burn_notification() asm "0x7bdd97de PUSHINT";
 
 ;; config constants
 int cfg::minimum_liquidity() asm "1000 PUSHINT"; ;; mb increase it?
-int cfg::tons_for_storage() asm "100000000 PUSHINT";
+int cfg::tons_for_storage() asm "100000000 PUSHINT"; ;; 0.1 TON
 int cfg::workchain() asm "0 PUSHINT";
 
 ;; error codes

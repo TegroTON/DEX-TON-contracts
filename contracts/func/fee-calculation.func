@@ -109,7 +109,7 @@ cell get_fwd_config_param() inline {
   return get_fwd_config.preload_fwd_prices();
 }
 
-;; https://github.com/tonlabs/ton-labs-executor/blob/master/src/blockchain_config.rs#L60-L100
+;; https://github.com/tonlabs/ton-labs-executor/blob/master/src/blockchain_config.rs#L69-L109
 ;; msg_bits and msg_cells without root cell
 int get_fwd_fee(int msg_bits, int msg_cells) inline_ref method_id {
   var (lump_price, bit_price, cell_price, first_frac, next_frac) = get_fwd_prices();
