@@ -1,0 +1,14 @@
+"TonUtil.fif" include
+"Asm.fif" include
+
+
+<b
+260734629 32 u, // op
+0 64 u, // query_id
+, // jetton_amount
+, // to_owner_address - адрес получателя (не jetton, а обычный кошель)
+, // response_address (адрес отправителя (мой))
+0 1 u, // custom_payload (dict, нигде не юзается)
+, // forward_ton_amount - количество тон, которое отправляется на адрес получателя
+, // either_forward_payload - нагрузка, которая отправляется на адрес получателя
+b>

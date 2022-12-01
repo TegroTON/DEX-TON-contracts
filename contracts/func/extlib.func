@@ -1,3 +1,2 @@
 builder store_builder(builder b, builder b2) asm(b2 b) "STB";
-int equal_slices(slice a, slice b) asm "SDEQ";
-int config_hash() asm "CONFIGROOT HASHCU"; ;; 52 gas
+int equal_slices (slice a, slice b) asm "SDEQ";

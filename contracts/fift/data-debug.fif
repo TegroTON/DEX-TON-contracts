@@ -1,0 +1,22 @@
+"TonUtil.fif" include
+"Asm.fif" include
+
+
+"EQB9DjoKb6di-LGbXVWf5wq_jH5SE-lCx09fMcVmHQNtDqke" // owner address
+
+
+parse-smc-addr drop 2constant example_addr
+"build/exchange.pk" load-generate-keypair // generate key pair
+constant private_key  // save private to constant
+constant public_key // save public to constant
+
+
+<b
+example_addr Addr,
+example_addr Addr,
+2346759423 Gram,
+example_addr Addr,
+123000 Gram,
+<b public_key B, b> ref,
+<b b> ref,
+b>

@@ -1,0 +1,21 @@
+"TonUtil.fif" include
+
+variable boc-bits#    boc-bits# 0!
+variable boc-cells#   boc-cells# 0!
+variable ’spider
+{ ’spider @ execute } : spider
+{ <s dup sbits boc-bits# +! boc-cells# 1+! { ref@?+ } { spider } while drop } ’spider !
+
+// c -- x y
+{ spider boc-bits# @ boc-cells# @ boc-bits# 0! boc-cells# 0! } : c>bits/cells
+
+
+<b 123 256 u, 124 256 u, 125 256 u, b> =: cell-no-ref
+<b 123 256 u, 124 256 u, 125 256 u, cell-no-ref ref, cell-no-ref ref, cell-no-ref ref, b> =: cell-3-ref
+<b 123 256 u, 124 256 u, 125 256 u, cell-3-ref ref, cell-3-ref ref, cell-3-ref ref, b> =: cell-3-ref-ref
+<b 12312312 256 u, cell-3-ref-ref ref, b> =: main-cell // ~ 14 cells, ~ 10k bits
+
+main-cell c>bits/cells
+
+"build/lp-wallet.fif" include c>bits/cells .s
+
