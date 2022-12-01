@@ -1,5 +1,5 @@
-import {DefaultLayout} from "./DefaultLayout";
+import DefaultLayout from './DefaultLayout';
 
 export {
-    DefaultLayout
-}
+    DefaultLayout,
+};

@@ -1,17 +1,13 @@
 import {
     Route, Routes, Navigate,
 } from 'react-router-dom';
+import { useContext, useEffect } from 'react';
 import { DefaultLayout } from './layouts';
-import {AddLiquidityPage, LiquidityPage, SwapPage} from "./templates/dex";
-import {ReferralPage} from "./templates/dex/Referral";
-import {useContext, useEffect} from "react";
-import {DexContext, DexContextType} from "./context";
+import { AddLiquidityPage, LiquidityPage, SwapPage } from './templates/dex';
+import { ReferralPage } from './templates/dex/Referral';
+import { DexContext, DexContextType } from './context';
 
 export default function App() {
-    const {updateDexInfo} = useContext(DexContext) as DexContextType;
-    useEffect(() => {
-        updateDexInfo().then()
-    }, [])
     return (
         <Routes>
             <Route path="/" element={<DefaultLayout />}>

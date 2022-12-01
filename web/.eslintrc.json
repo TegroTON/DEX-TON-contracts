@@ -1,0 +1,76 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": [
+    "airbnb",
+    "airbnb-typescript",
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react/jsx-runtime",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true,
+      "tsx": true
+    },
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "project": "tsconfig.json",
+    "tsconfigRootDir": "."
+  },
+  "plugins": [
+    "react",
+    "react-hooks",
+    "@typescript-eslint"
+  ],
+  "rules": {
+    "react/jsx-filename-extension": [
+      "warn",
+      {
+        "extensions": [
+          ".tsx"
+        ]
+      }
+    ],
+    "indent": [
+      "error",
+      4
+    ],
+    // Indent JSX with 4 spaces
+    "react/jsx-indent": [
+      "error",
+      4
+    ],
+    // Indent props with 4 spaces
+    "react/jsx-indent-props": [
+      "error",
+      4
+    ],
+    "@typescript-eslint/indent": [
+      "error",
+      4
+    ],
+    "import/prefer-default-export": "off",
+    "no-restricted-globals": "off",
+    "react/jsx-props-no-spreading": "off",
+    "react/no-array-index-key": "off",
+    "@typescript-eslint/naming-convention": "off",
+    "no-await-in-loop": "off",
+    "no-plusplus": "off",
+    "no-nested-ternary": "off",
+    "import/no-extraneous-dependencies": "off",
+    "no-restricted-syntax": "off",
+    "jsx-a11y/anchor-is-valid": "off",
+    "jsx-a11y/click-events-have-key-events": "off",
+    "jsx-a11y/no-static-element-interactions": "off",
+    "jsx-a11y/label-has-associated-control": "off",
+    "jsx-a11y/anchor-has-content": "off",
+    "jsx-a11y/control-has-associated-label": "off",
+    "react/jsx-key": "off"
+  }
+}

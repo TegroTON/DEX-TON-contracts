@@ -5,9 +5,15 @@ import NodeGlobalsPolyfillPlugin from '@esbuild-plugins/node-globals-polyfill';
 import nodePolyfills from 'rollup-plugin-polyfill-node';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
+
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [react()],
+    resolve: {
+        alias: {
+            util: 'web-encoding'
+        },
+    },
     optimizeDeps: {
         esbuildOptions: {
             // Node.js global to browser globalThis
@@ -17,19 +23,22 @@ export default defineConfig({
             // Enable esbuild polyfill plugins
             plugins: [
                 NodeGlobalsPolyfillPlugin({
-                    buffer: true,
+                    buffer: true
                 }),
             ],
         },
     },
     build: {
-        target: ['es2020'],
+        target: ['ESNext'],
         rollupOptions: {
             plugins: [
                 nodePolyfills(),
                 NodeModulesPolyfillPlugin(),
                 nodeResolve({browser: true}),
             ]
+        },
+        commonjsOptions: {
+          transformMixedEsModules: true // fuck this
         }
     }
 });
