@@ -14,6 +14,7 @@ import reactor.core.scheduler.Schedulers
 object Application {
     @JvmStatic
     fun main(args: Array<String>) {
+        System.setProperty("java.net.preferIPv4Stack", "true")
         Schedulers.enableMetrics()
 
         Micronaut.build(*args)

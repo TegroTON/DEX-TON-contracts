@@ -19,7 +19,7 @@ class LiveTransactionFactory {
     fun liveTransactions(blocks: Flux<Block>): Flux<Transaction> =
         blocks
             .concatMap { block ->
-                block.extra.account_blocks.nodes()
+                block.extra.account_blocks.value.nodes()
                     .flatMap { it.first.transactions.nodes().map { it.first } }
                     .toFlux()
             }

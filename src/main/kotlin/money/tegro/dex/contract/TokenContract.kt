@@ -5,13 +5,13 @@ import net.logstash.logback.argument.StructuredArguments.v
 import net.logstash.logback.argument.StructuredArguments.value
 import net.logstash.logback.marker.Markers.append
 import org.ton.bigint.BigInt
-import org.ton.block.AddrStd
-import org.ton.block.MsgAddressInt
-import org.ton.block.VmStackValue
+import org.ton.block.*
 import org.ton.cell.Cell
 import org.ton.cell.CellBuilder
 import org.ton.lite.api.LiteApi
 import org.ton.lite.api.liteserver.LiteServerAccountId
+import org.ton.lite.api.liteserver.functions.LiteServerGetMasterchainInfo
+import org.ton.lite.api.liteserver.functions.LiteServerRunSmcMethod
 import org.ton.tlb.loadTlb
 import org.ton.tlb.storeTlb
 
@@ -25,36 +25,47 @@ data class TokenContract(
     companion object : KLogging() {
         @JvmStatic
         suspend fun of(address: AddrStd, liteApi: LiteApi): TokenContract {
-            val referenceBlock = liteApi.getMasterchainInfo().last
+            val referenceBlock = liteApi(LiteServerGetMasterchainInfo).last
             logger.trace("reference block no. {}", v("seqno", referenceBlock.seqno))
 
-            return liteApi.runSmcMethod(0b100, referenceBlock, LiteServerAccountId(address), "get_jetton_data").let {
+            return liteApi(
+                LiteServerRunSmcMethod(
+                    0b100,
+                    referenceBlock,
+                    LiteServerAccountId(address),
+                    "get_jetton_data"
+                )
+            ).let {
                 logger.debug(append("result", it), "smc method exit code {}", value("exitCode", it.exitCode))
                 require(it.exitCode == 0) { "failed to run method, exit code is ${it.exitCode}" }
 
+                val stack = it.parseAsVmStack()!!.value
                 TokenContract(
-                    totalSupply = it[0]!!.asBigInt(),
-                    mintable = (it[1] as VmStackValue.TinyInt).value != 0L,
-                    admin = (it[2] as VmStackValue.Slice).toCellSlice().loadTlb(MsgAddressInt),
-                    content = (it[3] as VmStackValue.Cell).cell,
-                    walletCode = (it[4] as VmStackValue.Cell).cell,
+                    totalSupply = stack[0].asBigInt(),
+                    mintable = (stack[1] as VmStackNumber).toLong() != 0L,
+                    admin = (stack[2] as VmStackSlice).toCellSlice().loadTlb(MsgAddressInt),
+                    content = (stack[3] as VmStackCell).cell,
+                    walletCode = (stack[4] as VmStackCell).cell,
                 )
             }
         }
 
         @JvmStatic
         suspend fun getWalletAddress(address: AddrStd, owner: MsgAddressInt, liteApi: LiteApi): MsgAddressInt {
-            val referenceBlock = liteApi.getMasterchainInfo().last
+            val referenceBlock = liteApi(LiteServerGetMasterchainInfo).last
             logger.trace("reference block no. {}", v("seqno", referenceBlock.seqno))
 
-            return liteApi.runSmcMethod(
-                0b100, referenceBlock, LiteServerAccountId(address), "get_wallet_address",
-                VmStackValue.of(CellBuilder.createCell { storeTlb(MsgAddressInt, owner) }.beginParse())
+            return liteApi(
+                LiteServerRunSmcMethod(
+                    0b100, referenceBlock, LiteServerAccountId(address), "get_wallet_address",
+                    VmStack(VmStackList(VmStackValue.of(CellBuilder.createCell { storeTlb(MsgAddressInt, owner) }
+                        .beginParse())))
+                )
             ).let {
                 logger.debug(append("result", it), "smc method exit code {}", value("exitCode", it.exitCode))
                 require(it.exitCode == 0) { "failed to run method, exit code is ${it.exitCode}" }
-
-                (it[0] as VmStackValue.Slice).toCellSlice().loadTlb(MsgAddressInt)
+                val stack = it.parseAsVmStack()!!.value
+                (stack[0] as VmStackSlice).toCellSlice().loadTlb(MsgAddressInt)
             }
         }
     }

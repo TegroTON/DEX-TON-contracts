@@ -14,6 +14,9 @@ import org.ton.api.tonnode.TonNodeBlockId
 import org.ton.bigint.BigInt
 import org.ton.block.Block
 import org.ton.lite.api.LiteApi
+import org.ton.lite.api.liteserver.functions.LiteServerGetBlock
+import org.ton.lite.api.liteserver.functions.LiteServerGetMasterchainInfo
+import org.ton.lite.api.liteserver.functions.LiteServerLookupBlock
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.publisher.Sinks
@@ -42,7 +45,7 @@ open class LiveBlockFactory(
                 completeBlocks.asFlux()
                     .timeout(config.liteBlockHistoryTimeout, Mono.empty())
                     .filter { // Find it
-                        it.info.shard.workchain_id == new.workchain && it.info.seq_no == new.seqno
+                        it.info.shard.workchain_id == new.workchain && it.info.seq_no == new.seqno.toUInt()
                     }
                     .hasElements()
                     .not() // Continue if not found
@@ -51,8 +54,9 @@ open class LiveBlockFactory(
             .concatMap {
                 mono {
                     try {
-                        logger.debug("getting block {}", kv("id", it))
-                        liteApi.lookupBlock(it).let { liteApi.getBlock(it.id) }.toBlock()
+                        val lookup = LiteServerLookupBlock(1, it, 0, 0)
+                        logger.debug("getting block $it")
+                        liteApi(lookup).let { liteApi(LiteServerGetBlock(it.id)) }.dataAsBlock().value
                     } catch (e: Exception) {
                         registry.counter(
                             "live.block.failed",
@@ -76,7 +80,7 @@ open class LiveBlockFactory(
             }
             .doOnNext { block ->
                 // Masterchain blocks also have shard_hashes, add their respective block ids to the queue
-                block.extra.custom.value?.shard_hashes
+                block.extra.custom.value?.value?.shard_hashes
                     ?.nodes()
                     .orEmpty()
                     .flatMap {
@@ -87,7 +91,7 @@ open class LiveBlockFactory(
                         blocksToProcess.emitNext(
                             TonNodeBlockId(
                                 it.first,
-                                it.second.next_validator_shard,
+                                it.second.next_validator_shard.toLong(),
                                 it.second.seq_no.toInt() // TODO: toInt()?
                             ),
                             Sinks.EmitFailureHandler.FAIL_FAST // TODO: more robust
@@ -103,7 +107,7 @@ open class LiveBlockFactory(
 
         // Query for the last masterchain blocks
         Flux.interval(Duration.ZERO, config.liteBlockPeriod)
-            .concatMap { mono { liteApi.getMasterchainInfo().last } }
+            .concatMap { mono { liteApi(LiteServerGetMasterchainInfo).last } }
             .distinctUntilChanged()
             .subscribe {
                 blocksToProcess.emitNext(
@@ -115,7 +119,7 @@ open class LiveBlockFactory(
         // Make sure we didn't skip any blocks on master- or any of the shardchains
         completeBlocks
             .asFlux()
-            .filter { it.info.gen_utime >= startedOn } // Don't go too far into the past
+            .filter { it.info.gen_utime >= startedOn.toUInt() } // Don't go too far into the past
             .filterWhen { new ->
                 completeBlocks.asFlux()
                     .timeout(config.liteBlockHistoryTimeout, Mono.empty())
@@ -131,7 +135,7 @@ open class LiveBlockFactory(
                 // TODO: Kinda important: it.info.shard.shard_prefix is bollocks and does not contain actual shard id
                 // Not sure how to get it quite honestly
                 blocksToProcess.emitNext(
-                    TonNodeBlockId(it.info.shard.workchain_id, 0, it.info.prev_seq_no),
+                    TonNodeBlockId(it.info.shard.workchain_id, 0, it.info.prev_seq_no.toInt()),
                     Sinks.EmitFailureHandler.FAIL_FAST // TODO: more robust
                 )
             }

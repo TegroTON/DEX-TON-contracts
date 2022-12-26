@@ -18,7 +18,7 @@ class LiveAccountFactory {
     fun liveAccounts(blocks: Flux<Block>, registry: MeterRegistry): Flux<AddrStd> =
         blocks
             .concatMap { block ->
-                block.extra.account_blocks.nodes()
+                block.extra.account_blocks.value.nodes()
                     .flatMap {
                         sequenceOf(AddrStd(block.info.shard.workchain_id, it.first.account_addr))
                             .plus(it.first.transactions.nodes().map {

@@ -6,7 +6,7 @@ reactor-extra = { prefer = "3.4.8" }
 reactor-pool = { prefer = "0.2.9" }
 reactor-kotlin = { prefer = "1.1.6" }
 reflect = { prefer = "1.7.0" }
-ton = { strictly = "512d3278ca" }
+ton = { strictly = "0.2.4" }
 logging = { prefer = "2.1.23" }
 logback = { prefer = "1.2.11" }
 logstash-logback-encoder = { prefer = "7.2" }
@@ -28,6 +28,7 @@ kotlin = "1.7.0"
 shadow = "7.1.2"
 micronaut-plugins = "3.4.1"
 jib = "3.2.1"
+ktor = "2.2.1"
 
 [libraries]
 # Core
@@ -93,6 +94,9 @@ micronaut-flyway = { group = "io.micronaut.flyway", name = "micronaut-flyway", v
 # Extra
 micronaut-micrometer-core = { group = "io.micronaut.micrometer", name = "micronaut-micrometer-core", version.ref = "micronaut-micrometer" }
 micronaut-micrometer-annotations = { group = "io.micronaut.micrometer", name = "micronaut-micrometer-annotation", version.ref = "micronaut-micrometer" }
+
+# Ktor
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
 
 [bundles]
 annotations = ["jakarta-annotations", "swagger-annotations"]

@@ -60,7 +60,7 @@ dependencies {
     runtimeOnly(libs.bundles.logging.runtime)
 
     implementation(libs.bundles.annotations)
-
+    implementation(libs.ktor.client.cio)
 
     implementation(libs.micronaut.jackson.databind)
     implementation(libs.micronaut.kotlin.extensions)

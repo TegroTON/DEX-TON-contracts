@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.picocli)
     implementation(libs.reflect)
     implementation(libs.ton)
+    implementation(libs.ktor.client.cio)
 
     implementation(libs.bundles.coroutines)
     implementation(libs.bundles.reactor)
