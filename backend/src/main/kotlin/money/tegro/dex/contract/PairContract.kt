@@ -29,7 +29,7 @@ interface PairContract {
             val referenceBlock = liteApi.getMasterchainInfo().last
             logger.trace("reference block no. {}", value("seqno", referenceBlock.seqno))
 
-            return liteApi.runSmcMethod(0b100, referenceBlock, LiteServerAccountId(address), "get_reserves").let {
+            return liteApi.runSmcMethod(0b100, referenceBlock, LiteServerAccountId(address), "get::reserves").let {
                 logger.debug(append("result", it), "smc method exit code {}", value("exitCode", it.exitCode))
                 require(it.exitCode == 0) { "failed to run method, exit code is ${it.exitCode}" }
 
@@ -46,7 +46,7 @@ interface PairContract {
                 0b100,
                 referenceBlock,
                 LiteServerAccountId(address),
-                "get_lp_share",
+                "get::lp_share",
                 VmStackValue.of(amount)
             ).let {
                 logger.debug(append("result", it), "smc method exit code {}", value("exitCode", it.exitCode))
