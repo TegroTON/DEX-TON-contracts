@@ -11,14 +11,23 @@ import org.ton.lite.api.liteserver.LiteServerAccountId
 
 interface PairContract {
     companion object : KLogging() {
+        private const val GET_RESERVES_SMC_METHOD_NAME = "get::reserves"
+        private const val GET_LP_SHARE_SMC_METHOD_NAME = "get::lp_share"
+        private const val INITIALIZED_SMC_METHOD_NAME = "initialized"
+
         @JvmStatic
         suspend fun isInitialized(address: AddrStd, liteApi: LiteApi): Boolean {
             val referenceBlock = liteApi.getMasterchainInfo().last
             logger.trace("reference block no. {}", value("seqno", referenceBlock.seqno))
 
-            return liteApi.runSmcMethod(0b100, referenceBlock, LiteServerAccountId(address), "initialized").let {
+            return liteApi.runSmcMethod(
+                0b100,
+                referenceBlock,
+                LiteServerAccountId(address),
+                INITIALIZED_SMC_METHOD_NAME
+            ).let {
                 logger.debug(append("result", it), "smc method exit code {}", value("exitCode", it.exitCode))
-                require(it.exitCode == 0) { "failed to run method, exit code is ${it.exitCode}" }
+                require(it.exitCode == 0) { "failed to run method '$INITIALIZED_SMC_METHOD_NAME'@$address, exit code is ${it.exitCode}" }
 
                 (it[0] as VmStackValue.TinyInt).value != 0L
             }
@@ -29,9 +38,15 @@ interface PairContract {
             val referenceBlock = liteApi.getMasterchainInfo().last
             logger.trace("reference block no. {}", value("seqno", referenceBlock.seqno))
 
-            return liteApi.runSmcMethod(0b100, referenceBlock, LiteServerAccountId(address), "get::reserves").let {
+            val methodName = "get::reserves"
+            return liteApi.runSmcMethod(
+                0b100,
+                referenceBlock,
+                LiteServerAccountId(address),
+                GET_RESERVES_SMC_METHOD_NAME
+            ).let {
                 logger.debug(append("result", it), "smc method exit code {}", value("exitCode", it.exitCode))
-                require(it.exitCode == 0) { "failed to run method, exit code is ${it.exitCode}" }
+                require(it.exitCode == 0) { "failed to run method '$GET_RESERVES_SMC_METHOD_NAME'@$address, exit code is ${it.exitCode}" }
 
                 it[0]!!.asBigInt() to it[1]!!.asBigInt()
             }
@@ -46,11 +61,11 @@ interface PairContract {
                 0b100,
                 referenceBlock,
                 LiteServerAccountId(address),
-                "get::lp_share",
+                GET_LP_SHARE_SMC_METHOD_NAME,
                 VmStackValue.of(amount)
             ).let {
                 logger.debug(append("result", it), "smc method exit code {}", value("exitCode", it.exitCode))
-                require(it.exitCode == 0) { "failed to run method, exit code is ${it.exitCode}" }
+                require(it.exitCode == 0) { "failed to run method '$GET_LP_SHARE_SMC_METHOD_NAME'@$address, exit code is ${it.exitCode}" }
 
                 it[0]!!.asBigInt() to it[1]!!.asBigInt()
             }
