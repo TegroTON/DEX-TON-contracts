@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.shadow)
     alias(libs.plugins.micronaut.application)
-    alias(libs.plugins.jib)
+//    alias(libs.plugins.jib)
 }
 
 application {
@@ -20,31 +20,35 @@ micronaut {
     }
 }
 
-jib {
-    container {
-        jvmFlags = listOf(
-            // Flags to make the GC not suck as much; https://aikar.co/mcflags.html
-            "-XX:+UseG1GC",
-            "-XX:+ParallelRefProcEnabled",
-            "-XX:MaxGCPauseMillis=200",
-            "-XX:+UnlockExperimentalVMOptions",
-            "-XX:+DisableExplicitGC",
-            "-XX:+AlwaysPreTouch",
-            "-XX:G1NewSizePercent=30",
-            "-XX:G1MaxNewSizePercent=40",
-            "-XX:G1HeapRegionSize=8M",
-            "-XX:G1ReservePercent=20",
-            "-XX:G1HeapWastePercent=5",
-            "-XX:G1MixedGCCountTarget=4",
-            "-XX:InitiatingHeapOccupancyPercent=15",
-            "-XX:G1MixedGCLiveThresholdPercent=90",
-            "-XX:G1RSetUpdatingPauseTimePercent=5",
-            "-XX:SurvivorRatio=32",
-            "-XX:+PerfDisableSharedMem",
-            "-XX:MaxTenuringThreshold=1",
-        )
-    }
+tasks.dockerfile {
+    addFile("https://storage.yandexcloud.net/cloud-certs/CA.pem", "/root/.postgresql/root.crt")
 }
+
+//jib {
+//    container {
+//        jvmFlags = listOf(
+//            // Flags to make the GC not suck as much; https://aikar.co/mcflags.html
+//            "-XX:+UseG1GC",
+//            "-XX:+ParallelRefProcEnabled",
+//            "-XX:MaxGCPauseMillis=200",
+//            "-XX:+UnlockExperimentalVMOptions",
+//            "-XX:+DisableExplicitGC",
+//            "-XX:+AlwaysPreTouch",
+//            "-XX:G1NewSizePercent=30",
+//            "-XX:G1MaxNewSizePercent=40",
+//            "-XX:G1HeapRegionSize=8M",
+//            "-XX:G1ReservePercent=20",
+//            "-XX:G1HeapWastePercent=5",
+//            "-XX:G1MixedGCCountTarget=4",
+//            "-XX:InitiatingHeapOccupancyPercent=15",
+//            "-XX:G1MixedGCLiveThresholdPercent=90",
+//            "-XX:G1RSetUpdatingPauseTimePercent=5",
+//            "-XX:SurvivorRatio=32",
+//            "-XX:+PerfDisableSharedMem",
+//            "-XX:MaxTenuringThreshold=1",
+//        )
+//    }
+//}
 
 dependencies {
     implementation(libs.reflect)
@@ -77,7 +81,7 @@ dependencies {
     implementation(libs.micronaut.http.client)
     implementation(libs.micronaut.http.server.netty)
 
-    implementation(libs.micronaut.data.r2dbc)
+    implementation(libs.micronaut.data.jdbc)
     implementation(libs.micronaut.flyway)
 
     implementation(libs.micronaut.micrometer.core)

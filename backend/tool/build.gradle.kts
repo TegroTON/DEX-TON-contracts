@@ -49,7 +49,7 @@ dependencies {
 
     implementation(libs.micronaut.http.client)
 
-    implementation(libs.micronaut.data.r2dbc)
+    implementation(libs.micronaut.data.jdbc)
 
     implementation(projects.dex)
 }
