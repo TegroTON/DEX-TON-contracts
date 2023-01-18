@@ -1,0 +1,236 @@
+#pragma version ^0.3.0;
+
+
+() op::swap_ton() impure method_id(0x600c00fd) {
+  if (null?(swap::init?)) { swap::init(); }
+
+  msg::value -= (fee::swap_to_jetton() + msg::fwd_fee + fee::send_jetton + 10000 * cfg::gas_price);
+
+  throw_if(error::insufficient_ton, msg::value < 0);
+  if (msg::value < swap::max_in) { swap::max_in = msg::value; }
+
+  if ((c4::lp_supply == 0) | (swap::min_out > c4::right_reserve) | std::equal_slices(c4::jetton_wallet, std::addr_none())) { ;; replace throw_if with bounce with save transaction chain
+    send::tons&error(
+              msg::value + 10000 * cfg::gas_price,
+            error::insufficient_liquidity,
+             swap::custom_payload);
+    return ();
+  }
+
+  int swap::amount_out = 0;
+  int swap::change = msg::value - swap::max_in;
+
+  if swap::extract {
+    swap::amount_out = swap::min_out;
+
+    int swap::amount_in = amm:get_in_amount(
+            swap::amount_out,
+              c4::left_reserve,
+              c4::right_reserve);
+
+    if (swap::amount_in > swap::max_in) {
+      send::tons&error(
+                msg::value + 10000 * cfg::gas_price,
+              error::insufficient_left_amount,
+               swap::custom_payload);
+      return ();
+    }
+    swap::change += (swap::max_in - swap::amount_in);
+  } else {
+    swap::amount_out = amm:get_out_amount(
+           swap::max_in,
+             c4::left_reserve,
+             c4::right_reserve);
+
+    if (swap::amount_out < swap::min_out) {
+      send::tons&error(
+                msg::value + 10000 * cfg::gas_price,
+              error::insufficient_slippage,
+               swap::custom_payload);
+      return ();
+    }
+  }
+
+  c4::right_reserve -= swap::amount_out;
+
+  ;; TODO do back swap change if it route
+
+  send::jettons&payload(
+            c4::jetton_wallet,
+          swap::destination,
+          swap::change + 10000 * cfg::gas_price,
+          swap::amount_out,
+          null?(swap::route_error) ? op::successful_swap : swap::route_error,
+          swap::custom_payload); ;; 0.01 TON in payload
+  c4::save();
+}
+
+{-
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+-}
+() try_buy_ton(int out_tons) impure inline { ;; magic func
+  int need_jettons = amm:get_in_amount(
+            out_tons,
+            c4::right_reserve,
+            c4::left_reserve);
+  throw_unless(13666, need_jettons < msg::jetton_value);
+  c4::right_reserve += need_jettons;
+  msg::jetton_value -= need_jettons;
+  msg::value = 0;
+  accept_message(); ;; ~8250 gas before
+}
+{-
+///////////////////////////////////////////////////////////////////////////
+-}
+() op::swap_jetton() impure method_id(0x1fb7a25) {
+  if (null?(swap::init?)) { swap::init(); }
+
+  msg::value -= (fee::swap_to_ton() + msg::fwd_fee + fee::send_jetton + 10000 * cfg::gas_price);
+
+  if (msg::value < 0) { try_buy_ton(abs(msg::value)); }
+
+  if (msg::jetton_value < swap::max_in) { swap::max_in = msg::jetton_value; }
+
+
+  if ((swap::min_out > c4::left_reserve) | (c4::lp_supply == 0)) {
+    send::jettons&error(
+               c4::jetton_wallet,
+              msg::value + 10000 * cfg::gas_price,
+              msg::jetton_value,
+            error::insufficient_liquidity,
+             swap::custom_payload);
+    return ();
+  }
+
+  int swap::amount_out = 0;
+  int swap::change = max(msg::jetton_value - swap::max_in, 0);
+
+  if swap::extract {
+    swap::amount_out = swap::min_out;
+
+    int swap::amount_in = amm:get_in_amount(
+            swap::amount_out,
+              c4::right_reserve,
+              c4::left_reserve);
+
+    if (swap::amount_in > swap::max_in) {
+      send::jettons&error(
+                 c4::jetton_wallet,
+                msg::value + 10000 * cfg::gas_price,
+                msg::jetton_value,
+              error::insufficient_right_amount,
+               swap::custom_payload);
+      return ();
+    }
+    swap::change = msg::jetton_value - swap::amount_in;
+  } else {
+    swap::amount_out = amm:get_out_amount(
+           swap::max_in,
+             c4::right_reserve,
+             c4::left_reserve);
+
+    if (swap::amount_out < swap::min_out) {
+      send::jettons&error(
+                 c4::jetton_wallet,
+                msg::value + 10000 * cfg::gas_price,
+                msg::jetton_value,
+              error::insufficient_slippage,
+               swap::custom_payload);
+      return ();
+    }
+  }
+
+  c4::right_reserve += (msg::jetton_value - swap::change);
+
+  if (swap::change) {
+    send::jettons&payload(
+              c4::jetton_wallet,
+             msg::sender,
+             10000 * cfg::gas_price,
+            swap::change,
+              op::return_change,
+             null());
+  }
+
+  ;; TODO maybe send msg::value as change, separate from swap::amount_out? (route case)
+
+  send::tons&payload(
+          swap::destination,
+          swap::amount_out + max(msg::value, 0) + 10000 * cfg::gas_price,
+            op::successful_swap,
+          swap::custom_payload);
+  c4::save();
+}
+
+
+() op::route() impure method_id(0xde6e0675) { ;; op::successful_swap
+  slice payload = msg::body;
+  msg::body = payload.preload_maybe_ref().begin_parse();
+  c3::jump(0x600c00fd); ;; op::swap_ton
+  ;; TODO maybe custom params
+}
+
+;; error::insufficient_liquidity
+;; error::insufficient_left_amount
+;; error::insufficient_slippage
+() op::cancel_route::insufficient_liquidity() impure inline_ref method_id(0xcf7c0035) {
+  swap::cancel_route_init();
+  c3::jump(0x600c00fd); ;; op::swap_ton
+}
+
+() op::cancel_route::insufficient_left_amount() impure inline_ref method_id(0xb135ad70) {
+  swap::cancel_route_init();
+  c3::jump(0x600c00fd); ;; op::swap_ton
+}
+
+() op::cancel_route::insufficient_slippage() impure inline_ref method_id(0xc6d0084d) {
+  swap::cancel_route_init();
+  c3::jump(0x600c00fd); ;; op::swap_ton
+}
+
+
+{-
+надо реализовать роутинг жетон-тон-жетон и никакой другой
+2 варианта:
+  1. Сделать отдельную переменную для роута
+    а. роут - следующий адрес
+      более универсальный вариант
+    б. роут - адрес жетона, по нему рассчитается следующий адрес
+      более удобный вариант
+
+    с учётом того, что бы не знаем задеплоен и контракт следующей пары - лучше применить универсальный вариант
+
+  2. Всё сделать на фронте, контракт будет думать что это просто обмен
+    ++++++++++++++
+
+
+Если пришёл оп с ошибкой обмена, то сделать обратный обмен без ограничений (unsafe)
+
+
+
+
+
+
+Логика работы:
+приходит обмен жетонов на тон
+тоны отправляются на следующий контракт
+контракт нормально обменивает (нет)
+контракт падает в ошибку!
+ошибка со всей остальной суммой прилетает
+  в ней OP ошибки, QUERY_ID, адрес конечного получателя (другого нет!)
+тоны меняются на жетоны "на все деньги" без проскальзывания
+
+
+
+
+
+
+
+
+
+
+
+
+-}

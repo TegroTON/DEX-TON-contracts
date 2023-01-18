@@ -1,0 +1,16 @@
+#pragma version ^0.3.0;
+
+global int lp::left_min;
+global int lp::right_min;
+
+
+() lp::init() impure inline {
+
+  slice payload = msg::body;
+
+  lp::left_min = payload~load_coins();
+  lp::right_min = payload~load_coins();
+
+  msg::body = payload;
+
+}

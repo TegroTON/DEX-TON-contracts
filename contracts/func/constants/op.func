@@ -1,0 +1,21 @@
+#pragma version ^0.3.0;
+
+;; operation codes
+;; const int op::install               = 0x3356dc14;
+;; const int op::change_admin          = 0x6c2c95a;
+;; const int op::correct_gas_price     = 0x2a681c42;
+;; const int op::swap_ton              = 0x565c7311; ;; TON -> JETTON
+;; const int op::swap_jetton           = 0x5772112; ;; JETTON -> TON (or jetton -> jetton)
+;; const int op::add_liquidity         = 0x287e167a;
+;; const int op::remove_liquidity      = 0x7bdd97de; ;; == op::burn_notification() in jetton's
+;; TODO "response" messages to have an op with the high-order bit set, i.e., in the range 2^31 .. 2^32-1
+const int op::successful_swap       = 0xde6e0675;
+const int op::successful_withdrawal = 0xceb1e3c1;
+const int op::return_change         = 0x848a64ff;
+;; for jetton and lp
+const int op::transfer              = 0xf8a7ea5;
+const int op::transfer_notification = 0x7362d09c;
+const int op::internal_transfer     = 0x178d4519;
+const int op::excesses              = 0xd53276db;
+const int op::burn                  = 0x595f07bc;
+const int op::burn_notification     = 0x7bdd97de;

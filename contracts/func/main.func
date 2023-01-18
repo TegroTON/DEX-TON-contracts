@@ -1,0 +1,17 @@
+#pragma version ^0.3.0;
+
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+  throw_if(0xffff, in_msg_body.slice_empty?()); ;; unsupport empty messages
+
+  msg::init(in_msg_body, in_msg_full, my_balance, msg_value);
+
+  utils::force_op();
+  utils::force_bounced();
+  utils::force_workchain();
+  utils::force_simple_transfer();
+
+  c4::init();
+
+  c3::jump(msg::op);
+}

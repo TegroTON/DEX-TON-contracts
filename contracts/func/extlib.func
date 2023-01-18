@@ -1,2 +1,0 @@
-builder store_builder(builder b, builder b2) asm(b2 b) "STB";
-int equal_slices (slice a, slice b) asm "SDEQ";

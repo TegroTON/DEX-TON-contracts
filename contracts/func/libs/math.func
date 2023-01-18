@@ -1,5 +1,5 @@
 ;; ========= From https://github.com/Gaussian-Process/solidity-sqrt/blob/main/src/FixedPointMathLib.sol
-int sqrt(int x) inline {
+int math::sqrt(int x) inline {
   if (x == 0) { return x; }
 
   int r = 181;

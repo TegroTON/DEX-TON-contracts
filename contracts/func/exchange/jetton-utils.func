@@ -10,10 +10,10 @@ cell pack_jetton_wallet_data(int balance, slice owner_address, slice jetton_mast
 
 cell calculate_jetton_wallet_state_init(slice owner_address, slice jetton_master_address, cell jetton_wallet_code) inline {
   cell jetton_wallet_data = pack_jetton_wallet_data(0, owner_address, jetton_master_address, jetton_wallet_code);
-  return calculate_contract_state_init(jetton_wallet_code, jetton_wallet_data);
+  return calc_state_init(jetton_wallet_code, jetton_wallet_data);
 }
 
 
 slice calculate_user_jetton_wallet_address(slice owner_address, slice jetton_master_address, cell jetton_wallet_code) inline {
-  return calculate_contract_address(calculate_jetton_wallet_state_init(owner_address, jetton_master_address, jetton_wallet_code));
+  return calc_address(calculate_jetton_wallet_state_init(owner_address, jetton_master_address, jetton_wallet_code));
 }

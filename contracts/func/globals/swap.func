@@ -1,0 +1,47 @@
+#pragma version ^0.3.0;
+
+global int swap::extract;
+global int swap::max_in;
+global int swap::min_out;
+global slice swap::destination;
+global slice swap::error_destination;
+global cell swap::custom_payload;
+global int swap::init?;
+
+() swap::init() impure inline {
+
+  slice payload = msg::body;
+
+  swap::extract = payload~load_uint(1);
+  swap::max_in = payload~load_coins();
+  swap::min_out = payload~load_coins();
+  swap::destination = payload~load_msg_addr();
+  swap::error_destination = payload~load_msg_addr();
+  swap::custom_payload = payload.preload_maybe_ref();
+
+  msg::body = payload;
+
+  swap::init? = -1;
+}
+
+global int swap::route_error;
+
+() swap::cancel_route_init() impure inline {
+
+  slice payload = msg::body;
+
+  swap::destination = payload~load_msg_addr();
+  swap::error_destination = swap::destination;
+
+  swap::extract = 0;
+  swap::max_in = 115792089237316195423570985008687907853269984665640564039457584007913129639936;
+  swap::min_out = 0;
+
+  swap::custom_payload = payload.preload_maybe_ref();
+
+  msg::body = payload;
+
+  swap::route_error = msg::op;
+
+  swap::init? = -1;
+}

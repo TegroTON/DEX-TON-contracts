@@ -1,0 +1,115 @@
+;; body schema:
+;; <b 0 1 u, AMOUNT Grams, 1 1 u, BODY s,
+() send::jettons(
+          slice from,
+          slice to,
+            int jetton_amount,
+            int ton_amount,
+        builder body,
+            int mode
+) impure inline {
+  builder msg_body = begin_cell()
+    .store_uint(op::transfer, 32)
+    .store_uint(msg::query_id, 64)
+    .store_coins(jetton_amount)
+    .store_slice(to)
+    .store_slice(to);
+  ifnot (null?(body)) {
+    msg_body = msg_body.store_builder(body);
+  } else {
+    msg_body = msg_body.store_uint(0, 1 + 4 + 1); ;; empty dict, 0 coins, 0 either_forward_payload
+  }
+
+  builder msg = begin_cell()
+    .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 011000
+    .store_slice(from)
+    .store_coins(ton_amount + fee::send_jetton) ;; ton_amount + ~0.05 TON
+    .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+    .store_ref(msg_body.end_cell());
+
+  send_raw_message(msg.end_cell(), mode);
+}
+
+
+() send::tons(
+          slice to,
+            int ton_amount,
+        builder body,
+            int mode
+) impure inline {
+  var message = begin_cell()
+    .store_uint(0x10, 6) ;; nobounce - int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool src:MsgAddress -> 011000
+    .store_slice(to)
+    .store_coins(ton_amount)
+    .store_uint(0, 107);
+  ifnot (null?(body)) {
+    message = message.store_builder(body);
+  } else {
+    message = message.store_uint(0, 32);
+  }
+  send_raw_message(message.end_cell(), null?(mode) ? 1 : mode);
+}
+
+;; bounce in error or other cases
+() send::jettons&payload(
+          slice from,
+          slice to,
+            int ton_amount,
+            int jetton_amount,
+            int op,
+           cell payload
+) impure inline {
+  builder msg_body = begin_cell()
+    .store_uint(0, 1)
+    .store_coins(ton_amount)
+    .store_uint(0, 1)
+    .store_uint(op, 32)
+    .store_maybe_ref(payload);
+  send::jettons(from, to, jetton_amount, ton_amount, msg_body, 2 + 1);
+}
+
+
+() send::tons&payload(
+          slice to,
+            int amount,
+            int op,
+           cell payload
+) impure inline {
+  builder msg_body = begin_cell()
+    .store_uint(op, 32)
+    .store_uint(msg::query_id, 64)
+    .store_maybe_ref(payload);
+  send::tons(to, amount, msg_body, 2 + 1);
+}
+
+
+() send::tons&error( ;; use only in swap
+            int amount,
+            int error_code,
+           cell payload
+) impure inline {
+  builder msg_body = begin_cell()
+    .store_uint(error_code, 32)
+    .store_uint(msg::query_id, 64)
+    .store_slice(swap::destination)
+    .store_maybe_ref(payload);
+  send::tons(swap::error_destination, amount, msg_body, 2 + 1);
+}
+
+
+() send::jettons&error(
+          slice from,
+            int ton_amount,
+            int jetton_amount,
+            int error_code,
+           cell payload
+) impure inline {
+  send::jettons&payload(from, swap::error_destination, ton_amount, jetton_amount, error_code, payload);
+;;   builder msg_body = begin_cell()
+;;     .store_uint(0, 1)
+;;     .store_coins(ton_amount)
+;;     .store_uint(0, 1)
+;;     .store_uint(error_code, 32)
+;;     .store_maybe_ref(payload);
+;;   send::jettons(from, swap::error_destination, jetton_amount, ton_amount, msg_body, 1);
+}

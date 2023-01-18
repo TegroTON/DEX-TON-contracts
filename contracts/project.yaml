@@ -2,24 +2,32 @@ ton-jetton:
   data:
     fift/exchange-data-example.fif
   func:
-    - func/extlib.func
-    - func/sqrt.func
-    - func/text-utils.func
-    - func/fee-calculation.func
-    - func/exchange/ton-jetton/gas.func
-    - func/exchange/constants.func
-    - func/utils.func
-    - func/exchange/ton-jetton/globals.func
-    - func/exchange/fees.func
-    - func/exchange/utils.func
+    - func/libs/extlib.func
+    - func/libs/std.func
+    - func/libs/math.func
+    - func/constants/cfg.func
+    - func/constants/error.func
+    - func/constants/gas.func
+    - func/constants/op.func
+    - func/globals/msg.func
+    - func/globals/c4.func
+    - func/globals/sub-msg.func
+    - func/globals/lp.func
+    - func/globals/swap.func
+    - func/libs/fee-calc.func
+    - func/constants/fee.func
+    - func/libs/send.func
+    - func/libs/utils.func
     - func/exchange/jetton-utils.func
     - func/exchange/liquidity-utils.func
-    - func/exchange/ton-jetton/liquidity.func
-    - func/exchange/swap-utils.func
-    - func/exchange/ton-jetton/swap.func
-    - func/exchange/ton-jetton/main.func
+    - func/exchange/amm.func
+    - func/get-methods.func
+    - func/op/op.func
+    - func/op/liquidity.func
+    - func/op/swap.func
+    - func/main.func
   tests:
-    - tests/exchange-test.func
+    - tests/tests.func
 
 #jetton-jetton:
 #  data:

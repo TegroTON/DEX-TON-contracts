@@ -1,0 +1,42 @@
+cell calc_state_init(cell contract_code, cell contract_data) inline {
+  return begin_cell()
+  .store_uint(0, 2)
+  .store_dict(contract_code)
+  .store_dict(contract_data)
+  .store_uint(0, 1)
+  .end_cell();
+}
+
+
+slice calc_address(cell state_init) inline {
+  return begin_cell().store_uint(4, 3)
+  .store_int(cfg::workchain, 8)
+  .store_uint(cell_hash(state_init), 256)
+  .end_cell()
+  .begin_parse();
+}
+
+
+() utils::force_op() impure inline {
+  throw_unless(error::unsupported_op, msg::op > 524287); ;; 2^19-1
+}
+
+
+() utils::force_workchain() impure inline {
+   throw_unless(error::unsupported_workchain, ext::workchains_equal?(msg::sender, my_address()));
+}
+
+
+() utils::force_simple_transfer() impure inline {
+  throw_if(error::simple_transfer, msg::op == 0);
+}
+
+
+() utils::force_bounced() impure inline {
+  throw_if(error::bounced_message, msg::bounced?);
+}
+
+
+() utils::force_admin() impure inline {
+  throw_unless(error::invalid_address, std::equal_slices(msg::sender, c4::admin));
+}

@@ -1,0 +1,121 @@
+#pragma version ^0.3.0;
+
+
+;; if transfer from jetton wallet
+() op::jetton_transfer() impure method_id(0x7362d09c) { ;; transfer_notification#0x7362d09c
+  msg::sub_init();
+  c3::jump(msg::op);
+}
+
+
+() op::correct_gas_price() impure method_id(0x2a681c42) {
+  cfg::gas_price = get_gas_fee(100000) / 100000;
+  c4::save();
+}
+
+
+{-
+эта функция отправляет запрос контракту жетона
+для получения своего жетон-кошелька по TEP-89
+-}
+() op::install() impure method_id(0x485b38a4) {
+  (_, slice t2) = get::pair_tokens();
+  if (std::equal_slices(c4::jetton_wallet, std::addr_none())) {
+    int new_gas_price = get_gas_fee(100000) / 100000;
+    cfg::gas_price = new_gas_price;
+    builder msg_body = begin_cell()
+      .store_uint(0x2c76b973, 32) ;; provide_wallet_address
+      .store_uint(msg::query_id, 64)
+      .store_slice(my_address())
+      .store_uint(0, 1);
+    send::tons(t2, 0, msg_body, 64);
+  }
+  c4::save();
+}
+
+
+{-
+эта функция принимает ответ от контракта жетона по TEP-89
+
+take_wallet_address#d1735400 query_id:uint64 wallet_address:MsgAddress
+                             owner_address:(Maybe ^MsgAddress) = InternalMsgBody;
+-}
+() op::set_jetton_wallet() impure method_id(0xd1735400) { ;; take_wallet_address#d1735400
+  (_, slice t2) = get::pair_tokens();
+  throw_unless(error::invalid_address,  std::equal_slices(msg::sender, t2));
+  slice payload = msg::body;
+  c4::jetton_wallet = payload~load_msg_addr();
+  c4::save();
+}
+
+
+() op::admin::set_right_wallet() impure method_id(0x1927a3ea) {
+  utils::force_admin();
+  slice payload = msg::body;
+  c4::jetton_wallet = payload~load_msg_addr();
+  c4::save();
+}
+
+
+() op::admin::change_meta() impure method_id(0x2fe9c72d) {
+  utils::force_admin();
+  slice payload = msg::body;
+  c4::lp_meta = payload.preload_ref();
+  c4::save();
+}
+
+
+() op::admin::change_admin() impure method_id(0x6cac95a) {
+  utils::force_admin();
+  slice payload = msg::body;
+  c4::admin = payload~load_msg_addr();
+  c4::save();
+}
+
+
+() op::admin::change_fee_distination() impure method_id(0x6c8988b6) {
+  utils::force_admin();
+  slice payload = msg::body;
+  c4::fee_distination = payload~load_msg_addr();
+  c4::save();
+}
+
+
+{-
+ВРЕМЕННЫЕ АДМИНСКИЕ ФУНКЦИИ
+ДЛЯ СПАСЕНИЯ ВОЗМОЖНОГО ПИЗДЕЦА
+-}
+() op::admin::change_code() impure method_id(0x1fbe089c) {
+  utils::force_admin();
+  slice payload = msg::body;
+  set_code(payload.preload_ref());
+}
+
+
+() op::admin::correct_right_reserve() impure method_id(0x63ad85bb) {
+  utils::force_admin();
+  slice payload = msg::body;
+  int offset = payload.preload_int(128);
+  c4::right_reserve += offset;
+  c4::save();
+}
+
+{-
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-}

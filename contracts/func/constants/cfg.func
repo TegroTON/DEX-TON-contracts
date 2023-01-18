@@ -1,0 +1,7 @@
+#pragma version ^0.3.0;
+
+;; config constants
+const int cfg::minimum_liquidity  = 10000; ;; increase 1000 -> 10000
+const int cfg::tons_for_storage   = 100000000; ;; 0.1 TON
+const int cfg::workchain          = 0;
+

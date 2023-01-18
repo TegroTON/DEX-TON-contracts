@@ -1,0 +1,832 @@
+"Asm.fif" include
+// automatically generated from `C:\Users\Andrey\AppData\Local\toncli\toncli\func-libs\error_codes.func` `C:\Users\Andrey\AppData\Local\toncli\toncli\func-libs\math.func` `C:\Users\Andrey\AppData\Local\toncli\toncli\func-libs\stdlib.func` `C:\Users\Andrey\PycharmProjects\delab-jetton-toncli\func\wall.fc` incl:`func/libs/delib.fc` incl:`func/utils/scheme.fc` incl:`func/utils/context.fc` incl:`func/wallet/shared.fc` incl:`func/common.fc` 
+PROGRAM{
+  DECLPROC power
+  DECLPROC sqrt
+  DECLPROC avg
+  DECLPROC exp
+  DECLPROC log2
+  DECLPROC delib::begin_int_msg
+  DECLPROC delib::store_either_cell
+  DECLPROC delib::load_either_cell
+  DECLPROC delib::int_msg
+  DECLPROC delib::basic_state_init
+  DECLPROC delib::addrstd_by_state
+  DECLPROC delib::force_addr
+  DECLPROC pack_internal_transfer
+  DECLPROC unpack_internal_transfer
+  DECLPROC pack_transfer_notification
+  DECLPROC unpack_transfer_query
+  DECLPROC unpack_mint_msg
+  DECLPROC unpack_root_constructor
+  DECLPROC unpack_root_burn_notification
+  DECLPROC pack_root_burn_notification
+  DECLPROC unpack_wall_burn
+  DECLPROC unpack_provide_wallet_address
+  DECLPROC pack_take_wallet_address
+  DECLPROC ctx::load
+  DECLPROC ctx::send_excesses
+  DECLPROC ctx::only_owner
+  DECLPROC ctx::reserve
+  DECLPROC wallet::pack_data
+  DECLPROC wallet::state_init
+  DECLPROC wallet::intmsg
+  DECLPROC wallet::buildmsg
+  DECLPROC load_data
+  DECLPROC save_data
+  DECLPROC receive_tokens
+  DECLPROC send_tokens
+  DECLPROC burn_tokens
+  DECLPROC on_bounce
+  DECLPROC selector
+  DECLPROC recv_internal
+  97026 DECLMETHOD get_wallet_data
+  DECLGLOBVAR msg::op
+  DECLGLOBVAR msg::query_id
+  DECLGLOBVAR msg::bounced?
+  DECLGLOBVAR msg::sender
+  DECLGLOBVAR msg::balance
+  DECLGLOBVAR msg::value
+  DECLGLOBVAR msg::fwd_fee
+  DECLGLOBVAR self::balance
+  DECLGLOBVAR self::owner_address
+  DECLGLOBVAR self::root_address
+  DECLGLOBVAR self::wallet_code
+  power PROCREF:<{
+    //  x exponent
+    OVER	//  x exponent x
+    0 EQINT	//  x exponent _3
+    IFJMP:<{	//  x exponent
+      2DROP	// 
+      0 PUSHINT	//  _4=0
+    }>	//  x exponent
+    DUP	//  x exponent exponent
+    0 EQINT	//  x exponent _6
+    IFJMP:<{	//  x exponent
+      2DROP	// 
+      1 PUSHINT	//  _7=1
+    }>	//  x exponent
+    OVER	//  x counter result
+    WHILE:<{
+      OVER	//  x counter result counter
+      1 GTINT	//  x counter result _11
+    }>DO<{	//  x counter result
+      s2 PUSH	//  x counter result x
+      MUL	//  x counter result
+      SWAP	//  x result counter
+      DEC	//  x result counter
+      SWAP	//  x counter result
+    }>	//  x counter result
+    2 1 BLKDROP2	//  result
+  }>
+  sqrt PROCREF:<{
+    //  x
+    DUP	//  x x
+    0 EQINT	//  x _2
+    IFJMP:<{	//  x
+      DROP	// 
+      0 PUSHINT	//  _3=0
+    }>	//  x
+    DUP	//  x x
+    4 LESSINT	//  x _5
+    IFJMP:<{	//  x
+      DROP	// 
+      1 PUSHINT	//  _6=1
+    }>	//  x
+    DUP	//  x x
+    INC	//  x _9
+    1 RSHIFT#	//  x z
+    OVER	//  x z y
+    WHILE:<{
+      2DUP	//  x z y z y
+      LESS	//  x z y _13
+    }>DO<{	//  x z y
+      DROP	//  x z
+      s0 s1 s0 PUSH3	//  x z y x z
+      DIV	//  x z y _14
+      ROT	//  x y _14 z
+      ADD	//  x y _15
+      1 RSHIFT#	//  x y z
+      SWAP	//  x z y
+    }>	//  x z y
+    2 1 BLKDROP2	//  y
+  }>
+  avg PROCREF:<{
+    //  x y
+    ADD	//  _2
+    1 RSHIFT#	//  _4
+  }>
+  exp PROCREF:<{
+    //  x
+    DUP	//  x x
+    -1 GTINT	//  x _2
+    IF:<{	//  x
+      POW2	//  _3
+    }>ELSE<{	//  x
+      1 PUSHINT	//  x _6=1
+      SWAP	//  _6=1 x
+      NEGATE	//  _6=1 _8
+      RSHIFT	//  _3
+    }>
+  }>
+  log2 PROCREF:<{
+    //  x
+    0 PUSHINT	//  x n=0
+    7 PUSHPOW2	//  x n=0 _3=128
+    exp INLINECALLDICT	//  x n=0 _4
+    s2 s(-1) PUXC	//  x n=0 x _4
+    GEQ	//  x n=0 _5
+    IF:<{	//  x n=0
+      DROP	//  x
+      128 RSHIFT#	//  x
+      7 PUSHPOW2	//  x n
+    }>	//  x n
+    64 PUSHINT	//  x n _10=64
+    exp INLINECALLDICT	//  x n _11
+    s2 s(-1) PUXC	//  x n x _11
+    GEQ	//  x n _12
+    IF:<{	//  x n
+      SWAP	//  n x
+      64 RSHIFT#	//  n x
+      SWAP	//  x n
+      64 ADDCONST	//  x n
+    }>	//  x n
+    32 PUSHINT	//  x n _17=32
+    exp INLINECALLDICT	//  x n _18
+    s2 s(-1) PUXC	//  x n x _18
+    GEQ	//  x n _19
+    IF:<{	//  x n
+      SWAP	//  n x
+      32 RSHIFT#	//  n x
+      SWAP	//  x n
+      32 ADDCONST	//  x n
+    }>	//  x n
+    16 PUSHINT	//  x n _24=16
+    exp INLINECALLDICT	//  x n _25
+    s2 s(-1) PUXC	//  x n x _25
+    GEQ	//  x n _26
+    IF:<{	//  x n
+      SWAP	//  n x
+      16 RSHIFT#	//  n x
+      SWAP	//  x n
+      16 ADDCONST	//  x n
+    }>	//  x n
+    8 PUSHINT	//  x n _31=8
+    exp INLINECALLDICT	//  x n _32
+    s2 s(-1) PUXC	//  x n x _32
+    GEQ	//  x n _33
+    IF:<{	//  x n
+      SWAP	//  n x
+      8 RSHIFT#	//  n x
+      SWAP	//  x n
+      8 ADDCONST	//  x n
+    }>	//  x n
+    4 PUSHINT	//  x n _38=4
+    exp INLINECALLDICT	//  x n _39
+    s2 s(-1) PUXC	//  x n x _39
+    GEQ	//  x n _40
+    IF:<{	//  x n
+      SWAP	//  n x
+      4 RSHIFT#	//  n x
+      SWAP	//  x n
+      4 ADDCONST	//  x n
+    }>	//  x n
+    2 PUSHINT	//  x n _45=2
+    exp INLINECALLDICT	//  x n _46
+    s2 s(-1) PUXC	//  x n x _46
+    GEQ	//  x n _47
+    IF:<{	//  x n
+      SWAP	//  n x
+      2 RSHIFT#	//  n x
+      SWAP	//  x n
+      2 ADDCONST	//  x n
+    }>	//  x n
+    1 PUSHINT	//  x n _52=1
+    exp INLINECALLDICT	//  x n _53
+    s1 s2 XCHG	//  n x _53
+    GEQ	//  n _54
+    IF:<{	//  n
+      INC	//  n
+    }>	//  n
+  }>
+  delib::begin_int_msg PROCINLINE:<{
+    //  flags addr amount
+    0 PUSHINT	//  flags addr amount _3=0
+    s0 s3 XCHG
+    NEWC	//  _3=0 addr amount flags _4
+    6 STU	//  _3=0 addr amount _6
+    ROT	//  _3=0 amount _6 addr
+    STSLICER	//  _3=0 amount _7
+    SWAP	//  _3=0 _7 amount
+    STGRAMS	//  _3=0 _8
+    105 STU	//  _18
+  }>
+  delib::store_either_cell PROCINLINE:<{
+    //  b c
+    DUP	//  b c c
+    CTOS	//  b c cs
+    s2 PUSH	//  b c cs b
+    BBITS	//  b c cs _4
+    OVER	//  b c cs _4 cs
+    SBITS	//  b c cs _4 _5
+    ADD	//  b c cs _6
+    10 PUSHPOW2DEC	//  b c cs _6 _7=1023
+    GREATER	//  b c cs _8
+    IF:<{	//  b c cs
+      DROP	//  b c
+      TRUE
+      ROT	//  c _9 b
+      1 STI	//  c _11
+      STREF	//  _12
+    }>ELSE<{	//  b c cs
+      FALSE
+      s2 POP
+      s0 s2 XCHG	//  cs _13 b
+      1 STI	//  cs _15
+      SWAP	//  _15 cs
+      STSLICER	//  _16
+    }>
+  }>
+  delib::load_either_cell PROCINLINE:<{
+    //  s
+    1 LDI	//  _1 s
+    SWAP	//  s _1
+    IF:<{	//  s
+      LDREF	//  c s
+      SWAP	//  s c
+    }>ELSE<{	//  s
+      <b b> <s PUSHSLICE	//  s _7
+      SWAP	//  _7 s
+      NEWC SWAP STSLICER ENDC	//  _7 _8
+    }>
+  }>
+  delib::int_msg PROCREF:<{
+    //  dest bounce amount body init
+    s0 s3 XCHG	//  dest init amount body bounce
+    IF:<{	//  dest init amount body
+      24 PUSHINT	//  dest init amount body _6=24
+    }>ELSE<{	//  dest init amount body
+      16 PUSHINT	//  dest init amount body _6=16
+    }>	//  dest init amount body flags
+    s4 s2 XCHG2	//  body init flags dest amount
+    delib::begin_int_msg INLINECALLDICT	//  body init msg
+    OVER	//  body init msg init
+    CTOS	//  body init msg _11
+    SBITS	//  body init msg _12
+    0 GTINT	//  body init msg _14
+    IF:<{	//  body init msg
+      3 PUSHINT	//  body init msg _15=3
+      SWAP	//  body init _15=3 msg
+      2 STU	//  body init _17
+      STREF	//  body msg
+    }>ELSE<{	//  body init msg
+      FALSE
+      s2 POP	//  body _19 msg
+      1 STI	//  body msg
+    }>
+    SWAP	//  msg body
+    delib::store_either_cell INLINECALLDICT	//  msg
+    ENDC	//  _23
+  }>
+  delib::basic_state_init PROCINLINE:<{
+    //  code data
+    0 PUSHINT	//  code data _2=0
+    DUP	//  code data _2=0 _3=0
+    NEWC	//  code data _2=0 _3=0 _4
+    2 STU	//  code data _2=0 _6
+    s1 s3 XCHG	//  _2=0 data code _6
+    STDICT	//  _2=0 data _7
+    STDICT	//  _2=0 _8
+    1 STU	//  _10
+    ENDC	//  _11
+  }>
+  delib::addrstd_by_state PROCINLINE:<{
+    //  workchain state_init
+    HASHCU	//  workchain _3
+    4 PUSHINT	//  workchain _3 _4=4
+    NEWC	//  workchain _3 _4=4 _5
+    3 STU	//  workchain _3 _7
+    s1 s2 XCHG	//  _3 workchain _7
+    8 STI	//  _3 _9
+    256 STU	//  addr
+    ENDC	//  _12
+    CTOS	//  _13
+  }>
+  delib::force_addr PROCINLINE:<{
+    //  addr chain can_be_none? err
+    s3 PUSH	//  addr chain can_be_none? err addr
+    b{00} PUSHSLICE SDEQ	//  addr chain can_be_none? err is_none?
+    s0 s2 PUXC	//  addr chain is_none? err is_none? can_be_none?
+    AND	//  addr chain is_none? err _6
+    IF:<{	//  addr chain is_none? err
+      4 BLKDROP	// 
+    }>ELSE<{	//  addr chain is_none? err
+      s0 s1 PUXC	//  addr chain err err is_none?
+      THROWANYIF
+      s2 PUSH	//  addr chain err addr
+      3 PLDU 4 PUSHINT EQUAL	//  addr chain err _8
+      s1 s(-1) PUXC	//  addr chain err err _8
+      THROWANYIFNOT
+      s0 s2 XCHG	//  err chain addr
+      REWRITESTDADDR DROP EQUAL	//  err _10
+      THROWANYIFNOT
+    }>
+  }>
+  pack_internal_transfer PROCINLINE:<{
+    //  query_id amount from response_address forward_ton_amount forward_payload
+    395134233 PUSHINT	//  query_id amount from response_address forward_ton_amount forward_payload _6=395134233
+    NEWC	//  query_id amount from response_address forward_ton_amount forward_payload _6=395134233 _7
+    32 STU	//  query_id amount from response_address forward_ton_amount forward_payload _9
+    s1 s6 XCHG	//  forward_payload amount from response_address forward_ton_amount query_id _9
+    64 STU	//  forward_payload amount from response_address forward_ton_amount _11
+    s0 s4 XCHG2	//  forward_payload forward_ton_amount from response_address _11 amount
+    STVARUINT16	//  forward_payload forward_ton_amount from response_address _12
+    ROT	//  forward_payload forward_ton_amount response_address _12 from
+    STSLICER	//  forward_payload forward_ton_amount response_address _13
+    SWAP	//  forward_payload forward_ton_amount _13 response_address
+    STSLICER	//  forward_payload forward_ton_amount _14
+    SWAP	//  forward_payload _14 forward_ton_amount
+    STVARUINT16	//  forward_payload _15
+    SWAP	//  _15 forward_payload
+    STSLICER	//  _16
+    ENDC	//  _17
+  }>
+  unpack_internal_transfer PROCINLINE:<{
+    //  s
+    LDVARUINT16	//  amount s
+    LDMSGADDR	//  amount from s
+    LDMSGADDR	//  amount from response_address s
+    LDVARUINT16	//  amount from response_address forward_ton_amount forward_payload
+  }>
+  pack_transfer_notification PROCINLINE:<{
+    //  query_id amount sender forward_payload
+    1935855772 PUSHINT	//  query_id amount sender forward_payload _5=1935855772
+    NEWC	//  query_id amount sender forward_payload _5=1935855772 _6
+    32 STU	//  query_id amount sender forward_payload _8
+    s1 s4 XCHG	//  forward_payload amount sender query_id _8
+    64 STU	//  forward_payload amount sender _10
+    ROT	//  forward_payload sender _10 amount
+    STVARUINT16	//  forward_payload sender _11
+    SWAP	//  forward_payload _11 sender
+    STSLICER	//  forward_payload _12
+    SWAP	//  _12 forward_payload
+    STSLICER	//  body
+    ENDC	//  _14
+  }>
+  unpack_transfer_query PROCINLINE:<{
+    //  s
+    LDVARUINT16	//  amount s
+    LDMSGADDR	//  amount destination s
+    LDMSGADDR	//  amount destination response_destination s
+    LDOPTREF	//  amount destination response_destination _24 _23
+    NIP	//  amount destination response_destination s
+    LDVARUINT16	//  amount destination response_destination forward_ton_amount forward_payload
+  }>
+  unpack_mint_msg PROCINLINE:<{
+    //  s
+    LDVARUINT16	//  amount s
+    LDMSGADDR	//  amount mint_to_address s
+    LDMSGADDR	//  amount mint_to_address response_destination s
+    LDVARUINT16	//  amount mint_to_address response_destination forward_ton_amount forward_payload
+  }>
+  unpack_root_constructor PROCINLINE:<{
+    //  s
+    1 LDI	//  mintable s
+    LDREF	//  mintable metadata s
+    LDREF	//  mintable metadata wallet_code s
+    LDOPTREF	//  mintable metadata wallet_code _21 _20
+    DROP	//  mintable metadata wallet_code mint_msg
+  }>
+  unpack_root_burn_notification PROCINLINE:<{
+    //  s
+    LDVARUINT16	//  amount s
+    LDMSGADDR	//  amount sender s
+    LDMSGADDR	//  amount sender _15 _14
+    DROP	//  amount sender response_address
+  }>
+  pack_root_burn_notification PROCINLINE:<{
+    //  query_id amount sender response_address
+    2078119902 PUSHINT	//  query_id amount sender response_address _4=2078119902
+    NEWC	//  query_id amount sender response_address _4=2078119902 _5
+    32 STU	//  query_id amount sender response_address _7
+    s1 s4 XCHG	//  response_address amount sender query_id _7
+    64 STU	//  response_address amount sender _9
+    ROT	//  response_address sender _9 amount
+    STVARUINT16	//  response_address sender _10
+    SWAP	//  response_address _10 sender
+    STSLICER	//  response_address _11
+    SWAP	//  _11 response_address
+    STSLICER	//  _12
+    ENDC	//  _13
+  }>
+  unpack_wall_burn PROCINLINE:<{
+    //  s
+    LDVARUINT16	//  amount s
+    LDMSGADDR	//  amount _10 _9
+    DROP	//  amount response_destination
+  }>
+  unpack_provide_wallet_address PROCINLINE:<{
+    //  s
+    LDMSGADDR	//  owner_address s
+    1 LDI	//  owner_address _11 _10
+    DROP	//  owner_address include_address
+  }>
+  pack_take_wallet_address PROCINLINE:<{
+    //  query_id wallet_address owner_address_cell
+    3513996288 PUSHINT	//  query_id wallet_address owner_address_cell _3=3513996288
+    NEWC	//  query_id wallet_address owner_address_cell _3=3513996288 _4
+    32 STU	//  query_id wallet_address owner_address_cell _6
+    s1 s3 XCHG	//  owner_address_cell wallet_address query_id _6
+    64 STU	//  owner_address_cell wallet_address _8
+    SWAP	//  owner_address_cell _8 wallet_address
+    STSLICER	//  owner_address_cell _9
+    STOPTREF	//  _10
+    ENDC	//  _11
+  }>
+  ctx::load PROCINLINE:<{
+    //  body msg balance value
+    s0 s2 XCHG	//  body value balance msg
+    CTOS	//  body value balance cs
+    4 LDU	//  body value balance _7 cs
+    SWAP
+    1 PUSHINT	//  body value balance cs _7 _10=1
+    AND	//  body value balance cs bounced?
+    SWAP	//  body value balance bounced? cs
+    LDMSGADDR	//  body value balance bounced? sender cs
+    LDMSGADDR	//  body value balance bounced? sender _43 _42
+    NIP	//  body value balance bounced? sender cs
+    LDVARUINT16	//  body value balance bounced? sender _45 _44
+    NIP	//  body value balance bounced? sender cs
+    1 PUSHINT	//  body value balance bounced? sender cs _20=1
+    SDSKIPFIRST	//  body value balance bounced? sender cs
+    LDVARUINT16	//  body value balance bounced? sender _47 _46
+    NIP	//  body value balance bounced? sender cs
+    s2 PUSH	//  body value balance bounced? sender cs bounced?
+    IF:<{	//  body value balance bounced? sender cs
+      s0 s5 XCHG
+      32 PUSHINT	//  cs value balance bounced? sender body _25=32
+      SDSKIPFIRST	//  cs value balance bounced? sender body
+      s0 s5 XCHG	//  body value balance bounced? sender cs
+    }>	//  body value balance bounced? sender cs
+    s0 s5 XCHG	//  cs value balance bounced? sender body
+    32 LDU	//  cs value balance bounced? sender _27 body
+    SWAP	//  cs value balance bounced? sender body _27
+    msg::op SETGLOB
+    64 LDU	//  cs value balance bounced? sender _30 body
+    SWAP	//  cs value balance bounced? sender body _30
+    msg::query_id SETGLOB
+    s0 s2 XCHG	//  cs value balance body sender bounced?
+    msg::bounced? SETGLOB
+    msg::sender SETGLOB
+    SWAP	//  cs value body balance
+    msg::balance SETGLOB
+    SWAP	//  cs body value
+    msg::value SETGLOB
+    SWAP	//  body cs
+    LDVARUINT16	//  body _53 _52
+    DROP	//  body _33
+    3 PUSHINT	//  body _33 _35=3
+    1 MULRSHIFT#	//  body _37
+    msg::fwd_fee SETGLOB
+  }>
+  ctx::send_excesses PROCINLINE:<{
+    //  to flag
+    msg::query_id GETGLOB	//  to flag _3
+    3576854235 PUSHINT	//  to flag _3 _4=3576854235
+    NEWC	//  to flag _3 _4=3576854235 _5
+    32 STU	//  to flag _3 _7
+    64 STU	//  to flag _9
+    ENDC	//  to flag body
+    FALSE	//  to flag body _11
+    0 PUSHINT	//  to flag body _11 _12=0
+    <b b> PUSHREF	//  to flag body _11 _12=0 _13
+    s4 s5 XCHG
+    s1 s3 s0 XCHG3	//  flag to _11 _12=0 body _13
+    delib::int_msg INLINECALLDICT	//  flag _14
+    SWAP	//  _14 flag
+    SENDRAWMSG
+  }>
+  ctx::only_owner PROCINLINE:<{
+    //  err owner_address
+    msg::sender GETGLOB	//  err owner_address _2
+    SWAP	//  err _2 owner_address
+    SDEQ	//  err _3
+    THROWANYIFNOT
+  }>
+  ctx::reserve PROCINLINE:<{
+    //  target
+    0 PUSHINT	//  target _1=0
+    RAWRESERVE
+  }>
+  wallet::pack_data PROCINLINE:<{
+    //  balance owner root code
+    NEWC	//  balance owner root code _5
+    s0 s4 XCHG2	//  code owner root _5 balance
+    STVARUINT16	//  code owner root _6
+    ROT	//  code root _6 owner
+    STSLICER	//  code root _7
+    SWAP	//  code _7 root
+    STSLICER	//  code _8
+    STREF	//  data
+    ENDC	//  _10
+  }>
+  wallet::state_init PROCINLINE:<{
+    //  code owner root
+    0 PUSHINT	//  code owner root _3=0
+    s2 s2 s3 XC2PU	//  code _3=0 owner root code
+    wallet::pack_data INLINECALLDICT	//  code _4
+    delib::basic_state_init INLINECALLDICT	//  _5
+  }>
+  wallet::intmsg PROCINLINE:<{
+    //  address state_init body
+    TRUE	//  address state_init body _4
+    s0 s2 XCHG
+    0 PUSHINT
+    -ROT	//  address _4 _5=0 body state_init
+    delib::int_msg INLINECALLDICT	//  msg
+  }>
+  wallet::buildmsg PROCINLINE:<{
+    //  wc code owner root body
+    3 -ROLL	//  wc body code owner root
+    wallet::state_init INLINECALLDICT	//  wc body state_init
+    s2 s2 XCPU	//  state_init body wc state_init
+    delib::addrstd_by_state INLINECALLDICT	//  state_init body _7
+    -ROT	//  _7 state_init body
+    wallet::intmsg INLINECALLDICT	//  _8
+  }>
+  load_data PROCREF:<{
+    // 
+    c4 PUSH	//  _1
+    CTOS	//  data
+    LDVARUINT16	//  _3 data
+    SWAP	//  data _3
+    self::balance SETGLOB
+    LDMSGADDR	//  _5 data
+    SWAP	//  data _5
+    self::owner_address SETGLOB
+    LDMSGADDR	//  _7 data
+    SWAP	//  data _7
+    self::root_address SETGLOB
+    LDREF	//  _18 _17
+    DROP	//  _9
+    self::wallet_code SETGLOB
+  }>
+  save_data PROCREF:<{
+    // 
+    self::balance GETGLOB	//  _1
+    self::owner_address GETGLOB	//  _1 _2
+    self::root_address GETGLOB	//  _1 _2 _3
+    self::wallet_code GETGLOB	//  _1 _2 _3 _4
+    wallet::pack_data INLINECALLDICT	//  data
+    c4 POP
+  }>
+  receive_tokens PROCREF:<{
+    //  msg_body
+    unpack_internal_transfer INLINECALLDICT	//  amount from response_address forward_ton_amount forward_payload
+    self::wallet_code GETGLOB	//  amount from response_address forward_ton_amount forward_payload _8
+    self::root_address GETGLOB	//  amount from response_address forward_ton_amount forward_payload _8 _9
+    s5 s(-1) PUXC	//  amount from response_address forward_ton_amount forward_payload _8 from _9
+    wallet::state_init INLINECALLDICT	//  amount from response_address forward_ton_amount forward_payload state_init
+    0 PUSHINT	//  amount from response_address forward_ton_amount forward_payload state_init _12=0
+    SWAP	//  amount from response_address forward_ton_amount forward_payload _12=0 state_init
+    delib::addrstd_by_state INLINECALLDICT	//  amount from response_address forward_ton_amount forward_payload wallet_address
+    msg::sender GETGLOB	//  amount from response_address forward_ton_amount forward_payload wallet_address _15
+    self::root_address GETGLOB	//  amount from response_address forward_ton_amount forward_payload wallet_address _15 _16
+    SDEQ	//  amount from response_address forward_ton_amount forward_payload wallet_address root?
+    msg::sender GETGLOB	//  amount from response_address forward_ton_amount forward_payload wallet_address root? _19
+    ROT	//  amount from response_address forward_ton_amount forward_payload root? _19 wallet_address
+    SDEQ	//  amount from response_address forward_ton_amount forward_payload root? wall?
+    OR	//  amount from response_address forward_ton_amount forward_payload _22
+    1002 THROWIFNOT
+    self::balance GETGLOB	//  amount from response_address forward_ton_amount forward_payload _24
+    s5 PUSH	//  amount from response_address forward_ton_amount forward_payload _24 amount
+    ADD	//  amount from response_address forward_ton_amount forward_payload _25
+    self::balance SETGLOB
+    OVER	//  amount from response_address forward_ton_amount forward_payload forward_ton_amount
+    0 GTINT	//  amount from response_address forward_ton_amount forward_payload _27
+    IF:<{	//  amount from response_address forward_ton_amount forward_payload
+      msg::query_id GETGLOB	//  amount from response_address forward_ton_amount forward_payload _29
+      s5 s1 s3 XCHG3
+      s4 s4 XCHG2	//  forward_ton_amount response_address _29 amount from forward_payload
+      pack_transfer_notification INLINECALLDICT	//  forward_ton_amount response_address body
+      self::owner_address GETGLOB	//  forward_ton_amount response_address body _32
+      FALSE	//  forward_ton_amount response_address body _32 _33
+      <b b> PUSHREF	//  forward_ton_amount response_address body _32 _33 _34
+      s4 s3 s0 XCHG3
+      s2 s5 XCHG	//  response_address _32 _33 forward_ton_amount body _34
+      delib::int_msg INLINECALLDICT	//  response_address msg
+      1 PUSHINT	//  response_address msg _36=1
+      SENDRAWMSG
+    }>ELSE<{
+      s2 s4 XCHG
+      4 BLKDROP	//  response_address
+    }>
+    DUP	//  response_address response_address
+    b{00} PUSHSLICE SDEQ	//  response_address _38
+    NOT	//  response_address _39
+    IF:<{	//  response_address
+      130 PUSHINT	//  response_address _42
+      ctx::send_excesses INLINECALLDICT
+    }>ELSE<{
+      DROP	// 
+    }>
+    TRUE	//  _44
+  }>
+  send_tokens PROCREF:<{
+    //  msg_body
+    1002 PUSHINT	//  msg_body _1=1002
+    self::owner_address GETGLOB	//  msg_body _1=1002 _2
+    ctx::only_owner INLINECALLDICT
+    unpack_transfer_query INLINECALLDICT	//  amount destination response_destination forward_ton_amount forward_payload
+    DUP	//  amount destination response_destination forward_ton_amount forward_payload forward_payload
+    SBITS	//  amount destination response_destination forward_ton_amount forward_payload _11
+    0 GTINT	//  amount destination response_destination forward_ton_amount forward_payload _13
+    1004 THROWIFNOT
+    OVER	//  amount destination response_destination forward_ton_amount forward_payload forward_ton_amount
+    IF:<{	//  amount destination response_destination forward_ton_amount forward_payload
+      2 PUSHINT	//  amount destination response_destination forward_ton_amount forward_payload _16=2
+    }>ELSE<{	//  amount destination response_destination forward_ton_amount forward_payload
+      1 PUSHINT	//  amount destination response_destination forward_ton_amount forward_payload _16=1
+    }>	//  amount destination response_destination forward_ton_amount forward_payload fwd_count
+    msg::value GETGLOB	//  amount destination response_destination forward_ton_amount forward_payload fwd_count _20
+    40000000 PUSHINT	//  amount destination response_destination forward_ton_amount forward_payload fwd_count _20 _23
+    msg::fwd_fee GETGLOB	//  amount destination response_destination forward_ton_amount forward_payload fwd_count _20 _23 _24
+    s0 s3 XCHG2	//  amount destination response_destination forward_ton_amount forward_payload _23 _20 _24 fwd_count
+    MUL	//  amount destination response_destination forward_ton_amount forward_payload _23 _20 _25
+    s1 s2 XCHG	//  amount destination response_destination forward_ton_amount forward_payload _20 _23 _25
+    ADD	//  amount destination response_destination forward_ton_amount forward_payload _20 _26
+    s3 PUSH	//  amount destination response_destination forward_ton_amount forward_payload _20 _26 forward_ton_amount
+    ADD	//  amount destination response_destination forward_ton_amount forward_payload _20 _27
+    20000000 PUSHINT	//  amount destination response_destination forward_ton_amount forward_payload _20 _27 _28=20000000
+    ADD	//  amount destination response_destination forward_ton_amount forward_payload _20 _29
+    GREATER	//  amount destination response_destination forward_ton_amount forward_payload _30
+    709 THROWIFNOT
+    s3 PUSH
+    0 PUSHINT
+    FALSE
+    1001 PUSHINT	//  amount destination response_destination forward_ton_amount forward_payload destination _32=0 _33 _34=1001
+    delib::force_addr INLINECALLDICT
+    s2 PUSH
+    0 PUSHINT
+    TRUE
+    1001 PUSHINT	//  amount destination response_destination forward_ton_amount forward_payload response_destination _36=0 _37 _38=1001
+    delib::force_addr INLINECALLDICT
+    self::balance GETGLOB	//  amount destination response_destination forward_ton_amount forward_payload _41
+    0 GTINT	//  amount destination response_destination forward_ton_amount forward_payload _43
+    self::balance GETGLOB	//  amount destination response_destination forward_ton_amount forward_payload _43 _44
+    s6 PUSH	//  amount destination response_destination forward_ton_amount forward_payload _43 _44 amount
+    GEQ	//  amount destination response_destination forward_ton_amount forward_payload _43 _45
+    AND	//  amount destination response_destination forward_ton_amount forward_payload _46
+    1003 THROWIFNOT
+    self::balance GETGLOB	//  amount destination response_destination forward_ton_amount forward_payload _48
+    s5 PUSH	//  amount destination response_destination forward_ton_amount forward_payload _48 amount
+    SUB	//  amount destination response_destination forward_ton_amount forward_payload _49
+    self::balance SETGLOB
+    msg::query_id GETGLOB	//  amount destination response_destination forward_ton_amount forward_payload _51
+    self::owner_address GETGLOB	//  amount destination response_destination forward_ton_amount forward_payload _51 _52
+    s1 s5 XCHG
+    s4 s6 XCHG
+    s6 s3 s3 XCHG3
+    s0 s6 XCHG	//  destination _51 amount _52 response_destination forward_ton_amount forward_payload
+    pack_internal_transfer INLINECALLDICT	//  destination body
+    0 PUSHINT	//  destination body _55=0
+    self::wallet_code GETGLOB	//  destination body _55=0 _56
+    self::root_address GETGLOB	//  destination body _55=0 _56 _57
+    s4 s0 s3 XCHG3	//  _55=0 _56 destination _57 body
+    wallet::buildmsg INLINECALLDICT	//  msg
+    7 PUSHPOW2	//  msg _59=128
+    SENDRAWMSG
+    TRUE	//  _61
+  }>
+  burn_tokens PROCREF:<{
+    //  msg_body
+    1002 PUSHINT	//  msg_body _1=1002
+    self::owner_address GETGLOB	//  msg_body _1=1002 _2
+    ctx::only_owner INLINECALLDICT
+    unpack_wall_burn INLINECALLDICT	//  amount response_destination
+    self::balance GETGLOB	//  amount response_destination _8
+    0 GTINT	//  amount response_destination _10
+    self::balance GETGLOB	//  amount response_destination _10 _11
+    s3 PUSH	//  amount response_destination _10 _11 amount
+    GEQ	//  amount response_destination _10 _12
+    AND	//  amount response_destination _13
+    1003 THROWIFNOT
+    msg::value GETGLOB	//  amount response_destination _16
+    msg::fwd_fee GETGLOB	//  amount response_destination _16 _17
+    5 MULCONST	//  amount response_destination _16 _19
+    40000000 PUSHINT	//  amount response_destination _16 _19 _22
+    ADD	//  amount response_destination _16 _23
+    1000000000 PUSHINT	//  amount response_destination _16 _23 _24=1000000000
+    ADD	//  amount response_destination _16 _25
+    GREATER	//  amount response_destination _26
+    709 THROWIFNOT
+    DUP
+    0 PUSHINT
+    TRUE
+    1001 PUSHINT	//  amount response_destination response_destination _28=0 _29 _30=1001
+    delib::force_addr INLINECALLDICT
+    self::balance GETGLOB	//  amount response_destination _32
+    s2 PUSH	//  amount response_destination _32 amount
+    SUB	//  amount response_destination _33
+    self::balance SETGLOB
+    msg::query_id GETGLOB	//  amount response_destination _35
+    msg::sender GETGLOB	//  amount response_destination _35 _36
+    s3 s0 s3 XCHG3	//  _35 amount _36 response_destination
+    pack_root_burn_notification INLINECALLDICT	//  body
+    self::root_address GETGLOB	//  body _39
+    TRUE	//  body _39 _40
+    0 PUSHINT	//  body _39 _40 _41=0
+    <b b> PUSHREF	//  body _39 _40 _41=0 _42
+    s3 s4 XCHG
+    s1 s3 s0 XCHG3	//  _39 _40 _41=0 body _42
+    delib::int_msg INLINECALLDICT	//  msg
+    7 PUSHPOW2	//  msg _44=128
+    SENDRAWMSG
+    TRUE	//  _46
+  }>
+  on_bounce PROCREF:<{
+    //  msg_body
+    16 PUSHPOW2DEC	//  msg_body _1=65535
+    msg::op GETGLOB	//  msg_body _1=65535 _2
+    395134233 PUSHINT	//  msg_body _1=65535 _2 _3=395134233
+    EQUAL	//  msg_body _1=65535 _4
+    msg::op GETGLOB	//  msg_body _1=65535 _4 _5
+    2078119902 PUSHINT	//  msg_body _1=65535 _4 _5 _6=2078119902
+    EQUAL	//  msg_body _1=65535 _4 _7
+    OR	//  msg_body _1=65535 _8
+    THROWANYIFNOT
+    load_data INLINECALLDICT
+    self::balance GETGLOB	//  msg_body _11
+    SWAP	//  _11 msg_body
+    LDVARUINT16	//  _11 _22 _21
+    DROP	//  _11 _12
+    ADD	//  _14
+    self::balance SETGLOB
+    self::owner_address GETGLOB	//  _15
+    130 PUSHINT	//  _15 _18
+    ctx::send_excesses INLINECALLDICT
+    TRUE	//  _20
+  }>
+  selector PROCINLINE:<{
+    //  msg_body
+    msg::bounced? GETGLOB	//  msg_body _1
+    IF:<{	//  msg_body
+      on_bounce INLINECALLDICT	//  _2
+    }>ELSE<{	//  msg_body
+      load_data INLINECALLDICT
+      msg::op GETGLOB	//  msg_body _4
+      395134233 PUSHINT	//  msg_body _4 _5=395134233
+      EQUAL	//  msg_body _6
+      IFJMP:<{	//  msg_body
+        receive_tokens INLINECALLDICT	//  _7
+      }>	//  msg_body
+      msg::op GETGLOB	//  msg_body _8
+      260734629 PUSHINT	//  msg_body _8 _9=260734629
+      EQUAL	//  msg_body _10
+      IFJMP:<{	//  msg_body
+        send_tokens INLINECALLDICT	//  _11
+      }>	//  msg_body
+      msg::op GETGLOB	//  msg_body _12
+      1499400124 PUSHINT	//  msg_body _12 _13=1499400124
+      EQUAL	//  msg_body _14
+      IFJMP:<{	//  msg_body
+        burn_tokens INLINECALLDICT	//  _15
+      }>	//  msg_body
+      DROP	// 
+      FALSE	//  _16
+    }>
+  }>
+  recv_internal PROC:<{
+    //  balance value msg msg_body
+    DUP	//  balance value msg msg_body msg_body
+    SEMPTY	//  balance value msg msg_body _5
+    OVER	//  balance value msg msg_body _5 msg_body
+    SBITS	//  balance value msg msg_body _5 _6
+    OR	//  balance value msg msg_body _7
+    96 LESSINT	//  balance value msg msg_body _11
+    0 THROWIF
+    s1 s3 s3 XCHG3	//  msg_body msg balance value
+    ctx::load INLINECALLDICT	//  msg_body
+    msg::sender GETGLOB	//  msg_body _15
+    0 PUSHINT	//  msg_body _15 _16=0
+    FALSE	//  msg_body _15 _16=0 _17
+    1001 PUSHINT	//  msg_body _15 _16=0 _17 _18=1001
+    delib::force_addr INLINECALLDICT
+    20000000 PUSHINT	//  msg_body _20=20000000
+    ctx::reserve INLINECALLDICT
+    selector INLINECALLDICT	//  _22
+    IFJMP:<{	// 
+      save_data INLINECALLDICT
+    }>	// 
+    16 PUSHPOW2DEC	//  _24=65535
+    THROWANY
+  }>
+  get_wallet_data PROC:<{
+    // 
+    load_data INLINECALLDICT
+    self::balance GETGLOB	//  _1
+    self::owner_address GETGLOB	//  _1 _2
+    self::root_address GETGLOB	//  _1 _2 _3
+    self::wallet_code GETGLOB	//  _1 _2 _3 _4
+  }>
+}END>c

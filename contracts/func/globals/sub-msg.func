@@ -1,0 +1,16 @@
+global int  msg::jetton_value;
+
+
+() msg::sub_init() impure inline {
+  throw_unless(error::invalid_address, std::equal_slices(msg::sender, c4::jetton_wallet));
+
+  slice payload = msg::body;
+
+  msg::jetton_value = payload~load_coins();
+  msg::sender = payload~load_msg_addr();
+  slice payload = ext::either_slice_ref(payload);
+  int msg::op = payload~load_uint(32);
+  msg::body = payload;
+
+  throw_unless(error::insufficient_jetton, msg::jetton_value > 0);
+}

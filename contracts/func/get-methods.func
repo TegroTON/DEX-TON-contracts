@@ -1,0 +1,68 @@
+
+;; GET-METHODS
+
+int initialized() method_id {
+  c4::init();
+
+  return ~ std::equal_slices(c4::jetton_wallet, std::addr_none()); ;; TODO fix addr none
+}
+
+
+(int, int, slice, cell, cell) get_jetton_data() method_id {
+  c4::init();
+
+  return (c4::lp_supply, -1, c4::admin, c4::lp_meta, c4::lp_code);
+}
+
+
+slice get_wallet_address(slice owner_address) method_id {
+  c4::init();
+
+  return calculate_user_jetton_wallet_address(owner_address, my_address(), c4::lp_code);
+}
+
+
+(int, int) get::reserves() method_id {
+  c4::init();
+
+  return (c4::left_reserve, c4::right_reserve);
+}
+
+
+(int, int) get::lp_share(int lp_amount) method_id {
+  c4::init();
+
+  int left_share  = (c4::left_reserve *  lp_amount) / c4::lp_supply;
+  int right_share = (c4::right_reserve * lp_amount) / c4::lp_supply;
+
+  return (left_share, right_share);
+}
+
+
+slice get::admin_address() method_id {
+  c4::init();
+
+  return c4::admin;
+}
+
+(slice, slice) get::pair_tokens() method_id {
+  if (null?(c4::init?)) { c4::init(); }
+  slice meta::slice = c4::lp_meta.begin_parse();
+  meta::slice~skip_bits(8);
+  cell meta::dict = meta::slice.preload_dict();
+
+  (slice s1, _) = meta::dict.udict_get?(256, 0xae2f402b5bb9a32b5306f9ceb578f30e46ad5719a27beea243ae1cf22652f634);
+  slice addr1 = s1.preload_ref().begin_parse();
+  addr1~skip_bits(8);
+  (slice s2, _) = meta::dict.udict_get?(256, 0xc0152f12bc5c339eaf36577e92516be86f21ada60004f84cea7b0b2e048f8678);
+  slice addr2 = s2.preload_ref().begin_parse();
+  addr2~skip_bits(8);
+
+  return (addr1, addr2);
+}
+
+(int) get::installed_gas_price() method_id {
+  if (null?(c4::init?)) { c4::init(); }
+
+  return cfg::gas_price;
+}

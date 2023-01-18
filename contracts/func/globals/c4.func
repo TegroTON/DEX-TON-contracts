@@ -1,0 +1,63 @@
+;; global variables
+
+{-
+meta_data#00 data:(HashMapE 256 ^Cell) = MetaData;
+
+storage#_ admin_address:MsgAddress jetton_wallet:MsgAddress
+          jetton_reserve:(VarUInteger 16) lp_supply:(VarUInteger 16)
+          lp_wallet_code:^Cell lp_meta_data:^MetaData
+          ^[ fee_distination:MsgAddress kLast:uint122 ] = Storage;
+-}
+
+global int    c4::left_reserve; ;; TON
+
+global slice  c4::admin;
+global slice  c4::jetton_wallet;
+global int    c4::right_reserve; ;; Jetton
+global int    c4::lp_supply;
+global int    cfg::gas_price;
+
+global slice  c4::fee_distination;
+global int    c4::kLast;
+
+global cell   c4::lp_code;
+global cell   c4::lp_meta;
+
+global int    c4::init?;
+
+
+() c4::init() impure inline {
+  c4::left_reserve = null?(msg::sender) ? std::my_balance() - cfg::tons_for_storage : msg::balance - msg::value - cfg::tons_for_storage;
+
+  slice ds = get_data().begin_parse();
+  c4::admin = ds~load_msg_addr();
+  c4::jetton_wallet = ds~load_msg_addr();
+  c4::right_reserve = ds~load_coins();
+  c4::lp_supply = ds~load_coins();
+  cfg::gas_price = ds~load_coins();
+  c4::lp_code = ds~load_ref();
+  c4::lp_meta = ds~load_ref();
+
+  slice ds2 = ds.preload_ref().begin_parse();
+  c4::fee_distination = ds2~load_msg_addr();
+  c4::kLast = ds2.preload_uint(256);
+
+  c4::init? = -1;
+}
+
+
+() c4::save() impure {
+  set_data(begin_cell()
+    .store_slice(c4::admin)
+    .store_slice(c4::jetton_wallet)
+    .store_coins(c4::right_reserve)
+    .store_coins(c4::lp_supply)
+    .store_coins(cfg::gas_price)
+    .store_ref(c4::lp_code)
+    .store_ref(c4::lp_meta)
+    .store_ref(begin_cell()
+      .store_slice(c4::fee_distination)
+      .store_uint(c4::kLast, 256)
+      .end_cell())
+    .end_cell());
+}

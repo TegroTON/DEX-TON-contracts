@@ -1,0 +1,8 @@
+#pragma version ^0.3.0;
+
+
+slice   std::addr_none() asm "b{00} PUSHSLICE";
+builder std::store_builder(builder b, builder b2) asm(b2 b) "STB";
+int     std::equal_slices (slice a, slice b) asm "SDEQ";
+int     std::my_balance() asm "BALANCE FIRST";
+

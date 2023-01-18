@@ -1,0 +1,7 @@
+#pragma version ^0.3.0;
+
+;; gas
+const int gas::mint_lp = 25000;
+const int gas::remove_lp = 25000;
+const int gas::swap_to_jetton = 15000;
+const int gas::swap_to_ton = 20000;

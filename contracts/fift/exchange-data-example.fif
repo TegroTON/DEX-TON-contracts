@@ -40,11 +40,20 @@
 { <b SNAKE_DATA_PREFIX 8 u, addr-none s, b> <b swap ref, b> <s } : addr-none-snake
 
 // LP metadata
-"TON-TEST LP token" $>snake =: name
-"TON-TEST LP" $>snake =: symbol
-addr-none-snake =: addr1 // addr_none if TON
-"kQDf-x3_O9p-HlY_uQbOl3CekmdgN_WDJxWrhlwWyqrpjtaV" $>Addr>snake =: addr2 // JETTON address
+"TON-oUSDС LP Token" $>snake =: name
+"TON-oUSDС LP" $>snake =: symbol
+"Tegro Finance liquidity token" $>snake =: description
 
+addr-none-snake =: addr1 // addr_none if TON
+// "EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE" $>Addr>snake =: addr2 // SCALE address
+// "EQDCJL0iQHofcBBvFBHdVG233Ri2V4kCNFgfRT-gqAd3Oc86" $>Addr>snake =: addr2 // FNZ address
+// "EQCcLAW537KnRg_aSPrnQJoyYjOZkzqYp6FVmRUvN1crSazV" $>Addr>snake =: addr2 // AMBR address
+// "EQC_1YoM8RBixN95lz7odcF3Vrkc_N8Ne7gQi7Abtlet_Efi" $>Addr>snake =: addr2 // oUSDT address
+"EQC61IQRl0_la95t27xhIpjxZt32vl1QQVF2UgTNuvD18W-4" $>Addr>snake =: addr2 // oUSDC address
+// "EQD0vdSA_NedR9uvbgN9EikRX-suesDxGeFg69XQMavfLqIw" $>Addr>snake =: addr2 // BOLT address
+// "EQAvDfWFG0oYX19jwNDNBBL1rKNT9XfaGP9HyTb5nb2Eml6y" $>Addr>snake =: addr2 // TEGRO address
+// "EQDCsMvPia693LNXuAqgJGjbCd0YgrXPhGnUhP9Oc6GbSKkL" $>Addr>snake =: addr2 // TEST12 address
+// "EQDf-x3_O9p-HlY_uQbOl3CekmdgN_WDJxWrhlwWyqrpjm0f" $>Addr>snake =: addr2 // Testcoin address
 variable dict#    dictnew dict# !
 
 // s x --
@@ -52,21 +61,20 @@ variable dict#    dictnew dict# !
 
 name name-sha256 write-to-dict
 symbol symbol-sha256 write-to-dict
+description description-sha256 write-to-dict
 addr1 addr1-sha256 write-to-dict
 addr2 addr2-sha256 write-to-dict
 
 <b ONCHAIN_CONTENT_PREFIX 8 u, dict# @ dict, b> =: lp-metadata
 
 // MAIN CELL
-"kQA3F4O8Si_JMjX0CU55XOwKbhJXh0PDbYsCX38_y4zW92rK" $>Addr>s =: admin-address
-"build/lp-wallet.fif" include =: lp-wallet-code
+"EQDHPHmSRa1Nr4bnMCHuKv-IQzonqoxdWLiXmeVT0L76NeTX" $>Addr>s =: admin-address
+// "EQBmO_7SDGd7WRZQ5UEx0f-pG1uheNRW8wKoOuxJf9bqW3OJ" $>Addr>s =: admin-address
+"build/jetton-wallet.fif" include =: lp-wallet-code
 
 <b
   admin-address s, // fee to
   0 256 u,
-  0 256 u,
-  0 40 u,
-  0 122 u,
 b>
 
 <b
@@ -74,7 +82,7 @@ b>
   addr-none s, // jetton wallet
   0 Gram, // jetton reserve
   0 Gram, // lp supply
-  0 Gram, // gas price
+  1000 Gram, // gas price
   lp-wallet-code ref,
   lp-metadata ref,
   swap ref,

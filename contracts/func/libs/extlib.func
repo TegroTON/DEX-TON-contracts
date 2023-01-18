@@ -1,0 +1,7 @@
+#pragma version ^0.3.0;
+
+
+int   ext::workchains_equal?(slice addr1, slice addr2) asm "REWRITESTDADDR DROP SWAP REWRITESTDADDR DROP EQUAL";
+slice ext::either_slice_ref(slice s) impure asm "1 LDU SWAP <{ PLDREF CTOS }>CONT IF";
+
+() c3::jump(int op) impure asm "c3 PUSH JMPX";

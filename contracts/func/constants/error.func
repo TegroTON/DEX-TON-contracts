@@ -1,0 +1,20 @@
+#pragma version ^0.3.0;
+
+;; error codes
+const int error::pool_is_not_init           = 400;
+const int error::invalid_address            = 410;
+const int error::insufficient_ton           = 420; ;; for fee
+const int error::insufficient_jetton        = 430; ;; fffffff internal jetton
+;; "response" messages to have an op with the high-order bit set, i.e., in the range 2^31 .. 2^32-1
+const int error::insufficient_left_amount   = 0xb135ad70;
+const int error::insufficient_right_amount  = 0xd1635ae2;
+const int error::insufficient_liquidity     = 0xcf7c0035;
+const int error::insufficient_slippage      = 0xc6d0084d;
+
+const int error::insufficient_lp_amount     = 440;
+;; const int error::insufficient_liquidity_mint = 434; ;; not used
+
+const int error::simple_transfer = 123;
+const int error::bounced_message = 1235;
+const int error::unsupported_op = 12313;
+const int error::unsupported_workchain = 12314;

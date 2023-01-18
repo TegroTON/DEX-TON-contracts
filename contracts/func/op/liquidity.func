@@ -1,0 +1,140 @@
+#pragma version ^0.3.0;
+
+
+() op::add_liquidity() impure method_id(0x287e167a) {
+  ;; TODO check fee
+  msg::value -= (fee::mint_lp() + msg::fwd_fee * 13 + fee::send_jetton + fee::send_lp * 2);
+
+  ;; TODO zero day path !important do try_buy_ton this for save jettons on insufficient tons
+
+  lp::init();
+
+
+  int lp::left_change = 0;
+  int lp::right_change = 0;
+  int lp::amount = 0;
+
+  if (c4::lp_supply == 0) { ;; or (right_reserve == 0) & (left_reserve == 0)
+    c4::lp_supply = cfg::minimum_liquidity;
+    lp::amount = math::sqrt(msg::value * msg::jetton_value) - c4::lp_supply;
+  } else {
+    int lp::right_optimal = amm::quote(msg::value, c4::left_reserve, c4::right_reserve);
+
+    if (lp::right_optimal <= msg::jetton_value) {
+      if (lp::right_optimal < lp::right_min) {
+        send::jettons&payload(
+                   c4::jetton_wallet,
+                  msg::sender,
+                  msg::value,
+                  msg::jetton_value,
+                error::insufficient_right_amount,
+                  null());
+;;         commit();
+;;         throw(error::insufficient_right_amount);
+        return ();
+      }
+
+      lp::right_change = msg::jetton_value - lp::right_optimal;
+      msg::jetton_value = lp::right_optimal;
+    } else {
+      int lp::left_optimal = amm::quote(msg::jetton_value, c4::right_reserve, c4::left_reserve);
+
+      if ((lp::left_optimal < lp::left_min) | (lp::left_optimal > msg::value)) {
+        send::jettons&payload(
+                   c4::jetton_wallet,
+                  msg::sender,
+                  msg::value,
+                  msg::jetton_value,
+                error::insufficient_left_amount,
+                  null());
+;;         commit();
+;;         throw(error::insufficient_left_amount);
+        return ();
+      }
+
+      lp::left_change = msg::value - lp::left_optimal;
+      msg::value = lp::left_optimal;
+    }
+
+    lp::amount = min(
+      (msg::value *        c4::lp_supply) / c4::left_reserve,
+      (msg::jetton_value * c4::lp_supply) / c4::right_reserve
+    );
+  }
+
+  ;; TODO(древнее): Is this throw_if necessary? -> Replace with bounce
+  ;; throw_if(error::insufficient_liquidity_mint(), liquidity <= 0);
+
+  if (lp::left_change | lp::right_change) {
+    send::jettons&payload(
+             c4::jetton_wallet,
+            msg::sender,
+             lp::left_change,
+             lp::right_change,
+             op::return_change,
+            null()); ;; return change
+  }
+
+  ;; ебучий порядок
+  lp::mint_fee();
+
+  c4::left_reserve += msg::value;
+  c4::right_reserve += msg::jetton_value;
+
+  c4::kLast = c4::left_reserve * c4::right_reserve;
+  ;; ↑ этих строк
+
+  lp::mint(lp::amount, msg::sender);
+  c4::save();
+}
+
+{-
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+-}
+
+() op::remove_liquidity() impure method_id(0x7bdd97de) {
+  slice          payload = msg::body;
+  int         lp::amount = payload~load_coins();
+  slice      lp::address = payload~load_msg_addr();
+  slice response_address = payload~load_msg_addr();
+
+  lp::force_address(lp::address);
+  lp::force_amount(lp::amount);
+
+
+
+  int    ton_share = (c4::left_reserve *  lp::amount) / c4::lp_supply;
+  int jetton_share = (c4::right_reserve * lp::amount) / c4::lp_supply;
+
+  ;; ебучий порядок
+  lp::mint_fee();
+
+  c4::left_reserve -= ton_share;
+  c4::right_reserve -= jetton_share;
+
+  c4::kLast = c4::left_reserve * c4::right_reserve;
+  ;; ↑ этих строк
+
+  ;; TODO maybe zero day path: try_buy_ton for gas and fwd_fee
+
+
+  c4::lp_supply -= lp::amount;
+
+  send::jettons&payload(
+         c4::jetton_wallet,
+         lp::address,
+         ton_share,
+         jetton_share,
+         op::successful_withdrawal,
+        null()); ;; return change
+
+  raw_reserve(msg::balance - max(msg::value - fee::send_jetton - fee::remove_lp() - msg::fwd_fee * 4 + ton_share, 0), 0);
+
+  builder msg_body = begin_cell()
+    .store_uint(op::excesses, 32)
+    .store_uint(msg::query_id, 64);
+  send::tons(response_address, 0, msg_body, 2 + 128);
+  c4::save();
+}
