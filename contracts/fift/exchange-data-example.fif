@@ -34,7 +34,7 @@
 { $>s shash 256 B>u@ } : $>u256
 
 // -- s
-{ <b 0 8 u, b> <s } : addr-none
+{ <b 0 2 u, b> <s } : addr-none
 
 // -- s
 { <b SNAKE_DATA_PREFIX 8 u, addr-none s, b> <b swap ref, b> <s } : addr-none-snake
