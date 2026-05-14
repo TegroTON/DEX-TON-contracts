@@ -1,3 +1,11 @@
+> **Legacy 2022 code — archived for historical reference.**
+>
+> This repository is preserved for educational and reference purposes only. The code is not maintained and not deployed in production.
+>
+> For the current generation of the Tegro DEX, please visit [v2.tegro.finance](https://v2.tegro.finance).
+
+---
+
 # DEX on TON: Advanced Backend Services and Smart-Contract Framework
 
 ## Extensive Repository Overview
