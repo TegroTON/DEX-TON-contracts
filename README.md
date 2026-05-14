@@ -1,11 +1,3 @@
-> **Note — Legacy 2022 code, archived for historical reference.**
->
-> The contracts in this repository are **not deployed in any production system**. Any vulnerabilities found here (including debug or admin functions) do not affect live contracts. This code is preserved for archival purposes only.
->
-> The current Libermall DEX stack is based on a ston.fi fork maintained in a private repository. For production-related questions please use the active repositories of the [TegroTON](https://github.com/TegroTON) organization.
-
----
-
 # DEX on TON: Advanced Backend Services and Smart-Contract Framework
 
 ## Extensive Repository Overview
